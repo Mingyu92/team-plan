@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11月—5月 团队计划</title>
+<style>
+  :root{
+    --ink:#1f2430;
+    --navy:#1B3A63;
+    --orange:#D96B3C;
+    --cream:#FAF7F0;
+    --paper:#ffffff;
+    --line:#d8d3c8;
+    --muted:#7b7a76;
+    --yellow:#FBE95A;
+    --blue:#4e83fd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--cream);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1320px;margin:0 auto;padding:52px 56px 72px;}
+
+  header{border-bottom:2px solid var(--navy);padding-bottom:22px;margin-bottom:38px;}
+  .kicker{font-size:13px;letter-spacing:.18em;color:var(--orange);font-weight:600;margin-bottom:10px;}
+  h1{font-size:40px;line-height:1.25;margin:0 0 12px;font-weight:700;color:var(--navy);letter-spacing:.01em;}
+  h1 em{font-style:normal;color:var(--orange);}
+  .lede{font-size:15px;color:#4a4f5a;max-width:820px;margin:0;}
+  .lede b{color:var(--navy);}
+
+  .top{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:44px;align-items:start;}
+  .panel-title{font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:600;margin:0 0 18px;}
+
+  .chart{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:30px 26px 24px;}
+  #orgchart{display:block;width:100%;max-width:780px;margin:0 auto;}
+
+  .loose{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .loose-label{font-size:12px;color:var(--muted);letter-spacing:.06em;}
+  .chip{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;
+        background:#fff;border:1.2px solid #bfc3c8;font-size:12px;font-weight:600;color:#3a3f47;}
+  .loose .sig{font-size:11.5px;color:#9a9a94;}
+
+  aside .note-block{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--orange);padding:18px 20px;margin-bottom:16px;border-radius:2px;}
+  aside h3{font-size:14px;margin:0 0 10px;color:var(--navy);letter-spacing:.04em;}
+  aside p{margin:0 0 8px;font-size:13.5px;color:#43484f;line-height:1.75;}
+  aside p:last-child{margin-bottom:0;}
+  aside b{color:var(--navy);}
+  .split{display:flex;flex-direction:column;gap:7px;margin-top:4px;}
+  .split-row{display:flex;align-items:center;gap:10px;font-size:13px;}
+  .bar{height:8px;border-radius:2px;background:var(--navy);}
+  .split-row:nth-child(1) .bar{width:37.5%;}
+  .split-row:nth-child(2) .bar{width:50%;}
+  .split-row:nth-child(3) .bar{width:12.5%;background:var(--orange);}
+  .split-row span:first-child{width:44px;color:var(--muted);}
+  .split-row span:last-child{font-variant-numeric:tabular-nums;color:var(--navy);font-weight:600;}
+  .todo{background:#fffaf3;border:1px solid #eddcc8;border-left:3px solid var(--orange);}
+  .todo ol{margin:6px 0 0;padding-left:18px;font-size:13px;color:#4a4f5a;line-height:1.85;}
+
+  section{margin-top:56px;}
+  .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:24px;flex-wrap:wrap;}
+  .sec-head h2{font-size:20px;margin:0;color:var(--navy);font-weight:700;letter-spacing:.02em;}
+  .sec-head span{font-size:12px;color:var(--muted);letter-spacing:.06em;}
+
+  /* ---------- 时间轴 ---------- */
+  .pre-note{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:2px;padding:6px 12px;font-size:12.5px;color:#4a4f5a;margin-bottom:26px;}
+  .pre-note b{color:var(--orange);}
+
+  .axis{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding-top:38px;}
+  .axis::before{content:"";position:absolute;top:14px;left:8%;right:8%;height:2px;background:var(--navy);opacity:.18;}
+  .stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 22px 18px;}
+  .stage::before{content:"";position:absolute;top:-32px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--navy);}
+  .stage.now::before{background:var(--orange);}
+  .st-date{font-size:26px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.05;}
+  .st-place{font-size:13px;color:var(--orange);font-weight:600;margin:4px 0 2px;letter-spacing:.06em;}
+  .st-size{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+  .st-size b{color:var(--navy);font-size:15px;}
+  .ticks{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px;}
+  .tick{
+    width:30px;height:30px;border-radius:50%;border:1.5px solid #d5cfc0;background:#fff;
+    cursor:pointer;font-size:15px;line-height:1;color:transparent;
+    display:flex;align-items:center;justify-content:center;padding:0;
+    transition:background .12s,border-color .12s,color .12s;
+  }
+  .tick:hover{border-color:var(--orange);}
+  .tick.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .tick-label{font-size:11.5px;color:var(--muted);letter-spacing:.04em;}
+  .st-total{font-size:12px;color:var(--muted);border-top:1px dotted var(--line);padding-top:9px;}
+  .st-total b{color:var(--navy);font-variant-numeric:tabular-nums;}
+
+  /* ---------- 表格 ---------- */
+  table{border-collapse:collapse;width:100%;background:var(--paper);font-size:13.5px;}
+  caption{caption-side:top;text-align:left;font-size:12px;color:var(--muted);padding-bottom:10px;}
+  th,td{border:1px solid var(--line);padding:10px 12px;text-align:center;}
+  th{background:#f2eee4;color:var(--navy);font-weight:600;font-size:13px;letter-spacing:.04em;}
+  .th-sub{font-weight:400;color:var(--muted);font-size:11px;letter-spacing:.04em;}
+  .cell-note{font-weight:400;font-size:10.5px;color:var(--muted);}
+  td.who{text-align:left;font-weight:600;color:var(--navy);background:#faf8f2;white-space:nowrap;}
+  td.num{font-variant-numeric:tabular-nums;font-weight:600;color:#2f3540;}
+  tr.total td{background:#f7f3ea;font-weight:700;color:var(--navy);border-top:2px solid var(--navy);}
+  .empty{color:#c8c3b6;}
+  .tbl-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.8;}
+  .tbl-note b{color:var(--orange);}
+
+  /* ---------- 每天跟踪 ---------- */
+  .track-wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:26px;align-items:start;}
+  .track-card{background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 24px;}
+  .track-card h3{margin:0 0 4px;font-size:15px;color:var(--navy);}
+  .track-card .hint{font-size:12px;color:var(--muted);margin:0 0 16px;}
+  table.track{font-size:12.5px;}
+  table.track th{padding:8px 6px;font-size:11.5px;}
+  table.track td{padding:0;border-color:#e7e2d6;}
+  table.track td.item{text-align:left;padding:11px 12px;font-size:13px;color:#3c414a;white-space:nowrap;background:#fbfaf6;}
+  table.track td.today-col{background:#fff8ee;}
+  .cell-btn{width:100%;height:42px;border:0;background:transparent;cursor:pointer;position:relative;}
+  .cell-btn::after{
+    content:"";position:absolute;left:50%;top:50%;width:15px;height:15px;margin:-9px 0 0 -9px;
+    border:1.5px solid #cfc9bc;border-radius:3px;
+  }
+  .cell-btn.on::after{
+    background:var(--orange);border-color:var(--orange);box-shadow:inset 0 0 0 2px #fff;
+  }
+  .cell-btn:hover::after{border-color:var(--orange);}
+  .done-bar{margin-top:16px;}
+  .done-bar .label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  .done-bar .label b{color:var(--navy);}
+  .track-note{font-size:11.5px;color:#9a9a94;margin-top:12px;line-height:1.7;}
+
+  .counters{display:flex;flex-direction:column;gap:14px;}
+  .counter{display:flex;align-items:center;gap:12px;}
+  .counter .name{width:118px;font-size:13px;color:#3c414a;flex:0 0 auto;}
+  .mini-bar{flex:1;height:8px;background:#eee9dd;border-radius:2px;overflow:hidden;min-width:40px;}
+  .mini-bar i{display:block;height:100%;background:var(--navy);width:0;transition:width .15s;}
+  .counter .val{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;width:52px;text-align:right;flex:0 0 auto;}
+  .step{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);
+        font-size:14px;line-height:1;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0;}
+  .step:hover{border-color:var(--orange);color:var(--orange);}
+
+  footer{margin-top:60px;border-top:1px solid var(--line);padding-top:16px;font-size:12px;color:var(--muted);line-height:1.9;}
+
+  @media (max-width:1100px){
+    .page{padding:32px 20px 56px;}
+    .top,.track-wrap{grid-template-columns:1fr;}
+    .axis{grid-template-columns:1fr;padding-top:0;}
+    .axis::before{display:none;}
+    .stage::before{display:none;}
+    h1{font-size:28px;}
+    table.track td.item{white-space:normal;}
+  }
+  @media print{
+    body{background:#fff;}
+    .page{max-width:none;padding:14mm;}
+    section{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="kicker">11 月 — 次年 5 月 · 团队计划</div>
+    <h1>团队结构：<em>20 人 → 25 人 → 30 人</em></h1>
+    <p class="lede">
+      一条主线（诗媛 · B 阶段 · <b>1600pv</b>）带三条线：宇茹 600pv、秀清 800pv、小玲 200pv。
+      打勾的圈是已经进来的，蓝圈是新进还没打勾的。
+    </p>
+  </header>
+
+  <div class="top">
+
+    <div>
+      <p class="panel-title">团队结构图</p>
+      <div class="chart">
+        <svg id="orgchart" xmlns="http://www.w3.org/2000/svg"></svg>
+
+        <div class="loose">
+          <span class="loose-label">没连线的：</span>
+          <span class="chip">小吴 ✔</span>
+          <span class="chip">喻燕 ✔</span>
+          <span class="sig">白板上是独立两个圈，没挂到任何人下面</span>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <p class="panel-title">旁边备注</p>
+
+      <div class="note-block">
+        <h3>盘面怎么分</h3>
+        <p>1600pv 拆成三份，三份加起来正好是总盘：</p>
+        <div class="split">
+          <div class="split-row"><span>宇茹</span><div class="bar"></div><span>600pv</span></div>
+          <div class="split-row"><span>秀清</span><div class="bar"></div><span>800pv</span></div>
+          <div class="split-row"><span>小玲</span><div class="bar"></div><span>200pv</span></div>
+        </div>
+      </div>
+
+      <div class="note-block">
+        <h3>人数怎么对上</h3>
+        <p>诗媛 1 人 ＋ 宇茹线 7 人 ＋ 秀清线 8 人 ＋ 小玲线 4 人 ＝ <b>20 人</b>，和文档里「12.20 团队 20 个人」正好对上。</p>
+        <p>秀清线里画了名字的是 6 个，剩下 2 个没画；小玲线下面 4 个人没画名字。</p>
+      </div>
+
+      <div class="note-block">
+        <h3>圈的颜色</h3>
+        <p><b>黄圈 ✔</b>：已经进来的伙伴。<br>
+           <b>蓝圈</b>：洋洋、吴思宇 —— 新进，还没打勾。</p>
+      </div>
+
+      <div class="note-block todo">
+        <h3>还想跟你确认</h3>
+        <ol>
+          <li>白板上有<b>两个「艳艳」</b>（宇茹线一个、秀清线一个），是同一个人被放了两次，还是真的两位同名？</li>
+          <li>小玲线下面 4 个人，白板上没写名字，我只留了「下面 4 个人」这个备注，要不要把名字补进来？</li>
+        </ol>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 时间轴 -->
+  <section>
+    <div class="sec-head"><h2>时间节点</h2><span>三次大会 · 每段加 5 个人 · 来一个人点一个孔</span></div>
+    <div class="pre-note"><b>先多买票 14 张，必须搞定人</b>　—　票先买下来，人才有位置坐</div>
+
+    <div class="axis">
+      <div class="stage now" data-stage="bali">
+        <div class="st-date">12.20</div>
+        <div class="st-place">巴厘岛</div>
+        <div class="st-size">目标团队 <b>20</b> 人 · 本段新增 5 人</div>
+        <div class="ticks" id="ticks-bali"></div>
+        <div class="st-total">已到 <b>0</b> / 5　·　达标基础骨干</div>
+      </div>
+      <div class="stage" data-stage="nanchang">
+        <div class="st-date">3.6</div>
+        <div class="st-place">南昌大会</div>
+        <div class="st-size">目标团队 <b>25</b> 人 · 本段新增 5 人</div>
+        <div class="ticks" id="ticks-nanchang"></div>
+        <div class="st-total">已到 <b>0</b> / 5</div>
+      </div>
+      <div class="stage" data-stage="nanjing">
+        <div class="st-date">5.25</div>
+        <div class="st-place">南京大会</div>
+        <div class="st-size">目标团队 <b>30</b> 人 · 本段新增 5 人</div>
+        <div class="ticks" id="ticks-nanjing"></div>
+        <div class="st-total">已到 <b>0</b> / 5</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 每月新增人数 -->
+  <section>
+    <div class="sec-head"><h2>每月新增人数</h2><span>11 月到 5 月共 7 个月 · 每个括号是这一段的合计</span></div>
+    <table>
+      <caption>横着读：一个人在这一段里一共要带进来几个。空着的是这一段不用加人。</caption>
+      <thead>
+        <tr>
+          <th style="width:96px;">谁</th>
+          <th>11 月</th><th>12 月</th><th>1 月</th><th>2 月</th><th>3 月</th><th>4 月</th><th>5 月</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th colspan="2" class="th-sub">12.20 前</th>
+          <th colspan="3" class="th-sub">3.6 前</th>
+          <th colspan="2" class="th-sub">5.25 前</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="who">诗媛</td><td colspan="2" class="num">+2</td><td colspan="3" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
+        <tr><td class="who">洋洋</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="empty">—</td></tr>
+        <tr><td class="who">思宇</td><td colspan="5" class="num">+1<span class="cell-note">（跨 11 月–3 月，只算一次）</span></td><td colspan="2" class="num">+1</td></tr>
+        <tr><td class="who">林慧</td><td colspan="2" class="empty">—</td><td colspan="3" class="empty">—</td><td colspan="2" class="empty">—</td></tr>
+        <tr><td class="who">乐妍</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="num">+1</td></tr>
+        <tr><td class="who">小玲</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="num">+1</td></tr>
+        <tr class="total"><td class="who">合计</td><td colspan="2" class="num">+5</td><td colspan="3" class="num">+5</td><td colspan="2" class="num">+4</td></tr>
+      </tbody>
+    </table>
+    <p class="tbl-note">
+      说明：思宇那一栏在白板上是跨 11 月到 3 月的一个长括号，一次 +1，所以算在中间那一段。<br>
+      按手写的数加起来：第一段 5 人、第二段 5 人、第三段 <b>4 人 —— 比目标少 1 个</b>，要么补一个人，要么把某人的 +1 往前挪。
+    </p>
+  </section>
+
+  <!-- 每天跟踪 -->
+  <section>
+    <div class="sec-head"><h2>每天跟踪</h2><span>做了就点一下 · 自动记进这台设备 · 右边是效果</span></div>
+
+    <div class="track-wrap">
+      <div class="track-card">
+        <h3>每天要做的事</h3>
+        <p class="hint">点格子＝那天做了。今天那列会高亮，昨天的也还能补。</p>
+        <table class="track">
+          <thead>
+            <tr>
+              <th style="width:190px;">做什么</th>
+              <th colspan="6" class="th-sub">过去 6 天</th>
+              <th colspan="1">今天</th>
+            </tr>
+          </thead>
+          <tbody id="track-body"></tbody>
+        </table>
+        <div class="done-bar">
+          <div class="label"><span>今天完成</span><b id="done-text">0 / 4</b></div>
+          <div class="mini-bar"><i id="done-fill"></i></div>
+        </div>
+        <p class="track-note">
+          打勾就存在浏览器本地（localStorage），关掉页面、第二天打开都还在；换电脑或换浏览器不会同步，清缓存会清掉。
+        </p>
+      </div>
+
+      <div class="track-card">
+        <h3>每月的量</h3>
+        <p class="hint">点 + − 加减，进度条会跟着走。</p>
+        <div class="counters" id="counters"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 成长点 -->
+  <section>
+    <div class="sec-head"><h2>想要成长的点</h2><span>文档里的思维导图，原样搬过来</span></div>
+    <div class="grow" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;">
+      <div class="track-card">
+        <h3>个人工作量</h3>
+        <p class="hint">目标：保持个人工作量 · 每月 8mg1</p>
+        <ul style="margin:0;padding-left:16px;font-size:13.5px;color:#43484f;line-height:1.85;">
+          <li><b style="color:var(--navy)">每天 10 个 buffer</b>，线上 + 线下都行
+            <ul style="padding-left:14px;color:#565b63;font-size:13px;"><li>只要旁边有人，都跟他做个对话，看能不能加微信</li></ul>
+          </li>
+          <li><b style="color:var(--navy)">每天复盘</b>：学会反思
+            <ul style="padding-left:14px;color:#565b63;font-size:13px;">
+              <li>复盘自己做得怎么样，高不高效</li>
+              <li>复盘怎么帮伙伴简化内容，做得更高效</li>
+            </ul>
+          </li>
+          <li><b style="color:var(--navy)">营业额</b>：每月 40 个健康对话，8 个推链接</li>
+        </ul>
+      </div>
+      <div class="track-card">
+        <h3>个人成长</h3>
+        <p class="hint">目标：懂得领导力是什么</p>
+        <ul style="margin:0;padding-left:16px;font-size:13.5px;color:#43484f;line-height:1.85;">
+          <li><b style="color:var(--navy)">领导力的书，每月两本</b></li>
+          <li><b style="color:var(--navy)">线下对话能力</b>：能更自信，像新加坡团队一样的自信</li>
+        </ul>
+      </div>
+      <div class="track-card">
+        <h3>帮助团队</h3>
+        <p class="hint">目标：把伙伴推到 B 阶段</p>
+        <ul style="margin:0;padding-left:16px;font-size:13.5px;color:#43484f;line-height:1.85;">
+          <li>帮她们到 <b style="color:var(--navy)">B 阶段</b>，重点帮 <b style="color:var(--navy)">乐妍、小玲、？</b>（第三个还没定）</li>
+          <li>帮伙伴<b style="color:var(--navy)">简化对话和会面</b></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    内容来自飞书文档「11—5月计划」里的白板、文字和手写照片，数字照原样，没有替你改。<br>
+    打勾的记录只存在这台设备这个浏览器里；要跨设备看，得接后端或者飞书。
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  /* ---------------- 团队结构图 ---------------- */
+  var tree = {
+    name:'诗媛', sub:'B 阶段 ✔', cls:'root', top:'1600pv',
+    children:[
+      { name:'宇茹', check:true, top:'600pv', side:'线内 7 人', children:[
+        { name:'嫣岚', check:true, side:'6 个人', children:[
+          { name:'雯婷', check:true, children:[
+            { name:'钱浩栋', check:true, children:[
+              { name:'夏天', check:true, children:[ { name:'夏丽' } ]}
+            ]},
+            { name:'艳艳', check:true }
+          ]}
+        ]}
+      ]},
+      { name:'秀清', check:true, top:'800pv', side:'8 个人', children:[
+        { name:'洋洋', check:true, cls:'blue', children:[
+          { name:'吴思宇', check:true, cls:'blue', children:[
+            { name:'林慧6', check:true, children:[
+              { name:'艳艳', check:true, children:[
+                { name:'乐妍', cls:'yellow' }
+              ]}
+            ]}
+          ]}
+        ]}
+      ]},
+      { name:'小玲', check:true, top:'200pv', side:'下面 4 个人' }
+    ]
+  };
+
+  var R = 37, GAP = 112, BRANCH_GAP = 84, PAD = 60;
+  var LEVELS = [0];
+  for(var i=1;i<=8;i++){ LEVELS.push(i===1 ? 152 : 152 + (i-1)*108); }
+  var cursor = 0;
+
+  function layout(node, depth){
+    node.depth = depth;
+    if(!node.children || !node.children.length){
+      node.x = cursor; cursor += GAP;
+    } else {
+      node.children.forEach(function(c){ layout(c, depth+1); });
+      node.x = (node.children[0].x + node.children[node.children.length-1].x) / 2;
+    }
+  }
+  tree.children.forEach(function(b, i){
+    layout(b, 1);
+    if(i < tree.children.length - 1) cursor += BRANCH_GAP;
+  });
+  tree.depth = 0;
+  tree.x = (tree.children[0].x + tree.children[tree.children.length-1].x) / 2;
+
+  var minX = Infinity, maxX = -Infinity, maxDepth = 0;
+  (function walk(n){
+    minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x);
+    maxDepth = Math.max(maxDepth, n.depth);
+    (n.children||[]).forEach(walk);
+  })(tree);
+
+  var width  = maxX - minX + R*2 + PAD*2;
+  var height = LEVELS[maxDepth] + R*2 + PAD*2 + 16;
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('orgchart');
+  svg.setAttribute('viewBox', '0 0 '+width+' '+height);
+
+  function X(n){ return n.x - minX + R + PAD; }
+  function Y(n){ return LEVELS[n.depth] + R + PAD; }
+
+  (function links(n){
+    if(!n.children) return;
+    n.children.forEach(function(c){
+      var x1 = X(n), y1 = Y(n) + R, x2 = X(c), y2 = Y(c) - R, my = (y1 + y2)/2;
+      var p = document.createElementNS(NS,'path');
+      p.setAttribute('d','M'+x1+','+y1+' L'+x1+','+my+' L'+x2+','+my+' L'+x2+','+y2);
+      p.setAttribute('fill','none');
+      p.setAttribute('stroke','#cfc9bc');
+      p.setAttribute('stroke-width','1.4');
+      svg.appendChild(p);
+      links(c);
+    });
+  })(tree);
+
+  function txt(x,y,str,opts){
+    var t = document.createElementNS(NS,'text');
+    t.setAttribute('x',x); t.setAttribute('y',y);
+    t.setAttribute('text-anchor', opts.anchor || 'middle');
+    t.setAttribute('font-size', opts.size || '13');
+    t.setAttribute('fill', opts.fill || '#2a2a20');
+    if(opts.weight) t.setAttribute('font-weight', opts.weight);
+    if(opts.spacing) t.setAttribute('letter-spacing', opts.spacing);
+    t.setAttribute('font-family','"PingFang SC","Microsoft YaHei",sans-serif');
+    t.textContent = str;
+    return t;
+  }
+
+  function drawNode(n){
+    var x = X(n), y = Y(n);
+    var fill='#FBE95A', stroke='#dfce35', color='#2a2a20';
+    if(n.cls==='blue'){ fill='#4e83fd'; stroke='#3a6fdc'; color='#fff'; }
+    if(n.cls==='root'){ fill='#1B3A63'; stroke='#1B3A63'; color='#fff'; }
+
+    var c = document.createElementNS(NS,'circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',R);
+    c.setAttribute('fill',fill); c.setAttribute('stroke',stroke); c.setAttribute('stroke-width','1.2');
+    svg.appendChild(c);
+
+    var label = n.name + (n.check && n.cls!=='root' ? ' ✔' : '');
+    var nameY = n.sub ? y-2 : y+5;
+    if(n.cls==='root') nameY = y - 6;
+    svg.appendChild(txt(x, nameY, label, {size: n.name.length>3 ? '11.5':'13.5', weight:'600', fill:color}));
+
+    if(n.sub){
+      svg.appendChild(txt(x, n.cls==='root' ? y+13 : y+12, n.sub,
+        {size:'10', fill: n.cls==='root' ? 'rgba(255,255,255,.8)' : '#6b7076'}));
+    }
+    if(n.top){
+      var tv = txt(x, y-R-11, n.top, {size:'11', weight:'700', spacing:'0.06em',
+        fill: n.cls==='root' ? '#D96B3C' : '#8a8375'});
+      svg.appendChild(tv);
+      var bb = tv.getBBox();
+      var bg = document.createElementNS(NS,'rect');
+      bg.setAttribute('x', bb.x - 4); bg.setAttribute('y', bb.y - 1);
+      bg.setAttribute('width', bb.width + 8); bg.setAttribute('height', bb.height + 2);
+      bg.setAttribute('fill', '#ffffff');
+      svg.insertBefore(bg, tv);
+    }
+    if(n.side){
+      svg.appendChild(txt(x-R-11, y+4, n.side, {size:'11', anchor:'end', fill:'#8a8375'}));
+    }
+    if(n.children) n.children.forEach(drawNode);
+  }
+  drawNode(tree);
+
+  /* ---------------- 本地存储 ---------------- */
+  var KEY = 'sy-team-plan-v1';
+  var store = {};
+  try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ store = {}; }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} }
+
+  /* ---------------- 时间轴的 5 个孔 ---------------- */
+  var stages = [
+    { id:'bali',     ticks:5 },
+    { id:'nanchang', ticks:5 },
+    { id:'nanjing',  ticks:5 }
+  ];
+  stages.forEach(function(s){
+    var box = document.getElementById('ticks-' + s.id);
+    for(var i=0;i<s.ticks;i++){
+      (function(i){
+        var b = document.createElement('button');
+        b.className = 'tick';
+        b.type = 'button';
+        b.textContent = '✔';
+        b.setAttribute('aria-label','第 ' + (i+1) + ' 个');
+        b.dataset.key = 'tick-' + s.id + '-' + i;
+        if(store[b.dataset.key]) b.classList.add('on');
+        b.addEventListener('click', function(){
+          b.classList.toggle('on');
+          store[b.dataset.key] = b.classList.contains('on');
+          save(); updateStage();
+        });
+        box.appendChild(b);
+      })(i);
+    }
+    var lab = document.createElement('span');
+    lab.className = 'tick-label';
+    lab.textContent = '来一个点一个';
+    box.appendChild(lab);
+  });
+  function updateStage(){
+    stages.forEach(function(s){
+      var n = document.querySelectorAll('#ticks-' + s.id + ' .tick.on').length;
+      var total = document.querySelector('.stage[data-stage="' + s.id + '"] .st-total b');
+      if(total) total.textContent = n;
+    });
+  }
+  updateStage();
+
+  /* ---------------- 每天跟踪 ---------------- */
+  var DAILY = [
+    '10 个 buffer（线上+线下）',
+    '跟旁边的人做对话 / 加微信',
+    '复盘：自己做得怎么样',
+    '复盘：怎么帮伙伴简化'
+  ];
+  function ymd(d){
+    var m = ('0'+(d.getMonth()+1)).slice(-2), day = ('0'+d.getDate()).slice(-2);
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+  var days = [];
+  for(var k=6;k>=0;k--){
+    var d = new Date(); d.setDate(d.getDate()-k);
+    days.push({ key: ymd(d), label: (d.getMonth()+1)+'/'+d.getDate(), today: k===0 });
+  }
+
+  var thead = document.querySelector('table.track thead tr');
+  // 生成日期表头
+  var headRow = document.querySelector('table.track thead');
+  headRow.innerHTML = '<tr><th style="width:190px;">做什么</th>' +
+    days.map(function(d){ return '<th class="'+(d.today?'today-col':'')+'">'+d.label+(d.today?'<br><span class="th-sub">今天</span>':'')+'</th>'; }).join('') +
+    '</tr>';
+
+  var body = document.getElementById('track-body');
+  DAILY.forEach(function(name, rowIdx){
+    var tr = document.createElement('tr');
+    var td0 = document.createElement('td');
+    td0.className = 'item';
+    td0.textContent = name;
+    tr.appendChild(td0);
+
+    days.forEach(function(d){
+      var td = document.createElement('td');
+      if(d.today) td.className = 'today-col';
+      var b = document.createElement('button');
+      b.className = 'cell-btn';
+      b.type = 'button';
+      b.dataset.key = 'd-' + d.key + '-' + rowIdx;
+      if(store[b.dataset.key]) b.classList.add('on');
+      b.setAttribute('aria-label', name + ' ' + d.key);
+      b.addEventListener('click', function(){
+        b.classList.toggle('on');
+        store[b.dataset.key] = b.classList.contains('on');
+        save(); updateDone();
+      });
+      td.appendChild(b);
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  function updateDone(){
+    var done = 0;
+    for(var r=0;r<DAILY.length;r++){ if(store['d-' + days[6].key + '-' + r]) done++; }
+    document.getElementById('done-text').textContent = done + ' / ' + DAILY.length;
+    document.getElementById('done-fill').style.width = Math.round(done / DAILY.length * 100) + '%';
+  }
+  updateDone();
+
+  /* ---------------- 每月计数 ---------------- */
+  var COUNTERS = [
+    { key:'talk',  name:'健康对话', goal:40, unit:'' },
+    { key:'link',  name:'推链接',   goal:8,  unit:'' },
+    { key:'book',  name:'领导力的书', goal:2, unit:'本' }
+  ];
+  var cbox = document.getElementById('counters');
+  COUNTERS.forEach(function(c){
+    var wrap = document.createElement('div');
+    wrap.className = 'counter';
+    wrap.innerHTML =
+      '<span class="name">' + c.name + '</span>' +
+      '<button class="step" type="button" data-act="minus">−</button>' +
+      '<div class="mini-bar"><i></i></div>' +
+      '<span class="val">0 / ' + c.goal + c.unit + '</span>' +
+      '<button class="step" type="button" data-act="plus">+</button>';
+    cbox.appendChild(wrap);
+
+    var fill = wrap.querySelector('.mini-bar i');
+    var valEl = wrap.querySelector('.val');
+    function render(){
+      var v = store['c-' + c.key] || 0;
+      fill.style.width = Math.min(100, Math.round(v / c.goal * 100)) + '%';
+      valEl.textContent = v + ' / ' + c.goal + c.unit;
+    }
+    wrap.querySelector('[data-act="plus"]').addEventListener('click', function(){
+      store['c-' + c.key] = Math.min(999, (store['c-' + c.key] || 0) + 1); save(); render();
+    });
+    wrap.querySelector('[data-act="minus"]').addEventListener('click', function(){
+      store['c-' + c.key] = Math.max(0, (store['c-' + c.key] || 0) - 1); save(); render();
+    });
+    render();
+  });
+})();
+</script>
+</body>
+</html>
