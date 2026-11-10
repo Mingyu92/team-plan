@@ -11,7 +11,7 @@
     --orange:#D96B3C;
     --cream:#FAF7F0;
     --paper:#ffffff;
-    --line:#d8d3c8;
+    --line:#ded9cd;
     --muted:#7b7a76;
     --yellow:#FBE95A;
     --blue:#4e83fd;
@@ -22,82 +22,64 @@
     font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
     font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
   }
-  .page{max-width:1320px;margin:0 auto;padding:52px 56px 72px;}
+  .page{max-width:1240px;margin:0 auto;padding:48px 44px 64px;}
 
-  header{border-bottom:2px solid var(--navy);padding-bottom:22px;margin-bottom:38px;}
-  .kicker{font-size:13px;letter-spacing:.18em;color:var(--orange);font-weight:600;margin-bottom:10px;}
-  h1{font-size:40px;line-height:1.25;margin:0 0 12px;font-weight:700;color:var(--navy);letter-spacing:.01em;}
+  header{border-bottom:2px solid var(--navy);padding-bottom:20px;margin-bottom:34px;}
+  .kicker{font-size:12.5px;letter-spacing:.2em;color:var(--orange);font-weight:600;margin-bottom:8px;}
+  h1{font-size:38px;line-height:1.22;margin:0;font-weight:700;color:var(--navy);letter-spacing:.01em;}
   h1 em{font-style:normal;color:var(--orange);}
-  .lede{font-size:15px;color:#4a4f5a;max-width:820px;margin:0;}
-  .lede b{color:var(--navy);}
 
-  .top{display:block;}
-  .panel-title{font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:600;margin:0 0 18px;}
+  section{margin-top:52px;}
+  .sec-head{border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:22px;}
+  .sec-head h2{font-size:19px;margin:0;color:var(--navy);font-weight:700;letter-spacing:.03em;}
 
-  .chart{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:28px 24px 22px;}
-  #orgchart{display:block;width:100%;max-width:900px;margin:0 auto;}
+  /* 上半区：结构图 + 买票清单 */
+  .top{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:26px;align-items:start;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:6px;}
+  .chart{padding:18px 16px 12px;}
+  #orgchart{display:block;width:100%;max-width:620px;margin:0 auto;}
   #orgchart circle.node{cursor:pointer;}
-  #orgchart circle.node:hover{stroke:var(--orange);stroke-width:2.5;}
+  #orgchart circle.node:hover{stroke:var(--orange);stroke-width:3;}
 
-  .chart-hint{text-align:center;font-size:12.5px;color:var(--orange);margin:14px 0 0;letter-spacing:.04em;}
-
-  .loose{margin-top:16px;border-top:1px dashed var(--line);padding-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .loose-label{font-size:12px;color:var(--muted);letter-spacing:.06em;}
-  .chip{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;
-        background:#fff;border:1.2px solid #bfc3c8;font-size:12px;font-weight:600;color:#3a3f47;cursor:pointer;}
+  .loose{display:flex;align-items:center;gap:10px;padding:12px 18px 6px;flex-wrap:wrap;}
+  .loose-label{font-size:12px;color:var(--navy);}
+  .chip{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:50%;
+        background:#fff;border:1.2px solid #c3c7cc;font-size:12px;font-weight:600;color:#3a3f47;cursor:pointer;}
   .chip:hover{border-color:var(--orange);}
-  .loose .sig{font-size:11.5px;color:#9a9a94;}
 
-  aside .note-block{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--orange);padding:18px 20px;margin-bottom:16px;border-radius:2px;}
-  aside h3{font-size:14px;margin:0 0 10px;color:var(--navy);letter-spacing:.04em;}
-  aside p{margin:0 0 8px;font-size:13.5px;color:#43484f;line-height:1.75;}
-  aside p:last-child{margin-bottom:0;}
-  aside b{color:var(--navy);}
-  .todo{background:#fffaf3;border:1px solid #eddcc8;border-left:3px solid var(--orange);}
-  .todo ol{margin:6px 0 0;padding-left:18px;font-size:13px;color:#4a4f5a;line-height:1.85;}
-
-  section{margin-top:56px;}
-  .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:24px;flex-wrap:wrap;}
-  .sec-head h2{font-size:20px;margin:0;color:var(--navy);font-weight:700;letter-spacing:.02em;}
-  .sec-head span{font-size:12px;color:var(--muted);letter-spacing:.06em;}
+  .ticket{padding:18px 20px 16px;}
+  .ticket h3{margin:0 0 2px;font-size:14px;color:var(--orange);letter-spacing:.06em;}
+  .ticket .sub{font-size:12px;color:var(--muted);margin:0 0 14px;}
+  .ticket ul{list-style:none;margin:0;padding:0;}
+  .ticket li{display:flex;align-items:baseline;gap:8px;font-size:13.5px;color:#3c414a;padding:5px 0;border-bottom:1px dotted #eee7d8;}
+  .ticket li:last-child{border-bottom:0;}
+  .ticket li span{flex:1;color:var(--navy);}
+  .ticket li b{font-variant-numeric:tabular-nums;color:var(--navy);}
+  .ticket li em{font-style:normal;font-size:11px;color:var(--muted);}
+  .ticket-total{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--navy);font-weight:600;line-height:1.6;}
 
   /* 时间轴 */
-  .pre-note{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:2px;padding:6px 12px;font-size:12.5px;color:#4a4f5a;margin-bottom:26px;}
-  .pre-note b{color:var(--orange);}
-
-  .ticket-box{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:780px;margin:0 0 34px;}
-  .ticket-col{background:#fff;border:1px solid var(--line);border-radius:2px;padding:16px 20px;}
-  .ticket-col h4{margin:0 0 10px;font-size:13px;color:var(--orange);letter-spacing:.06em;}
-  .ticket-col ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;}
-  .ticket-col li{display:flex;align-items:baseline;gap:8px;font-size:13.5px;color:#3c414a;}
-  .ticket-col li span{width:42px;color:var(--navy);}
-  .ticket-col li b{font-variant-numeric:tabular-nums;color:var(--navy);}
-  .ticket-col li em{font-style:normal;font-size:11px;color:var(--muted);}
-  .ticket-total{font-size:12.5px;color:var(--navy);font-weight:600;margin:12px 0 0;padding-top:10px;border-top:1px dotted var(--line);line-height:1.6;}
-  .ticket-warn{display:block;font-weight:400;color:#b4573a;font-size:11.5px;margin-top:4px;}
-  .axis{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding-top:38px;}
-  .axis::before{content:"";position:absolute;top:14px;left:8%;right:8%;height:2px;background:var(--navy);opacity:.18;}
-  .stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 22px 18px;}
-  .stage::before{content:"";position:absolute;top:-32px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--navy);}
+  .axis{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding-top:34px;}
+  .axis::before{content:"";position:absolute;top:12px;left:8%;right:8%;height:2px;background:var(--navy);opacity:.16;}
+  .stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:20px 22px 16px;}
+  .stage::before{content:"";position:absolute;top:-28px;left:50%;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--navy);}
   .stage.now::before{background:var(--orange);}
-  .st-date{font-size:26px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.05;}
+  .st-date{font-size:25px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.05;}
   .st-date small{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.1em;margin-left:6px;}
-  .st-place{font-size:13px;color:var(--orange);font-weight:600;margin:4px 0 2px;letter-spacing:.06em;}
-  .st-size{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+  .st-place{font-size:13px;color:var(--orange);font-weight:600;margin:3px 0 10px;letter-spacing:.06em;}
+  .st-size{font-size:13px;color:#4a4f5a;margin-bottom:14px;}
   .st-size b{color:var(--navy);font-size:15px;}
-  .ticks{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px;}
-  .tick{width:30px;height:30px;border-radius:50%;border:1.5px solid #d5cfc0;background:#fff;cursor:pointer;
-        font-size:15px;line-height:1;color:transparent;display:flex;align-items:center;justify-content:center;padding:0;
+  .ticks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .tick{width:28px;height:28px;border-radius:50%;border:1.5px solid #d5cfc0;background:#fff;cursor:pointer;
+        font-size:14px;line-height:1;color:transparent;display:flex;align-items:center;justify-content:center;padding:0;
         transition:background .12s,border-color .12s,color .12s;}
   .tick:hover{border-color:var(--orange);}
   .tick.on{background:var(--orange);border-color:var(--orange);color:#fff;}
-  .tick-label{font-size:11.5px;color:var(--muted);letter-spacing:.04em;}
-  .st-total{font-size:12px;color:var(--muted);border-top:1px dotted var(--line);padding-top:9px;}
+  .st-total{font-size:12px;color:var(--muted);border-top:1px dotted var(--line);padding-top:8px;}
   .st-total b{color:var(--navy);font-variant-numeric:tabular-nums;}
 
   /* 表格 */
   table{border-collapse:collapse;width:100%;background:var(--paper);font-size:13.5px;}
-  caption{caption-side:top;text-align:left;font-size:12px;color:var(--muted);padding-bottom:10px;}
   th,td{border:1px solid var(--line);padding:10px 12px;text-align:center;}
   th{background:#f2eee4;color:var(--navy);font-weight:600;font-size:13px;letter-spacing:.04em;}
   .th-sub{font-weight:400;color:var(--muted);font-size:11px;letter-spacing:.04em;}
@@ -107,28 +89,26 @@
   td.num{font-variant-numeric:tabular-nums;font-weight:600;color:#2f3540;}
   tr.total td{background:#f7f3ea;font-weight:700;color:var(--navy);border-top:2px solid var(--navy);}
   .empty{color:#c8c3b6;}
-  .tbl-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.8;}
-  .tbl-note b{color:var(--orange);}
 
   /* 思维导图 */
-  .mindmap{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:26px 20px;}
+  .mindmap{padding:20px 16px;}
   #mind{display:block;width:100%;}
+  #mind text{user-select:none;}
+  #mind .editable{cursor:pointer;}
+  #mind .editable:hover{fill:#D96B3C;}
 
   /* 每天跟踪 */
-  .track-wrap{display:block;}
-  .track-card{background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 24px;margin-bottom:18px;}
-  .track-card h3{margin:0 0 4px;font-size:15px;color:var(--navy);}
-  .track-card .hint{font-size:12px;color:var(--muted);margin:0 0 16px;}
+  .track-card{padding:20px 22px;margin-bottom:16px;}
   .track-toolbar{display:flex;align-items:center;gap:18px;margin-bottom:14px;flex-wrap:wrap;}
-  .seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;}
   .seg button{border:0;background:#fff;color:var(--muted);font-size:13px;padding:6px 16px;cursor:pointer;font-family:inherit;}
   .seg button.active{background:var(--navy);color:#fff;}
   .week-nav{display:flex;align-items:center;gap:10px;}
   .week-nav button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);
                    font-size:14px;cursor:pointer;line-height:1;padding:0;}
   .week-nav button:hover:not(:disabled){border-color:var(--orange);color:var(--orange);}
-  .week-nav button:disabled{opacity:.35;cursor:default;}
-  .week-range{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;min-width:96px;text-align:center;}
+  .week-nav button:disabled{opacity:.3;cursor:default;}
+  .week-range{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;min-width:150px;text-align:center;}
   table.track{font-size:12.5px;}
   table.track th{padding:8px 6px;font-size:11.5px;}
   table.track td{padding:0;border-color:#e7e2d6;}
@@ -148,40 +128,55 @@
   .done-bar{margin-top:16px;}
   .done-bar .label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
   .done-bar .label b{color:var(--navy);}
-  .mini-bar{flex:1;height:8px;background:#eee9dd;border-radius:2px;overflow:hidden;}
-  .mini-bar i{display:block;height:100%;background:var(--navy);width:0;transition:width .15s;}
-  .track-note{font-size:11.5px;color:#9a9a94;margin-top:12px;line-height:1.7;}
+  .mini-bar{flex:1;height:8px;background:#eee9dd;border-radius:3px;overflow:hidden;}
+  .mini-bar i{display:block;height:100%;background:var(--navy);width:0;transition:width .25s;}
 
   .counters{display:flex;gap:34px;flex-wrap:wrap;}
-  .counter{display:flex;align-items:center;gap:12px;min-width:250px;flex:1;}
-  .counter .name{width:110px;font-size:13px;color:#3c414a;flex:0 0 auto;}
+  .counter{display:flex;align-items:center;gap:12px;min-width:230px;flex:1;}
+  .counter .name{width:104px;font-size:13px;color:#3c414a;flex:0 0 auto;}
   .counter .val{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;width:52px;text-align:right;flex:0 0 auto;}
   .step{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);
         font-size:14px;line-height:1;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0;}
   .step:hover{border-color:var(--orange);color:var(--orange);}
 
-  /* 备注弹窗 */
-  .mask{position:fixed;inset:0;background:rgba(31,36,48,.35);display:none;align-items:center;justify-content:center;z-index:50;}
+  /* 祝贺 */
+  #congrats{position:fixed;inset:0;pointer-events:none;z-index:60;display:none;}
+  #congrats.show{display:block;}
+  .confetti{position:absolute;width:9px;height:14px;opacity:.95;animation:fall linear forwards;}
+  @keyframes fall{
+    0%{transform:translateY(-20vh) rotate(0deg);opacity:1;}
+    100%{transform:translateY(105vh) rotate(540deg);opacity:.9;}
+  }
+  .cheer{
+    position:fixed;left:50%;top:16px;transform:translateX(-50%);
+    background:var(--orange);color:#fff;font-size:15px;font-weight:700;letter-spacing:.04em;
+    padding:10px 26px;border-radius:999px;box-shadow:0 8px 24px rgba(217,107,60,.3);
+    z-index:61;display:none;
+  }
+  .cheer.show{display:block;animation:pop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes pop{0%{transform:translateX(-50%) scale(.7);opacity:0;}100%{transform:translateX(-50%) scale(1);opacity:1;}}
+
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(31,36,48,.35);display:none;align-items:center;justify-content:center;z-index:70;}
   .mask.show{display:flex;}
-  .dialog{background:#fff;border-radius:6px;width:min(420px,90vw);padding:24px 24px 18px;box-shadow:0 12px 40px rgba(27,58,99,.18);}
+  .dialog{background:#fff;border-radius:8px;width:min(420px,90vw);padding:22px 22px 16px;box-shadow:0 14px 44px rgba(27,58,99,.18);}
   .dialog h4{margin:0 0 4px;font-size:16px;color:var(--navy);}
-  .dialog .who{font-size:12px;color:var(--muted);margin:0 0 14px;}
-  .dialog textarea{width:100%;height:120px;border:1px solid var(--line);border-radius:3px;padding:10px 12px;
+  .dialog .who{font-size:12px;color:var(--muted);margin:0 0 12px;}
+  .dialog textarea{width:100%;height:110px;border:1px solid var(--line);border-radius:4px;padding:10px 12px;
     font-family:inherit;font-size:14px;line-height:1.6;color:var(--ink);resize:vertical;outline:none;}
   .dialog textarea:focus{border-color:var(--orange);}
-  .dialog .actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
-  .dialog button{border-radius:3px;font-size:13.5px;padding:8px 18px;cursor:pointer;font-family:inherit;}
+  .dialog .actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+  .dialog button{border-radius:4px;font-size:13.5px;padding:8px 18px;cursor:pointer;font-family:inherit;}
   .btn-save{background:var(--navy);color:#fff;border:1px solid var(--navy);}
   .btn-save:hover{background:#16304f;}
   .btn-del{background:#fff;color:#a54a2b;border:1px solid #e6c9bd;}
-  .btn-del:hover{border-color:var(--orange);}
   .btn-cancel{background:#fff;color:var(--muted);border:1px solid var(--line);}
 
-  footer{margin-top:60px;border-top:1px solid var(--line);padding-top:16px;font-size:12px;color:var(--muted);line-height:1.9;}
+  footer{margin-top:52px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:#9a9a94;}
 
-  @media (max-width:1100px){
-    .page{padding:32px 20px 56px;}
-    .top,.track-wrap{grid-template-columns:1fr;}
+  @media (max-width:1000px){
+    .page{padding:28px 18px 48px;}
+    .top{grid-template-columns:1fr;}
     .axis{grid-template-columns:1fr;padding-top:0;}
     .axis::before,.stage::before{display:none;}
     h1{font-size:28px;}
@@ -198,67 +193,41 @@
 <div class="page">
 
   <header>
-    <div class="kicker">2026 年 11 月 — 2027 年 5 月 · 团队计划</div>
-    <h1>团队结构：<em>20 人 → 25 人 → 30 人</em></h1>
-    <p class="lede">
-      诗媛带三条线：宇茹线 7 人、秀清线 8 人、小玲线 4 人，现在一共 <b>20 人</b>。
-      点一下任何一个圆圈，就能给这个人写备注。
-    </p>
+    <div class="kicker">2026 年 11 月 — 2027 年 5 月</div>
+    <h1>团队计划：<em>20 人 → 25 人 → 30 人</em></h1>
   </header>
 
   <div class="top">
 
-    <div>
-      <p class="panel-title">团队结构图</p>
-      <div class="chart">
-        <svg id="orgchart" xmlns="http://www.w3.org/2000/svg"></svg>
-        <p class="chart-hint">点圆圈 → 写备注，写过的圈会多一个小点</p>
-
-        <div class="loose">
-          <span class="loose-label">没连线的</span>
-          <span class="chip" data-person="小吴">小吴</span>
-          <span class="chip" data-person="喻燕">喻燕</span>
-        </div>
+    <div class="card chart">
+      <svg id="orgchart" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="loose">
+        <span class="loose-label">没连线的</span>
+        <span class="chip" data-person="小吴">小吴</span>
+        <span class="chip" data-person="喻燕">喻燕</span>
       </div>
+    </div>
+
+    <div class="card ticket">
+      <h3>买票</h3>
+      <p class="sub">多买了 14 张票，必须搞定</p>
+      <ul>
+        <li><span>乐妍</span><b>2</b><em>4 → 2</em></li>
+        <li><span>思宇</span><b>2</b><em>3 → 2</em></li>
+        <li><span>林慧</span><b>1</b></li>
+        <li><span>洋洋</span><b>2</b><em>3 → 2</em></li>
+        <li><span>小玲</span><b>2</b><em>4 → 2</em></li>
+        <li><span>秀清</span><b>1</b></li>
+        <li><span>艳艳</span><b>1</b></li>
+        <li><span>诗媛</span><b>5</b></li>
+      </ul>
+      <p class="ticket-total">团队 11 张 ＋ 个人 5 张 ＝ 16 张</p>
     </div>
 
   </div>
 
-  <!-- 时间轴 -->
   <section>
-    <div class="sec-head"><h2>时间节点</h2><span>三次大会 · 每段加 5 个人 · 来一个人点一个孔</span></div>
-    <div class="pre-note"><b>多买了 14 张票，必须搞定</b></div>
-
-    <div class="ticket-box">
-      <div class="ticket-col">
-        <h4>最初的分法</h4>
-        <ul>
-          <li><span>乐妍</span><b>4</b></li>
-          <li><span>思宇</span><b>3</b></li>
-          <li><span>林慧</span><b>1</b></li>
-          <li><span>洋洋</span><b>3</b></li>
-          <li><span>小玲</span><b>4</b></li>
-          <li><span>秀清</span><b>1</b></li>
-          <li><span>艳艳</span><b>1</b></li>
-          <li><span>诗媛</span><b>5</b></li>
-        </ul>
-        <p class="ticket-total">团队 17 张 ＋ 个人 5 张 ＝ 22 张</p>
-      </div>
-      <div class="ticket-col">
-        <h4>更新后</h4>
-        <ul>
-          <li><span>乐妍</span><b>2</b><em>4 → 2</em></li>
-          <li><span>思宇</span><b>2</b><em>3 → 2</em></li>
-          <li><span>林慧</span><b>1</b></li>
-          <li><span>洋洋</span><b>2</b><em>3 → 2</em></li>
-          <li><span>小玲</span><b>2</b><em>4 → 2</em></li>
-          <li><span>秀清</span><b>1</b></li>
-          <li><span>艳艳</span><b>1</b></li>
-          <li><span>诗媛</span><b>5</b></li>
-        </ul>
-        <p class="ticket-total">团队 11 张 ＋ 个人 5 张 ＝ 16 张</p>
-      </div>
-    </div>
+    <div class="sec-head"><h2>时间节点</h2></div>
 
     <div class="axis">
       <div class="stage now" data-stage="bali">
@@ -285,11 +254,9 @@
     </div>
   </section>
 
-  <!-- 每月新增人数 -->
   <section>
-    <div class="sec-head"><h2>每月新增人数</h2><span>2026 年 11 月 → 2027 年 5 月，共 7 个月 · 每个括号是这一段的合计</span></div>
+    <div class="sec-head"><h2>每月新增人数</h2></div>
     <table>
-      <caption>横着读：一个人在这一段里一共要带进来几个。空着的是这一段不用加人。</caption>
       <thead>
         <tr>
           <th style="width:96px;"></th>
@@ -310,85 +277,67 @@
       <tbody>
         <tr><td class="who">诗媛</td><td colspan="2" class="num">+2</td><td colspan="3" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
         <tr><td class="who">洋洋</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="empty">—</td></tr>
-        <tr><td class="who">思宇</td><td colspan="5" class="num">+1<span class="cell-note">（跨 11 月–3 月，只算一次）</span></td><td colspan="2" class="num">+1</td></tr>
+        <tr><td class="who">思宇</td><td colspan="5" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
         <tr><td class="who">林慧</td><td colspan="2" class="empty">—</td><td colspan="3" class="empty">—</td><td colspan="2" class="empty">—</td></tr>
         <tr><td class="who">乐妍</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="num">+1</td></tr>
         <tr><td class="who">小玲</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="num">+1</td></tr>
         <tr class="total"><td class="who">合计</td><td colspan="2" class="num">+5</td><td colspan="3" class="num">+5</td><td colspan="2" class="num">+4</td></tr>
       </tbody>
     </table>
-    <p class="tbl-note">
-      说明：思宇那一栏在白板上是跨 11 月到 3 月的一个长括号，一次 +1，所以算在中间那一段。<br>
-      按手写的数加起来：第一段 5 人、第二段 5 人、第三段 <b>4 人 —— 比目标少 1 个</b>，要么补一个人，要么把某人的 +1 往前挪。
-    </p>
   </section>
 
-  <!-- 成长点：思维导图 -->
   <section>
-    <div class="sec-head"><h2>想要成长的点</h2><span>思维导图 · 从中间往外读</span></div>
-    <div class="mindmap">
+    <div class="sec-head"><h2>想要成长的点</h2></div>
+    <div class="card mindmap">
       <svg id="mind" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
   </section>
 
-  <!-- 每天跟踪 -->
   <section>
-    <div class="sec-head"><h2>每天跟踪</h2><span>覆盖 2026 年 11 月 — 2027 年 5 月 · 按周或按月看</span></div>
+    <div class="sec-head"><h2>每天跟踪</h2></div>
 
-    <div class="track-wrap">
-      <div class="track-card">
-        <h3>每天要做的事</h3>
-        <p class="hint">点格子＝那天做了。整个计划期都能翻：按周看最近 7 天，按月看一整个月；今天以后的格子先点不了。</p>
-
-        <div class="track-toolbar">
-          <div class="seg" id="view-seg">
-            <button type="button" data-mode="week" class="active">按周</button>
-            <button type="button" data-mode="month">按月</button>
-          </div>
-          <div class="week-nav">
-            <button type="button" id="nav-prev" aria-label="往前">‹</button>
-            <span class="week-range" id="week-range"></span>
-            <button type="button" id="nav-next" aria-label="往后">›</button>
-          </div>
+    <div class="card track-card">
+      <div class="track-toolbar">
+        <div class="seg" id="view-seg">
+          <button type="button" data-mode="week" class="active">按周</button>
+          <button type="button" data-mode="month">按月</button>
         </div>
-
-        <table class="track" id="track-table">
-          <thead id="track-head"></thead>
-          <tbody id="track-body"></tbody>
-        </table>
-
-        <div class="done-bar">
-          <div class="label"><span id="done-label">今天完成</span><b id="done-text">0 / 4</b></div>
-          <div class="mini-bar"><i id="done-fill"></i></div>
+        <div class="week-nav">
+          <button type="button" id="nav-prev" aria-label="往前">‹</button>
+          <span class="week-range" id="week-range"></span>
+          <button type="button" id="nav-next" aria-label="往后">›</button>
         </div>
-        <p class="track-note">
-          记录存在这台设备这个浏览器里（localStorage），关掉再开都还在；换设备、清缓存会丢，也不会自动同步到飞书。
-        </p>
       </div>
 
-      <div class="track-card">
-        <h3>每月的量</h3>
-        <p class="hint">点 + − 加减，进度条跟着走。</p>
-        <div class="counters" id="counters"></div>
+      <table class="track" id="track-table">
+        <thead id="track-head"></thead>
+        <tbody id="track-body"></tbody>
+      </table>
+
+      <div class="done-bar">
+        <div class="label"><span id="done-label">今天完成</span><b id="done-text">0 / 4</b></div>
+        <div class="mini-bar"><i id="done-fill"></i></div>
       </div>
+    </div>
+
+    <div class="card track-card">
+      <div class="counters" id="counters"></div>
     </div>
   </section>
 
-  <footer>
-    内容来自飞书文档「11—5月计划」里的白板、文字和手写照片，数字照原样，没有替你改。<br>
-    圆圈备注、打勾、计数都只存在这台设备的浏览器里。
-  </footer>
-
+  <footer>数据存在这台设备的浏览器里，换设备或清缓存会丢。</footer>
 </div>
 
-<!-- 备注弹窗 -->
+<div class="cheer" id="cheer">今天 4 件事全做完了，恭喜！</div>
+<div id="congrats"></div>
+
 <div class="mask" id="mask">
   <div class="dialog">
-    <h4>给谁写备注</h4>
+    <h4 id="dlg-title">写备注</h4>
     <p class="who" id="dlg-who"></p>
-    <textarea id="dlg-text" placeholder="比如：10 月聊过一次，卡在没时间；下次约周末线下。"></textarea>
+    <textarea id="dlg-text"></textarea>
     <div class="actions">
-      <button type="button" class="btn-del" id="dlg-del">删除备注</button>
+      <button type="button" class="btn-del" id="dlg-del">删除</button>
       <span>
         <button type="button" class="btn-cancel" id="dlg-cancel">取消</button>
         <button type="button" class="btn-save" id="dlg-save">保存</button>
@@ -399,18 +348,79 @@
 
 <script>
 (function(){
-  /* ---------------- 本地存储 ---------------- */
-  var KEY = 'sy-team-plan-v2';
+  /* ============ 本地数据库（IndexedDB，失败退回 localStorage） ============ */
+  var DB_NAME = 'sy-team-plan', STORE = 'kv';
   var store = {};
-  try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ store = {}; }
-  function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} }
+  var db = null;
 
-  /* ---------------- 团队结构图 ---------------- */
+  function openDB(){
+    return new Promise(function(resolve){
+      var done = false;
+      var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 1500);
+      function finish(v){ if(done) return; done = true; clearTimeout(timer); resolve(v); }
+      try{
+        if(!window.indexedDB){ finish(null); return; }
+        var req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = function(e){
+          var d = e.target.result;
+          if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
+        };
+        req.onsuccess = function(e){ finish(e.target.result); };
+        req.onerror = function(){ finish(null); };
+        req.onblocked = function(){ finish(null); };
+      }catch(err){ finish(null); }
+    });
+  }
+  function dbGetAll(){
+    return new Promise(function(resolve){
+      if(!db){ resolve(null); return; }
+      var done = false;
+      var timer = setTimeout(function(){ if(!done){ done = true; resolve(null); } }, 1500);
+      function finish(v){ if(done) return; done = true; clearTimeout(timer); resolve(v); }
+      try{
+        var tx = db.transaction(STORE, 'readonly');
+        var os = tx.objectStore(STORE);
+        var out = {};
+        var cur = os.openCursor();
+        cur.onsuccess = function(e){
+          var c = e.target.result;
+          if(c){ out[c.key] = c.value; c.continue(); } else { finish(out); }
+        };
+        cur.onerror = function(){ finish(null); };
+      }catch(err){ finish(null); }
+    });
+  }
+  function dbSave(){
+    if(!db){
+      try{ localStorage.setItem(DB_NAME, JSON.stringify(store)); }catch(e){}
+      return;
+    }
+    try{
+      var tx = db.transaction(STORE, 'readwrite');
+      var os = tx.objectStore(STORE);
+      Object.keys(store).forEach(function(k){ os.put(store[k], k); });
+    }catch(e){
+      try{ localStorage.setItem(DB_NAME, JSON.stringify(store)); }catch(e2){}
+    }
+  }
+  function save(){ dbSave(); }
+
+  function loadLocal(){
+    try {
+      var v = localStorage.getItem(DB_NAME);
+      if(!v) v = localStorage.getItem('sy-team-plan-v2');
+      return JSON.parse(v || '{}');
+    } catch(e){ return {}; }
+  }
+
+  /* ============ 团队结构图 ============ */
+  var NS = 'http://www.w3.org/2000/svg';
+
   var tree = {
     name:'诗媛', sub:'B 阶段', cls:'root', id:'p0',
     children:[
-      { name:'宇茹', side:'线内 7 人', id:'p1', children:[
-        { name:'嫣岚', side:'6 个人', id:'p1-1', children:[
+      { name:'宇茹', id:'p1', children:[
+        { name:'嫣岚', id:'p1-1', children:[
           { name:'雯婷', id:'p1-1-1', children:[
             { name:'钱浩栋', id:'p1-1-1-1', children:[
               { name:'夏天', id:'p1-1-1-1-1', children:[ { name:'夏丽', id:'p1-1-1-1-1-1' } ]}
@@ -419,7 +429,7 @@
           ]}
         ]}
       ]},
-      { name:'秀清', side:'8 个人', id:'p2', children:[
+      { name:'秀清', id:'p2', children:[
         { name:'洋洋', cls:'blue', id:'p2-1', children:[
           { name:'吴思宇', cls:'blue', id:'p2-1-1', children:[
             { name:'林慧', id:'p2-1-1-1', children:[
@@ -428,13 +438,13 @@
           ]}
         ]}
       ]},
-      { name:'小玲', side:'下面 4 个人', id:'p3' }
+      { name:'小玲', id:'p3' }
     ]
   };
 
-  var R = 37, GAP = 112, BRANCH_GAP = 84, PAD = 56;
+  var R = 29, GAP = 92, BRANCH_GAP = 66, PAD = 44;
   var LEVELS = [0];
-  for(var i=1;i<=8;i++){ LEVELS.push(i===1 ? 140 : 140 + (i-1)*104); }
+  for(var i=1;i<=8;i++){ LEVELS.push(i===1 ? 112 : 112 + (i-1)*84); }
   var cursor = 0;
 
   function layout(node, depth){
@@ -446,9 +456,10 @@
       node.x = (node.children[0].x + node.children[node.children.length-1].x) / 2;
     }
   }
+
   tree.children.forEach(function(b, i){
+    if(i > 0) cursor += BRANCH_GAP;
     layout(b, 1);
-    if(i < tree.children.length - 1) cursor += BRANCH_GAP;
   });
   tree.depth = 0;
   tree.x = (tree.children[0].x + tree.children[tree.children.length-1].x) / 2;
@@ -461,10 +472,9 @@
   })(tree);
 
   var width  = maxX - minX + R*2 + PAD*2;
-  var height = LEVELS[maxDepth] + R*2 + PAD*2 + 10;
-  var NS = 'http://www.w3.org/2000/svg';
+  var height = LEVELS[maxDepth] + R*2 + PAD*2 + 8;
   var svg = document.getElementById('orgchart');
-  svg.setAttribute('viewBox', '0 0 '+width+' '+height);
+  svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
 
   function X(n){ return n.x - minX + R + PAD; }
   function Y(n){ return LEVELS[n.depth] + R + PAD; }
@@ -483,6 +493,8 @@
     });
   })(tree);
 
+  var allNodes = [];
+
   function txt(x,y,str,opts){
     var t = document.createElementNS(NS,'text');
     t.setAttribute('x',x); t.setAttribute('y',y);
@@ -490,17 +502,16 @@
     t.setAttribute('font-size', opts.size || '13');
     t.setAttribute('fill', opts.fill || '#2a2a20');
     if(opts.weight) t.setAttribute('font-weight', opts.weight);
-    if(opts.spacing) t.setAttribute('letter-spacing', opts.spacing);
     t.setAttribute('font-family','"PingFang SC","Microsoft YaHei",sans-serif');
+    if(opts.cls) t.setAttribute('class', opts.cls);
     t.textContent = str;
     return t;
   }
 
-  var allNodes = [];
-
   function drawNode(n){
     var x = X(n), y = Y(n);
     allNodes.push(n);
+
     var fill='#FBE95A', stroke='#dfce35', color='#2a2a20';
     if(n.cls==='blue'){ fill='#4e83fd'; stroke='#3a6fdc'; color='#fff'; }
     if(n.cls==='root'){ fill='#1B3A63'; stroke='#1B3A63'; color='#fff'; }
@@ -514,20 +525,16 @@
     svg.appendChild(c);
 
     var nameY = n.sub ? y-2 : y+5;
-    if(n.cls==='root') nameY = y - 6;
-    svg.appendChild(txt(x, nameY, n.name, {size: n.name.length>3 ? '12':'14', weight:'600', fill:color}));
+    if(n.cls==='root') nameY = y - 5;
+    svg.appendChild(txt(x, nameY, n.name, {size: n.name.length>3 ? '11':'12.5', weight:'600', fill:color}));
 
     if(n.sub){
-      svg.appendChild(txt(x, y+13, n.sub, {size:'10', fill:'rgba(255,255,255,.8)'}));
-    }
-    if(n.side){
-      /* 灰色小字已按要求去掉 */
+      svg.appendChild(txt(x, y+12, n.sub, {size:'9.5', fill:'rgba(255,255,255,.82)'}));
     }
     if(n.children) n.children.forEach(drawNode);
   }
   drawNode(tree);
 
-  // 有备注的圈：图上直接显示一张小卡片
   function wrapText(str, per, maxLines){
     var raw = String(str).replace(/\s+/g, ' ').trim();
     var lines = [], i = 0;
@@ -536,22 +543,20 @@
       i += per;
     }
     if(i < raw.length){
-      var last = lines[maxLines - 1];
-      lines[maxLines - 1] = last.slice(0, Math.max(1, per - 1)) + '…';
+      lines[maxLines - 1] = lines[maxLines - 1].slice(0, Math.max(1, per - 1)) + '…';
     }
     return lines;
   }
 
-  function refreshMarkers(){
+  function refreshNotes(){
     var old = document.getElementById('notes-layer');
     if(old) old.remove();
-    var layer = document.createElementNS(NS, 'g');
-    layer.setAttribute('id', 'notes-layer');
+    var layer = document.createElementNS(NS,'g');
+    layer.setAttribute('id','notes-layer');
 
-    // 同层按左右排序，用来判断卡片往哪边放
     var byDepth = {};
     allNodes.forEach(function(n){ (byDepth[n.depth] = byDepth[n.depth] || []).push(n); });
-    Object.keys(byDepth).forEach(function(k){ byDepth[k].sort(function(a, b){ return a.x - b.x; }); });
+    Object.keys(byDepth).forEach(function(k){ byDepth[k].sort(function(a,b){ return a.x - b.x; }); });
 
     var anyRight = false, anyLeft = false;
 
@@ -559,102 +564,115 @@
       var text = store['note-' + n.id];
       if(!text) return;
 
-      var lines = wrapText(text, 9, 3);
-      var w = 9 * 11.5 + 20;
-      var h = lines.length * 17 + 14;
+      var lines = wrapText(text, 8, 3);
+      var w = 8 * 11 + 18;
+      var h = lines.length * 15 + 12;
       var y = Y(n);
 
       var row = byDepth[n.depth] || [];
       var i = row.indexOf(n);
       var rightGap = (i >= 0 && i < row.length - 1) ? (row[i+1].x - n.x) : Infinity;
       var leftGap  = (i > 0) ? (n.x - row[i-1].x) : Infinity;
+      var toRight = (rightGap >= 108) || (leftGap < 108);
 
-      var toRight = (rightGap >= 135) || (leftGap < 135);
       var x;
-      if(toRight){ x = X(n) + R + 10; anyRight = true; }
-      else { x = X(n) - R - 10 - w; anyLeft = true; }
+      if(toRight){ x = X(n) + R + 8; anyRight = true; }
+      else { x = X(n) - R - 8 - w; anyLeft = true; }
 
-      var rect = document.createElementNS(NS, 'rect');
+      var rect = document.createElementNS(NS,'rect');
       rect.setAttribute('x', x); rect.setAttribute('y', y - h/2);
       rect.setAttribute('width', w); rect.setAttribute('height', h);
-      rect.setAttribute('rx', 5);
+      rect.setAttribute('rx', 4);
       rect.setAttribute('fill', '#FFFCF4');
       rect.setAttribute('stroke', '#E7D9BE');
-      rect.setAttribute('stroke-width', '1');
       layer.appendChild(rect);
 
-      var bar = document.createElementNS(NS, 'rect');
+      var bar = document.createElementNS(NS,'rect');
       bar.setAttribute('x', toRight ? x + 0.5 : x + w - 3);
-      bar.setAttribute('y', y - h/2 + 7);
-      bar.setAttribute('width', 2.5); bar.setAttribute('height', h - 14);
+      bar.setAttribute('y', y - h/2 + 6);
+      bar.setAttribute('width', 2.5); bar.setAttribute('height', h - 12);
       bar.setAttribute('fill', '#D96B3C');
       layer.appendChild(bar);
 
       lines.forEach(function(line, k){
-        var t = document.createElementNS(NS, 'text');
-        t.setAttribute('x', x + (toRight ? 11 : 10));
-        t.setAttribute('y', y - h/2 + 21 + k * 17);
-        t.setAttribute('font-size', '11.5');
-        t.setAttribute('fill', '#6b5b45');
-        t.setAttribute('font-family', '"PingFang SC","Microsoft YaHei",sans-serif');
+        var t = document.createElementNS(NS,'text');
+        t.setAttribute('x', x + (toRight ? 10 : 9));
+        t.setAttribute('y', y - h/2 + 18 + k * 15);
+        t.setAttribute('font-size','11');
+        t.setAttribute('fill','#6b5b45');
+        t.setAttribute('font-family','"PingFang SC","Microsoft YaHei",sans-serif');
         t.textContent = line;
         layer.appendChild(t);
       });
 
-      var dot = document.createElementNS(NS, 'circle');
-      dot.setAttribute('cx', X(n) + R * 0.72);
-      dot.setAttribute('cy', Y(n) - R * 0.72);
-      dot.setAttribute('r', '6');
-      dot.setAttribute('fill', '#D96B3C');
-      dot.setAttribute('stroke', '#fff');
-      dot.setAttribute('stroke-width', '2');
+      var dot = document.createElementNS(NS,'circle');
+      dot.setAttribute('cx', X(n) + R*0.72);
+      dot.setAttribute('cy', Y(n) - R*0.72);
+      dot.setAttribute('r','5');
+      dot.setAttribute('fill','#D96B3C');
+      dot.setAttribute('stroke','#fff');
+      dot.setAttribute('stroke-width','1.8');
       layer.appendChild(dot);
     });
 
     svg.appendChild(layer);
-    var padL = anyLeft ? 155 : 0;
-    var padR = anyRight ? 155 : 0;
+    var padL = anyLeft ? 120 : 0, padR = anyRight ? 120 : 0;
     svg.setAttribute('viewBox', (-padL) + ' 0 ' + (width + padL + padR) + ' ' + height);
   }
-  refreshMarkers();
 
-  /* ---------------- 备注弹窗 ---------------- */
+  /* ============ 弹窗（备注 / 导图改字） ============ */
   var mask = document.getElementById('mask');
+  var dlgTitle = document.getElementById('dlg-title');
   var dlgWho = document.getElementById('dlg-who');
   var dlgText = document.getElementById('dlg-text');
-  var curPid = null, curName = '';
+  var dlgDel = document.getElementById('dlg-del');
+  var curKey = null, curName = '', curOnSave = null;
 
-  function openNote(pid, name){
-    curPid = pid; curName = name;
-    dlgWho.textContent = name;
-    dlgText.value = store['note-' + pid] || '';
+  function openDialog(title, who, value, onSave, allowDelete){
+    dlgTitle.textContent = title;
+    dlgWho.textContent = who;
+    dlgText.value = value || '';
+    curOnSave = onSave;
+    dlgDel.style.visibility = allowDelete ? 'visible' : 'hidden';
     mask.classList.add('show');
     setTimeout(function(){ dlgText.focus(); }, 30);
   }
-  function closeNote(){ mask.classList.remove('show'); curPid = null; }
-
-  svg.addEventListener('click', function(e){
-    var t = e.target;
-    if(t && t.tagName === 'circle' && t.dataset && t.dataset.pid){ openNote(t.dataset.pid, t.dataset.person); }
-  });
-  Array.prototype.slice.call(document.querySelectorAll('.chip[data-person]')).forEach(function(el){
-    el.addEventListener('click', function(){ openNote('loose-' + el.dataset.person, el.dataset.person); });
-  });
+  function closeDialog(){ mask.classList.remove('show'); curOnSave = null; }
 
   document.getElementById('dlg-save').addEventListener('click', function(){
     var v = dlgText.value.trim();
-    if(v){ store['note-' + curPid] = v; } else { delete store['note-' + curPid]; }
-    save(); refreshMarkers(); closeNote();
+    if(curOnSave) curOnSave(v);
+    closeDialog();
   });
-  document.getElementById('dlg-del').addEventListener('click', function(){
-    delete store['note-' + curPid];
-    save(); refreshMarkers(); closeNote();
+  dlgDel.addEventListener('click', function(){
+    if(curOnSave) curOnSave('');
+    closeDialog();
   });
-  document.getElementById('dlg-cancel').addEventListener('click', closeNote);
-  mask.addEventListener('click', function(e){ if(e.target === mask) closeNote(); });
-  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeNote(); });
+  document.getElementById('dlg-cancel').addEventListener('click', closeDialog);
+  mask.addEventListener('click', function(e){ if(e.target === mask) closeDialog(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDialog(); });
 
-  /* ---------------- 时间轴的 5 个孔 ---------------- */
+  svg.addEventListener('click', function(e){
+    var t = e.target;
+    if(!t || t.tagName !== 'circle' || !t.dataset || !t.dataset.pid) return;
+    var pid = t.dataset.pid, person = t.dataset.person;
+    openDialog('写备注', person, store['note-' + pid], function(v){
+      if(v){ store['note-' + pid] = v; } else { delete store['note-' + pid]; }
+      save(); refreshNotes();
+    }, true);
+  });
+
+  Array.prototype.slice.call(document.querySelectorAll('.chip[data-person]')).forEach(function(el){
+    el.addEventListener('click', function(){
+      var pid = 'loose-' + el.dataset.person;
+      openDialog('写备注', el.dataset.person, store['note-' + pid], function(v){
+        if(v){ store['note-' + pid] = v; } else { delete store['note-' + pid]; }
+        save();
+      }, true);
+    });
+  });
+
+  /* ============ 时间轴 5 个孔 ============ */
   var stages = [ {id:'bali',ticks:5}, {id:'nanchang',ticks:5}, {id:'nanjing',ticks:5} ];
   stages.forEach(function(s){
     var box = document.getElementById('ticks-' + s.id);
@@ -662,7 +680,6 @@
       (function(i){
         var b = document.createElement('button');
         b.className = 'tick'; b.type = 'button'; b.textContent = '✔';
-        b.setAttribute('aria-label','第 ' + (i+1) + ' 个');
         b.dataset.key = 'tick-' + s.id + '-' + i;
         if(store[b.dataset.key]) b.classList.add('on');
         b.addEventListener('click', function(){
@@ -673,144 +690,167 @@
         box.appendChild(b);
       })(i);
     }
-    var lab = document.createElement('span');
-    lab.className = 'tick-label'; lab.textContent = '来一个点一个';
-    box.appendChild(lab);
   });
   function updateStage(){
     stages.forEach(function(s){
       var n = document.querySelectorAll('#ticks-' + s.id + ' .tick.on').length;
-      var total = document.querySelector('.stage[data-stage="' + s.id + '"] .st-total b');
-      if(total) total.textContent = n;
+      var el = document.querySelector('.stage[data-stage="' + s.id + '"] .st-total b');
+      if(el) el.textContent = n;
     });
   }
-  updateStage();
 
-  /* ---------------- 思维导图 ---------------- */
-  (function(){
-    var mind = {
-      label:'想要成长的点', color:'#1B3A63',
-      children:[
-        { label:'个人工作量', color:'#1B3A63', children:[
-          { label:'每月 8mg1（保持个人工作量）', children:[
-            { label:'每天 10 个 buffer，线上+线下' },
-            { label:'旁边有人就做对话、加微信' }
-          ]},
-          { label:'每天复盘（学会反思）', children:[
-            { label:'复盘自己的结果、效率' },
-            { label:'复盘怎么帮伙伴简化' }
-          ]},
-          { label:'营业额', children:[
-            { label:'每月 40 个健康对话' },
-            { label:'每月 8 个推链接' }
-          ]}
+  /* ============ 思维导图（可点击改名） ============ */
+  var MIND_DEFAULT = {
+    label:'想要成长的点', color:'#1B3A63', id:'m',
+    children:[
+      { label:'个人工作量', color:'#1B3A63', id:'m1', children:[
+        { label:'每月 8mg1（保持个人工作量）', id:'m1-1', children:[
+          { label:'每天 10 个 buffer，线上+线下', id:'m1-1-1' },
+          { label:'旁边有人就做对话、加微信', id:'m1-1-2' }
         ]},
-        { label:'个人成长', color:'#D96B3C', children:[
-          { label:'领导力的书 · 每月 2 本' },
-          { label:'线下对话能力 · 更自信' }
+        { label:'每天复盘（学会反思）', id:'m1-2', children:[
+          { label:'复盘自己的结果、效率', id:'m1-2-1' },
+          { label:'复盘怎么帮伙伴简化', id:'m1-2-2' }
         ]},
-        { label:'帮助团队', color:'#5C7A6B', children:[
-          { label:'推到 B 阶段：乐妍、小玲、？' },
-          { label:'帮伙伴简化对话和会面' }
+        { label:'营业额', id:'m1-3', children:[
+          { label:'每月 40 个健康对话', id:'m1-3-1' },
+          { label:'每月 8 个推链接', id:'m1-3-2' }
         ]}
-      ]
-    };
+      ]},
+      { label:'个人成长', color:'#D96B3C', id:'m2', children:[
+        { label:'领导力的书 · 每月 2 本', id:'m2-1' },
+        { label:'线下对话能力 · 更自信', id:'m2-2' }
+      ]},
+      { label:'帮助团队', color:'#5C7A6B', id:'m3', children:[
+        { label:'帮助伙伴到 B 阶段', id:'m3-1' },
+        { label:'帮伙伴简化对话和会面', id:'m3-2' }
+      ]}
+    ]
+  };
 
-    var msvg = document.getElementById('mind');
-    var FONTS = { 0:'600 19px', 1:'700 17px', 2:'600 16px', 3:'14.5px' };
+  var mindSvg = document.getElementById('mind');
+  var mindNodesById = {};
+
+  function mindLabel(n){
+    var v = store['mind-' + n.id];
+    return (v === undefined || v === null || v === '') ? n.label : v;
+  }
+
+  function renderMind(){
+    mindSvg.innerHTML = '';
+    mindNodesById = {};
+
+    var data = JSON.parse(JSON.stringify(MIND_DEFAULT));
+    var FONTS = { 0:'600 18px', 1:'700 16px', 2:'600 15px', 3:'13.5px' };
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
 
-    // 量文字宽度
     (function measure(n, d){
       n.depth = d;
+      n.text = mindLabel(n);
       ctx.font = FONTS[d] + ' "PingFang SC","Microsoft YaHei",sans-serif';
-      n.w = ctx.measureText(n.label).width;
+      n.w = ctx.measureText(n.text).width;
       (n.children||[]).forEach(function(c){ measure(c, d+1); });
-    })(mind, 0);
+    })(data, 0);
 
-    // 纵向排
-    var Y0 = 0, LEAF_GAP = 54;
+    var Y0 = 0, LEAF_GAP = 50;
     (function place(n){
       if(!n.children || !n.children.length){ n.y = Y0; Y0 += LEAF_GAP; }
-      else {
-        n.children.forEach(place);
-        n.y = (n.children[0].y + n.children[n.children.length-1].y) / 2;
-      }
-    })(mind);
+      else { n.children.forEach(place); n.y = (n.children[0].y + n.children[n.children.length-1].y)/2; }
+    })(data);
 
-    // 横向分列
     var maxW = [0,0,0,0];
-    (function scan(n){ maxW[n.depth] = Math.max(maxW[n.depth]||0, n.w); (n.children||[]).forEach(scan); })(mind);
+    (function scan(n){ maxW[n.depth] = Math.max(maxW[n.depth]||0, n.w); (n.children||[]).forEach(scan); })(data);
     var XS = [0];
-    for(var d=1; d<4; d++){ XS[d] = XS[d-1] + (maxW[d-1]||0) + 56; }
+    for(var d=1; d<4; d++){ XS[d] = XS[d-1] + (maxW[d-1]||0) + 48; }
 
-    var PADX = 28, PADY = 34;
+    var PADX = 24, PADY = 28;
     var totalW = XS[3] + (maxW[3]||0) + PADX*2;
     var totalH = Y0 + PADY*2 - LEAF_GAP;
-
-    msvg.setAttribute('viewBox', '0 0 ' + totalW + ' ' + totalH);
-    msvg.style.maxWidth = Math.min(totalW, 1150) + 'px';
-    msvg.style.margin = '0 auto';
+    mindSvg.setAttribute('viewBox', '0 0 ' + totalW + ' ' + totalH);
+    mindSvg.style.maxWidth = Math.min(totalW, 1080) + 'px';
+    mindSvg.style.margin = '0 auto';
 
     function PY(n){ return n.y + PADY; }
     function PX(n){ return XS[n.depth] + PADX; }
 
-    // 连线
-    (function drawLinks(n){
+    (function links(n){
       (n.children||[]).forEach(function(c){
-        var x1 = PX(n) + n.w + 10, y1 = PY(n);
-        var x2 = PX(c) - 10, y2 = PY(c);
+        var x1 = PX(n) + n.w + 9, y1 = PY(n);
+        var x2 = PX(c) - 9, y2 = PY(c);
         var p = document.createElementNS(NS,'path');
-        p.setAttribute('d', 'M'+x1+','+y1+' C'+(x1+30)+','+y1+' '+(x2-30)+','+y2+' '+x2+','+y2);
+        p.setAttribute('d','M'+x1+','+y1+' C'+(x1+26)+','+y1+' '+(x2-26)+','+y2+' '+x2+','+y2);
         p.setAttribute('fill','none');
         p.setAttribute('stroke', n.depth===0 ? '#c3cdd8' : (n.color || '#cfc9bc'));
         p.setAttribute('stroke-width', n.depth===0 ? 2 : 1.6);
-        p.setAttribute('opacity', n.depth===0 ? 1 : .75);
-        msvg.appendChild(p);
-        drawLinks(c);
+        p.setAttribute('opacity', n.depth===0 ? 1 : .72);
+        mindSvg.appendChild(p);
+        links(c);
       });
-    })(mind);
+    })(data);
 
-    // 节点
     (function draw(n){
       var x = PX(n), y = PY(n);
+      var g = document.createElementNS(NS,'g');
+      mindNodesById[n.id] = n;
+
       if(n.depth === 0){
-        var w = n.w + 40, h = 48;
+        var w = n.w + 36, h = 44;
         var r = document.createElementNS(NS,'rect');
-        r.setAttribute('x', x-20); r.setAttribute('y', y-h/2);
+        r.setAttribute('x', x-18); r.setAttribute('y', y-h/2);
         r.setAttribute('width', w); r.setAttribute('height', h);
-        r.setAttribute('rx', 6);
+        r.setAttribute('rx', 7);
         r.setAttribute('fill', '#1B3A63');
-        msvg.appendChild(r);
-        var t = txt(x + w/2 - 20, y+7, n.label, {size:'19', weight:'700', fill:'#fff'});
-        msvg.appendChild(t);
+        g.appendChild(r);
+        g.appendChild(txt(x + w/2 - 18, y+6, n.text, {size:'18', weight:'700', fill:'#fff'}));
+        g.setAttribute('class','node-g');
+        g.dataset.mid = n.id;
       } else if(n.depth === 1){
-        var w2 = n.w + 28, h2 = 38;
+        var w2 = n.w + 26, h2 = 35;
         var r2 = document.createElementNS(NS,'rect');
-        r2.setAttribute('x', x-14); r2.setAttribute('y', y-h2/2);
+        r2.setAttribute('x', x-13); r2.setAttribute('y', y-h2/2);
         r2.setAttribute('width', w2); r2.setAttribute('height', h2);
-        r2.setAttribute('rx', 19);
+        r2.setAttribute('rx', 17);
         r2.setAttribute('fill', n.color);
-        msvg.appendChild(r2);
-        msvg.appendChild(txt(x + w2/2 - 14, y+6, n.label, {size:'17', weight:'700', fill:'#fff'}));
+        g.appendChild(r2);
+        g.appendChild(txt(x + w2/2 - 13, y+5.5, n.text, {size:'16', weight:'700', fill:'#fff'}));
+        g.dataset.mid = n.id;
       } else if(n.depth === 2){
-        msvg.appendChild(txt(x, y+6, n.label, {size:'16', weight:'600', fill:'#2c313a', anchor:'start'}));
+        g.appendChild(txt(x, y+5.5, n.text, {size:'15', weight:'600', fill:'#2c313a', anchor:'start'}));
         var line = document.createElementNS(NS,'line');
-        line.setAttribute('x1', x); line.setAttribute('y1', y+12);
-        line.setAttribute('x2', x+n.w); line.setAttribute('y2', y+12);
+        line.setAttribute('x1', x); line.setAttribute('y1', y+11);
+        line.setAttribute('x2', x+n.w); line.setAttribute('y2', y+11);
         line.setAttribute('stroke', (n.color||'#cfc9bc'));
         line.setAttribute('stroke-width','1.4');
-        line.setAttribute('opacity','.5');
-        msvg.appendChild(line);
+        line.setAttribute('opacity','.45');
+        g.appendChild(line);
+        g.dataset.mid = n.id;
       } else {
-        msvg.appendChild(txt(x, y+5, n.label, {size:'14.5', fill:'#4a5058', anchor:'start'}));
+        g.appendChild(txt(x, y+4.5, n.text, {size:'13.5', fill:'#4a5058', anchor:'start'}));
+        g.dataset.mid = n.id;
       }
-      (n.children||[]).forEach(draw);
-    })(mind);
-  })();
 
-  /* ---------------- 每天跟踪 ---------------- */
+      g.setAttribute('class','mind-node');
+      g.style.cursor = 'pointer';
+      mindSvg.appendChild(g);
+      (n.children||[]).forEach(draw);
+    })(data);
+  }
+
+  mindSvg.addEventListener('click', function(e){
+    var g = e.target.closest ? e.target.closest('g[data-mid]') : null;
+    if(!g) return;
+    var id = g.dataset.mid;
+    var node = mindNodesById[id];
+    if(!node) return;
+    openDialog('改这一条', node.text, mindLabel({id:id, label:node.label}), function(v){
+      if(v && v !== node.label){ store['mind-' + id] = v; }
+      else { delete store['mind-' + id]; }
+      save(); renderMind();
+    }, true);
+  });
+
+  /* ============ 每天跟踪 ============ */
   var DAILY = [
     '10 个 buffer（线上+线下）',
     '跟旁边的人做对话 / 加微信',
@@ -823,12 +863,22 @@
   }
 
   var TODAY = new Date(); TODAY.setHours(0,0,0,0);
-  var PLAN_START = new Date(2026, 10, 1);    // 2026-11-01
+  var PLAN_START = new Date(2026, 10, 1);
+  var PLAN_END = new Date(2027, 4, 31);
   var MONTHS = ['2026 年 11 月','2026 年 12 月','2027 年 1 月','2027 年 2 月','2027 年 3 月','2027 年 4 月','2027 年 5 月'];
 
   var MODE = 'week';
   var WEEK_OFFSET = 0;
   var MONTH_IDX = Math.max(0, Math.min(6, (TODAY.getFullYear()-2026)*12 + (TODAY.getMonth()-10)));
+
+  // 本周一
+  function mondayOf(date){
+    var d = new Date(date);
+    var dow = (d.getDay() + 6) % 7;   // 0 = 周一
+    d.setDate(d.getDate() - dow);
+    return d;
+  }
+  var WEEK0 = mondayOf(TODAY);
 
   function mk(d){
     return { key: ymd(d), label: (d.getMonth()+1)+'/'+d.getDate(), day: d.getDate(),
@@ -836,8 +886,9 @@
   }
   function daysOfWeek(offset){
     var out = [];
-    for(var k=6;k>=0;k--){
-      var d = new Date(TODAY); d.setDate(TODAY.getDate() - k - offset*7);
+    var start = new Date(WEEK0); start.setDate(WEEK0.getDate() + offset*7);
+    for(var k=0;k<7;k++){
+      var d = new Date(start); d.setDate(start.getDate() + k);
       out.push(mk(d));
     }
     return out;
@@ -861,11 +912,9 @@
       x.classList.toggle('active', x.dataset.mode === MODE);
     });
 
-    head.innerHTML = '<tr><th style="width:' + (MODE==='month' ? '150px' : '190px') + ';">做什么</th>' +
+    head.innerHTML = '<tr><th style="width:' + (MODE==='month' ? '140px' : '180px') + ';">做什么</th>' +
       days.map(function(d){
-        if(MODE === 'month'){
-          return '<th class="'+(d.today?'today-col':'')+'">'+d.day+'</th>';
-        }
+        if(MODE === 'month') return '<th class="'+(d.today?'today-col':'')+'">'+d.day+'</th>';
         return '<th class="'+(d.today?'today-col':'')+'">'+d.label+(d.today?'<br><span class="th-sub">今天</span>':'')+'</th>';
       }).join('') + '</tr>';
 
@@ -884,7 +933,6 @@
         b.dataset.key = 'd-' + d.key + '-' + rowIdx;
         if(store[b.dataset.key]) b.classList.add('on');
         if(d.future) b.disabled = true;
-        b.setAttribute('aria-label', name + ' ' + d.key);
         b.addEventListener('click', function(){
           b.classList.toggle('on');
           store[b.dataset.key] = b.classList.contains('on');
@@ -901,20 +949,25 @@
       document.getElementById('nav-prev').disabled = (MONTH_IDX === 0);
       document.getElementById('nav-next').disabled = (MONTH_IDX >= 6);
     } else {
-      var first = days[0], last = days[days.length-1];
+      var first = days[0], last = days[6];
       document.getElementById('week-range').textContent = first.label + ' — ' + last.label;
-      var earliest = new Date(TODAY); earliest.setDate(TODAY.getDate() - WEEK_OFFSET*7 - 6);
-      document.getElementById('nav-prev').disabled = (earliest.getTime() <= PLAN_START.getTime());
-      document.getElementById('nav-next').disabled = (WEEK_OFFSET === 0);
+      document.getElementById('nav-prev').disabled = sameOrBefore(first, PLAN_START);
+      document.getElementById('nav-next').disabled = sameOrAfter(last, PLAN_END);
     }
     updateDone();
   }
+
+  function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate()+n); return x; }
+  function sameOrBefore(day, ref){ return day.key <= ymd(ref); }
+  function sameOrAfter(day, ref){ return day.key >= ymd(ref); }
 
   function countOn(dayKey){
     var c = 0;
     for(var r=0;r<DAILY.length;r++){ if(store['d-' + dayKey + '-' + r]) c++; }
     return c;
   }
+
+  var celebrated = {};
 
   function updateDone(){
     var label = document.getElementById('done-label');
@@ -926,39 +979,64 @@
       var done = 0;
       past.forEach(function(d){ done += countOn(d.key); });
       var goal = past.length * DAILY.length;
-      label.textContent = '本月已完成（到今天为止）';
+      label.textContent = '本月已完成';
       text.textContent = done + ' / ' + goal;
       fill.style.width = goal ? Math.round(done/goal*100) + '%' : '0%';
       return;
     }
 
-    var base = days[6];
+    var base = null;
+    days.forEach(function(d){ if(d.today) base = d; });
+    if(!base) base = days[6];
+
     var c = countOn(base.key);
-    label.textContent = base.today ? '今天完成' : base.label + ' 那天完成';
+    label.textContent = base.today ? '今天完成' : base.label + ' 完成';
     text.textContent = c + ' / ' + DAILY.length;
     fill.style.width = Math.round(c / DAILY.length * 100) + '%';
+
+    if(base.today && c === DAILY.length && !celebrated[base.key]){
+      celebrated[base.key] = true;
+      cheer();
+    }
+  }
+
+  function cheer(){
+    var el = document.getElementById('cheer');
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 4200);
+
+    var box = document.getElementById('congrats');
+    box.innerHTML = '';
+    box.classList.add('show');
+    var colors = ['#D96B3C','#1B3A63','#FBE95A','#4e83fd','#5C7A6B'];
+    for(var i=0;i<28;i++){
+      var p = document.createElement('i');
+      p.className = 'confetti';
+      p.style.left = (Math.random()*100) + 'vw';
+      p.style.background = colors[i % colors.length];
+      p.style.animationDuration = (2 + Math.random()*1.6) + 's';
+      p.style.animationDelay = (Math.random()*0.5) + 's';
+      box.appendChild(p);
+    }
+    setTimeout(function(){ box.classList.remove('show'); box.innerHTML = ''; }, 4000);
   }
 
   document.getElementById('nav-prev').addEventListener('click', function(){
     if(MODE === 'month'){ if(MONTH_IDX > 0){ MONTH_IDX--; render(); } }
-    else { WEEK_OFFSET++; render(); }
+    else { WEEK_OFFSET--; render(); }
   });
   document.getElementById('nav-next').addEventListener('click', function(){
     if(MODE === 'month'){ if(MONTH_IDX < 6){ MONTH_IDX++; render(); } }
-    else if(WEEK_OFFSET > 0){ WEEK_OFFSET--; render(); }
+    else { WEEK_OFFSET++; render(); }
   });
   Array.prototype.slice.call(document.querySelectorAll('#view-seg button')).forEach(function(btn){
     btn.addEventListener('click', function(){
       MODE = btn.dataset.mode;
-      Array.prototype.slice.call(document.querySelectorAll('#view-seg button')).forEach(function(x){
-        x.classList.toggle('active', x === btn);
-      });
       render();
     });
   });
-  render();
 
-  /* ---------------- 每月计数 ---------------- */
+  /* ============ 每月的量 ============ */
   var COUNTERS = [
     { key:'talk',  name:'健康对话', goal:40, unit:'' },
     { key:'link',  name:'推链接',   goal:8,  unit:'' },
@@ -978,19 +1056,40 @@
 
     var fill = wrap.querySelector('.mini-bar i');
     var valEl = wrap.querySelector('.val');
-    function render(){
+    function paint(){
       var v = store['c-' + c.key] || 0;
       fill.style.width = Math.min(100, Math.round(v / c.goal * 100)) + '%';
       valEl.textContent = v + ' / ' + c.goal + c.unit;
     }
     wrap.querySelector('[data-act="plus"]').addEventListener('click', function(){
-      store['c-' + c.key] = Math.min(999, (store['c-' + c.key] || 0) + 1); save(); render();
+      store['c-' + c.key] = Math.min(999, (store['c-' + c.key] || 0) + 1); save(); paint();
     });
     wrap.querySelector('[data-act="minus"]').addEventListener('click', function(){
-      store['c-' + c.key] = Math.max(0, (store['c-' + c.key] || 0) - 1); save(); render();
+      store['c-' + c.key] = Math.max(0, (store['c-' + c.key] || 0) - 1); save(); paint();
     });
-    render();
+    paint();
   });
+
+  /* ============ 启动 ============ */
+  openDB().then(function(d){
+    db = d;
+    if(!db){ store = loadLocal(); boot(); return; }
+    dbGetAll().then(function(all){
+      store = all || {};
+      if(Object.keys(store).length === 0){
+        var local = loadLocal();
+        if(Object.keys(local).length){ store = local; dbSave(); }
+      }
+      boot();
+    });
+  });
+
+  function boot(){
+    refreshNotes();
+    updateStage();
+    renderMind();
+    render();
+  }
 })();
 </script>
 </body>
