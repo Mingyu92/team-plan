@@ -31,11 +31,11 @@
   .lede{font-size:15px;color:#4a4f5a;max-width:820px;margin:0;}
   .lede b{color:var(--navy);}
 
-  .top{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px;align-items:start;}
+  .top{display:block;}
   .panel-title{font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:600;margin:0 0 18px;}
 
   .chart{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:28px 24px 22px;}
-  #orgchart{display:block;width:100%;max-width:760px;margin:0 auto;}
+  #orgchart{display:block;width:100%;max-width:900px;margin:0 auto;}
   #orgchart circle.node{cursor:pointer;}
   #orgchart circle.node:hover{stroke:var(--orange);stroke-width:2.5;}
 
@@ -64,6 +64,17 @@
   /* 时间轴 */
   .pre-note{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:2px;padding:6px 12px;font-size:12.5px;color:#4a4f5a;margin-bottom:26px;}
   .pre-note b{color:var(--orange);}
+
+  .ticket-box{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:780px;margin:0 0 34px;}
+  .ticket-col{background:#fff;border:1px solid var(--line);border-radius:2px;padding:16px 20px;}
+  .ticket-col h4{margin:0 0 10px;font-size:13px;color:var(--orange);letter-spacing:.06em;}
+  .ticket-col ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;}
+  .ticket-col li{display:flex;align-items:baseline;gap:8px;font-size:13.5px;color:#3c414a;}
+  .ticket-col li span{width:42px;color:var(--navy);}
+  .ticket-col li b{font-variant-numeric:tabular-nums;color:var(--navy);}
+  .ticket-col li em{font-style:normal;font-size:11px;color:var(--muted);}
+  .ticket-total{font-size:12.5px;color:var(--navy);font-weight:600;margin:12px 0 0;padding-top:10px;border-top:1px dotted var(--line);line-height:1.6;}
+  .ticket-warn{display:block;font-weight:400;color:#b4573a;font-size:11.5px;margin-top:4px;}
   .axis{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding-top:38px;}
   .axis::before{content:"";position:absolute;top:14px;left:8%;right:8%;height:2px;background:var(--navy);opacity:.18;}
   .stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 22px 18px;}
@@ -104,26 +115,36 @@
   #mind{display:block;width:100%;}
 
   /* 每天跟踪 */
-  .track-wrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:26px;align-items:start;}
-  .track-card{background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 24px;}
+  .track-wrap{display:block;}
+  .track-card{background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:22px 24px;margin-bottom:18px;}
   .track-card h3{margin:0 0 4px;font-size:15px;color:var(--navy);}
   .track-card .hint{font-size:12px;color:var(--muted);margin:0 0 16px;}
-  .week-nav{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .track-toolbar{display:flex;align-items:center;gap:18px;margin-bottom:14px;flex-wrap:wrap;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+  .seg button{border:0;background:#fff;color:var(--muted);font-size:13px;padding:6px 16px;cursor:pointer;font-family:inherit;}
+  .seg button.active{background:var(--navy);color:#fff;}
+  .week-nav{display:flex;align-items:center;gap:10px;}
   .week-nav button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);
                    font-size:14px;cursor:pointer;line-height:1;padding:0;}
   .week-nav button:hover:not(:disabled){border-color:var(--orange);color:var(--orange);}
   .week-nav button:disabled{opacity:.35;cursor:default;}
-  .week-range{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;}
+  .week-range{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;min-width:96px;text-align:center;}
   table.track{font-size:12.5px;}
   table.track th{padding:8px 6px;font-size:11.5px;}
   table.track td{padding:0;border-color:#e7e2d6;}
   table.track td.item{text-align:left;padding:11px 12px;font-size:13px;color:#3c414a;white-space:nowrap;background:#fbfaf6;}
   table.track td.today-col{background:#fff8ee;}
+  table.track.compact th{padding:6px 2px;font-size:11px;}
+  table.track.compact td.item{font-size:12.5px;padding:8px 10px;}
   .cell-btn{width:100%;height:42px;border:0;background:transparent;cursor:pointer;position:relative;}
+  table.track.compact .cell-btn{height:32px;}
   .cell-btn::after{content:"";position:absolute;left:50%;top:50%;width:15px;height:15px;margin:-9px 0 0 -9px;
     border:1.5px solid #cfc9bc;border-radius:3px;}
+  table.track.compact .cell-btn::after{width:13px;height:13px;margin:-8px 0 0 -8px;}
   .cell-btn.on::after{background:var(--orange);border-color:var(--orange);box-shadow:inset 0 0 0 2px #fff;}
-  .cell-btn:hover::after{border-color:var(--orange);}
+  .cell-btn:hover:not(:disabled)::after{border-color:var(--orange);}
+  .cell-btn:disabled{cursor:default;}
+  .cell-btn:disabled::after{border-color:#f0ece2;background:#faf8f3;}
   .done-bar{margin-top:16px;}
   .done-bar .label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
   .done-bar .label b{color:var(--navy);}
@@ -131,9 +152,9 @@
   .mini-bar i{display:block;height:100%;background:var(--navy);width:0;transition:width .15s;}
   .track-note{font-size:11.5px;color:#9a9a94;margin-top:12px;line-height:1.7;}
 
-  .counters{display:flex;flex-direction:column;gap:14px;}
-  .counter{display:flex;align-items:center;gap:12px;}
-  .counter .name{width:118px;font-size:13px;color:#3c414a;flex:0 0 auto;}
+  .counters{display:flex;gap:34px;flex-wrap:wrap;}
+  .counter{display:flex;align-items:center;gap:12px;min-width:250px;flex:1;}
+  .counter .name{width:110px;font-size:13px;color:#3c414a;flex:0 0 auto;}
   .counter .val{font-size:12.5px;color:var(--navy);font-weight:600;font-variant-numeric:tabular-nums;width:52px;text-align:right;flex:0 0 auto;}
   .step{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);
         font-size:14px;line-height:1;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0;}
@@ -194,51 +215,50 @@
         <p class="chart-hint">点圆圈 → 写备注，写过的圈会多一个小点</p>
 
         <div class="loose">
-          <span class="loose-label">没连线的：</span>
+          <span class="loose-label">没连线的</span>
           <span class="chip" data-person="小吴">小吴</span>
           <span class="chip" data-person="喻燕">喻燕</span>
-          <span class="sig">白板上是独立两个圈，没挂到任何人下面，也可以点开写备注</span>
         </div>
       </div>
     </div>
 
-    <aside>
-      <p class="panel-title">旁边备注</p>
-
-      <div class="note-block">
-        <h3>这个页面怎么用</h3>
-        <p><b>点圆圈</b>：给这个人写备注（谁在跟进、卡在哪、下步做什么），写过的圈右上角有个橙点。</p>
-        <p><b>点圆孔</b>：时间轴上来了一个人就点一个，计数自动变。</p>
-        <p><b>点格子</b>：每天做了就打勾，右边能翻周看。</p>
-      </div>
-
-      <div class="note-block">
-        <h3>人数怎么对上</h3>
-        <p>诗媛 1 人 ＋ 宇茹线 7 人 ＋ 秀清线 8 人 ＋ 小玲线 4 人 ＝ <b>20 人</b>，和文档里「12.20 团队 20 个人」正好对上。</p>
-        <p>秀清线里画了名字的是 6 个，剩下 2 个没画；小玲线下面 4 个人没画名字。</p>
-      </div>
-
-      <div class="note-block">
-        <h3>圈的颜色</h3>
-        <p><b>黄圈</b>：已经在链上的伙伴。<br>
-           <b>蓝圈</b>：洋洋、吴思宇。<br>
-           <b>白圈</b>：小吴、喻燕，还没挂线。</p>
-      </div>
-
-      <div class="note-block todo">
-        <h3>还想跟你确认</h3>
-        <ol>
-          <li>秀清线里的「艳艳」和宇茹线的「王艳」是同一个人吗？</li>
-          <li>小玲线下面 4 个人，白板上没写名字，要不要补进来？</li>
-        </ol>
-      </div>
-    </aside>
   </div>
 
   <!-- 时间轴 -->
   <section>
     <div class="sec-head"><h2>时间节点</h2><span>三次大会 · 每段加 5 个人 · 来一个人点一个孔</span></div>
     <div class="pre-note"><b>先多买票 14 张，必须搞定人</b>　—　票先买下来，人才有位置坐</div>
+
+    <div class="ticket-box">
+      <div class="ticket-col">
+        <h4>最初的分法</h4>
+        <ul>
+          <li><span>乐妍</span><b>4</b></li>
+          <li><span>思宇</span><b>3</b></li>
+          <li><span>林慧</span><b>1</b></li>
+          <li><span>洋洋</span><b>3</b></li>
+          <li><span>小玲</span><b>4</b></li>
+          <li><span>秀清</span><b>1</b></li>
+          <li><span>艳艳</span><b>1</b></li>
+          <li><span>诗媛</span><b>5</b></li>
+        </ul>
+        <p class="ticket-total">团队 17 张 ＋ 个人 5 张 ＝ 22 张</p>
+      </div>
+      <div class="ticket-col">
+        <h4>更新后</h4>
+        <ul>
+          <li><span>乐妍</span><b>2</b><em>4 → 2</em></li>
+          <li><span>思宇</span><b>2</b><em>3 → 2</em></li>
+          <li><span>林慧</span><b>1</b></li>
+          <li><span>洋洋</span><b>2</b><em>3 → 2</em></li>
+          <li><span>小玲</span><b>2</b><em>4 → 2</em></li>
+          <li><span>秀清</span><b>1</b></li>
+          <li><span>艳艳</span><b>1</b></li>
+          <li><span>诗媛</span><b>5</b></li>
+        </ul>
+        <p class="ticket-total">团队 11 张 ＋ 个人 5 张 ＝ 22 张<span class="ticket-warn">按上面的数加起来是 16 张</span></p>
+      </div>
+    </div>
 
     <div class="axis">
       <div class="stage now" data-stage="bali">
@@ -313,20 +333,26 @@
 
   <!-- 每天跟踪 -->
   <section>
-    <div class="sec-head"><h2>每天跟踪</h2><span>做了就点一下 · 日期自己往前走 · 可以往回翻周</span></div>
+    <div class="sec-head"><h2>每天跟踪</h2><span>覆盖 2026 年 11 月 — 2027 年 5 月 · 按周或按月看</span></div>
 
     <div class="track-wrap">
       <div class="track-card">
         <h3>每天要做的事</h3>
-        <p class="hint">点格子＝那天做了。日期是按今天自动算的，明天打开自动换成新的一周，不用改代码；以前的记录都留着，用左右箭头翻。</p>
+        <p class="hint">点格子＝那天做了。整个计划期都能翻：按周看最近 7 天，按月看一整个月；今天以后的格子先点不了。</p>
 
-        <div class="week-nav">
-          <button type="button" id="week-prev" aria-label="上一周">‹</button>
-          <span class="week-range" id="week-range"></span>
-          <button type="button" id="week-next" aria-label="下一周">›</button>
+        <div class="track-toolbar">
+          <div class="seg" id="view-seg">
+            <button type="button" data-mode="week" class="active">按周</button>
+            <button type="button" data-mode="month">按月</button>
+          </div>
+          <div class="week-nav">
+            <button type="button" id="nav-prev" aria-label="往前">‹</button>
+            <span class="week-range" id="week-range"></span>
+            <button type="button" id="nav-next" aria-label="往后">›</button>
+          </div>
         </div>
 
-        <table class="track">
+        <table class="track" id="track-table">
           <thead id="track-head"></thead>
           <tbody id="track-body"></tbody>
         </table>
@@ -492,7 +518,7 @@
       svg.appendChild(txt(x, y+13, n.sub, {size:'10', fill:'rgba(255,255,255,.8)'}));
     }
     if(n.side){
-      svg.appendChild(txt(x-R-11, y+4, n.side, {size:'11', anchor:'end', fill:'#8a8375'}));
+      /* 灰色小字已按要求去掉 */
     }
     if(n.children) n.children.forEach(drawNode);
   }
@@ -721,17 +747,32 @@
     var m = ('0'+(d.getMonth()+1)).slice(-2), day = ('0'+d.getDate()).slice(-2);
     return d.getFullYear() + '-' + m + '-' + day;
   }
-  var WEEK_OFFSET = 0;   // 0 = 最近 7 天，1 = 再往前 7 天
 
-  function daysFor(offset){
+  var TODAY = new Date(); TODAY.setHours(0,0,0,0);
+  var PLAN_START = new Date(2026, 10, 1);    // 2026-11-01
+  var MONTHS = ['2026 年 11 月','2026 年 12 月','2027 年 1 月','2027 年 2 月','2027 年 3 月','2027 年 4 月','2027 年 5 月'];
+
+  var MODE = 'week';
+  var WEEK_OFFSET = 0;
+  var MONTH_IDX = Math.max(0, Math.min(6, (TODAY.getFullYear()-2026)*12 + (TODAY.getMonth()-10)));
+
+  function mk(d){
+    return { key: ymd(d), label: (d.getMonth()+1)+'/'+d.getDate(), day: d.getDate(),
+             today: d.getTime() === TODAY.getTime(), future: d.getTime() > TODAY.getTime() };
+  }
+  function daysOfWeek(offset){
     var out = [];
-    var today = new Date(); today.setHours(0,0,0,0);
     for(var k=6;k>=0;k--){
-      var d = new Date(today);
-      d.setDate(today.getDate() - k - offset*7);
-      out.push({ key: ymd(d), label: (d.getMonth()+1)+'/'+d.getDate(),
-                 today: (offset===0 && k===0), future: d.getTime() > today.getTime() });
+      var d = new Date(TODAY); d.setDate(TODAY.getDate() - k - offset*7);
+      out.push(mk(d));
     }
+    return out;
+  }
+  function daysOfMonth(idx){
+    var s = new Date(2026, 10 + idx, 1);
+    var n = new Date(s.getFullYear(), s.getMonth()+1, 0).getDate();
+    var out = [];
+    for(var i=1;i<=n;i++) out.push(mk(new Date(s.getFullYear(), s.getMonth(), i)));
     return out;
   }
 
@@ -739,10 +780,18 @@
   var body = document.getElementById('track-body');
   var days = [];
 
-  function renderWeek(){
-    days = daysFor(WEEK_OFFSET);
-    head.innerHTML = '<tr><th style="width:190px;">做什么</th>' +
+  function render(){
+    days = (MODE === 'month') ? daysOfMonth(MONTH_IDX) : daysOfWeek(WEEK_OFFSET);
+    document.getElementById('track-table').classList.toggle('compact', MODE === 'month');
+    Array.prototype.slice.call(document.querySelectorAll('#view-seg button')).forEach(function(x){
+      x.classList.toggle('active', x.dataset.mode === MODE);
+    });
+
+    head.innerHTML = '<tr><th style="width:' + (MODE==='month' ? '150px' : '190px') + ';">做什么</th>' +
       days.map(function(d){
+        if(MODE === 'month'){
+          return '<th class="'+(d.today?'today-col':'')+'">'+d.day+'</th>';
+        }
         return '<th class="'+(d.today?'today-col':'')+'">'+d.label+(d.today?'<br><span class="th-sub">今天</span>':'')+'</th>';
       }).join('') + '</tr>';
 
@@ -760,6 +809,7 @@
         b.className = 'cell-btn'; b.type = 'button';
         b.dataset.key = 'd-' + d.key + '-' + rowIdx;
         if(store[b.dataset.key]) b.classList.add('on');
+        if(d.future) b.disabled = true;
         b.setAttribute('aria-label', name + ' ' + d.key);
         b.addEventListener('click', function(){
           b.classList.toggle('on');
@@ -772,35 +822,67 @@
       body.appendChild(tr);
     });
 
-    var first = days[0], last = days[days.length-1];
-    document.getElementById('week-range').textContent = first.label + ' — ' + last.label;
-    document.getElementById('week-next').disabled = (WEEK_OFFSET === 0);
+    if(MODE === 'month'){
+      document.getElementById('week-range').textContent = MONTHS[MONTH_IDX];
+      document.getElementById('nav-prev').disabled = (MONTH_IDX === 0);
+      document.getElementById('nav-next').disabled = (MONTH_IDX >= 6);
+    } else {
+      var first = days[0], last = days[days.length-1];
+      document.getElementById('week-range').textContent = first.label + ' — ' + last.label;
+      var earliest = new Date(TODAY); earliest.setDate(TODAY.getDate() - WEEK_OFFSET*7 - 6);
+      document.getElementById('nav-prev').disabled = (earliest.getTime() <= PLAN_START.getTime());
+      document.getElementById('nav-next').disabled = (WEEK_OFFSET === 0);
+    }
     updateDone();
   }
 
-  function updateDone(){
-    if(WEEK_OFFSET !== 0){
-      var cnt = 0, base = days[6];
-      for(var r=0;r<DAILY.length;r++){ if(store['d-' + base.key + '-' + r]) cnt++; }
-      document.getElementById('done-label').textContent = base.label + ' 那天完成';
-      document.getElementById('done-text').textContent = cnt + ' / ' + DAILY.length;
-      document.getElementById('done-fill').style.width = Math.round(cnt / DAILY.length * 100) + '%';
-      return;
-    }
-    var done = 0;
-    for(var r2=0;r2<DAILY.length;r2++){ if(store['d-' + days[6].key + '-' + r2]) done++; }
-    document.getElementById('done-label').textContent = '今天完成';
-    document.getElementById('done-text').textContent = done + ' / ' + DAILY.length;
-    document.getElementById('done-fill').style.width = Math.round(done / DAILY.length * 100) + '%';
+  function countOn(dayKey){
+    var c = 0;
+    for(var r=0;r<DAILY.length;r++){ if(store['d-' + dayKey + '-' + r]) c++; }
+    return c;
   }
 
-  document.getElementById('week-prev').addEventListener('click', function(){
-    WEEK_OFFSET++; renderWeek();
+  function updateDone(){
+    var label = document.getElementById('done-label');
+    var text = document.getElementById('done-text');
+    var fill = document.getElementById('done-fill');
+
+    if(MODE === 'month'){
+      var past = days.filter(function(d){ return !d.future; });
+      var done = 0;
+      past.forEach(function(d){ done += countOn(d.key); });
+      var goal = past.length * DAILY.length;
+      label.textContent = '本月已完成（到今天为止）';
+      text.textContent = done + ' / ' + goal;
+      fill.style.width = goal ? Math.round(done/goal*100) + '%' : '0%';
+      return;
+    }
+
+    var base = days[6];
+    var c = countOn(base.key);
+    label.textContent = base.today ? '今天完成' : base.label + ' 那天完成';
+    text.textContent = c + ' / ' + DAILY.length;
+    fill.style.width = Math.round(c / DAILY.length * 100) + '%';
+  }
+
+  document.getElementById('nav-prev').addEventListener('click', function(){
+    if(MODE === 'month'){ if(MONTH_IDX > 0){ MONTH_IDX--; render(); } }
+    else { WEEK_OFFSET++; render(); }
   });
-  document.getElementById('week-next').addEventListener('click', function(){
-    if(WEEK_OFFSET > 0){ WEEK_OFFSET--; renderWeek(); }
+  document.getElementById('nav-next').addEventListener('click', function(){
+    if(MODE === 'month'){ if(MONTH_IDX < 6){ MONTH_IDX++; render(); } }
+    else if(WEEK_OFFSET > 0){ WEEK_OFFSET--; render(); }
   });
-  renderWeek();
+  Array.prototype.slice.call(document.querySelectorAll('#view-seg button')).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      MODE = btn.dataset.mode;
+      Array.prototype.slice.call(document.querySelectorAll('#view-seg button')).forEach(function(x){
+        x.classList.toggle('active', x === btn);
+      });
+      render();
+    });
+  });
+  render();
 
   /* ---------------- 每月计数 ---------------- */
   var COUNTERS = [
