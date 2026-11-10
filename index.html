@@ -276,7 +276,7 @@
         <div class="st-total">已到 <b>0</b> / 5</div>
       </div>
       <div class="stage" data-stage="nanjing">
-        <div class="st-date">5.25<small>2027</small></div>
+        <div class="st-date">5.15<small>2027</small></div>
         <div class="st-place">南京大会</div>
         <div class="st-size">目标团队 <b>30</b> 人 · 本段新增 5 人</div>
         <div class="ticks" id="ticks-nanjing"></div>
@@ -304,7 +304,7 @@
           <th></th>
           <th colspan="2" class="th-sub">12.20 前</th>
           <th colspan="3" class="th-sub">3.6 前</th>
-          <th colspan="2" class="th-sub">5.25 前</th>
+          <th colspan="2" class="th-sub">5.15 前</th>
         </tr>
       </thead>
       <tbody>
@@ -422,7 +422,7 @@
       { name:'秀清', side:'8 个人', id:'p2', children:[
         { name:'洋洋', cls:'blue', id:'p2-1', children:[
           { name:'吴思宇', cls:'blue', id:'p2-1-1', children:[
-            { name:'林慧6', id:'p2-1-1-1', children:[
+            { name:'林慧', id:'p2-1-1-1', children:[
               { name:'艳艳', id:'p2-1-1-1-1', children:[ { name:'乐妍', id:'p2-1-1-1-1-1' } ]}
             ]}
           ]}
@@ -496,8 +496,11 @@
     return t;
   }
 
+  var allNodes = [];
+
   function drawNode(n){
     var x = X(n), y = Y(n);
+    allNodes.push(n);
     var fill='#FBE95A', stroke='#dfce35', color='#2a2a20';
     if(n.cls==='blue'){ fill='#4e83fd'; stroke='#3a6fdc'; color='#fff'; }
     if(n.cls==='root'){ fill='#1B3A63'; stroke='#1B3A63'; color='#fff'; }
@@ -524,23 +527,94 @@
   }
   drawNode(tree);
 
-  // 有备注的圈标个小橙点（重建时也重画）
+  // 有备注的圈：图上直接显示一张小卡片
+  function wrapText(str, per, maxLines){
+    var raw = String(str).replace(/\s+/g, ' ').trim();
+    var lines = [], i = 0;
+    while(i < raw.length && lines.length < maxLines){
+      lines.push(raw.slice(i, i + per));
+      i += per;
+    }
+    if(i < raw.length){
+      var last = lines[maxLines - 1];
+      lines[maxLines - 1] = last.slice(0, Math.max(1, per - 1)) + '…';
+    }
+    return lines;
+  }
+
   function refreshMarkers(){
-    Array.prototype.slice.call(svg.querySelectorAll('.note-dot')).forEach(function(el){ el.remove(); });
-    Array.prototype.slice.call(svg.querySelectorAll('circle.node')).forEach(function(c){
-      var pid = c.dataset.pid;
-      if(store['note-' + pid]){
-        var dot = document.createElementNS(NS,'circle');
-        dot.setAttribute('class','note-dot');
-        dot.setAttribute('cx', parseFloat(c.getAttribute('cx')) + R*0.72);
-        dot.setAttribute('cy', parseFloat(c.getAttribute('cy')) - R*0.72);
-        dot.setAttribute('r','6');
-        dot.setAttribute('fill','#D96B3C');
-        dot.setAttribute('stroke','#fff');
-        dot.setAttribute('stroke-width','2');
-        svg.appendChild(dot);
-      }
+    var old = document.getElementById('notes-layer');
+    if(old) old.remove();
+    var layer = document.createElementNS(NS, 'g');
+    layer.setAttribute('id', 'notes-layer');
+
+    // 同层按左右排序，用来判断卡片往哪边放
+    var byDepth = {};
+    allNodes.forEach(function(n){ (byDepth[n.depth] = byDepth[n.depth] || []).push(n); });
+    Object.keys(byDepth).forEach(function(k){ byDepth[k].sort(function(a, b){ return a.x - b.x; }); });
+
+    var anyRight = false, anyLeft = false;
+
+    allNodes.forEach(function(n){
+      var text = store['note-' + n.id];
+      if(!text) return;
+
+      var lines = wrapText(text, 9, 3);
+      var w = 9 * 11.5 + 20;
+      var h = lines.length * 17 + 14;
+      var y = Y(n);
+
+      var row = byDepth[n.depth] || [];
+      var i = row.indexOf(n);
+      var rightGap = (i >= 0 && i < row.length - 1) ? (row[i+1].x - n.x) : Infinity;
+      var leftGap  = (i > 0) ? (n.x - row[i-1].x) : Infinity;
+
+      var toRight = (rightGap >= 135) || (leftGap < 135);
+      var x;
+      if(toRight){ x = X(n) + R + 10; anyRight = true; }
+      else { x = X(n) - R - 10 - w; anyLeft = true; }
+
+      var rect = document.createElementNS(NS, 'rect');
+      rect.setAttribute('x', x); rect.setAttribute('y', y - h/2);
+      rect.setAttribute('width', w); rect.setAttribute('height', h);
+      rect.setAttribute('rx', 5);
+      rect.setAttribute('fill', '#FFFCF4');
+      rect.setAttribute('stroke', '#E7D9BE');
+      rect.setAttribute('stroke-width', '1');
+      layer.appendChild(rect);
+
+      var bar = document.createElementNS(NS, 'rect');
+      bar.setAttribute('x', toRight ? x + 0.5 : x + w - 3);
+      bar.setAttribute('y', y - h/2 + 7);
+      bar.setAttribute('width', 2.5); bar.setAttribute('height', h - 14);
+      bar.setAttribute('fill', '#D96B3C');
+      layer.appendChild(bar);
+
+      lines.forEach(function(line, k){
+        var t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', x + (toRight ? 11 : 10));
+        t.setAttribute('y', y - h/2 + 21 + k * 17);
+        t.setAttribute('font-size', '11.5');
+        t.setAttribute('fill', '#6b5b45');
+        t.setAttribute('font-family', '"PingFang SC","Microsoft YaHei",sans-serif');
+        t.textContent = line;
+        layer.appendChild(t);
+      });
+
+      var dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', X(n) + R * 0.72);
+      dot.setAttribute('cy', Y(n) - R * 0.72);
+      dot.setAttribute('r', '6');
+      dot.setAttribute('fill', '#D96B3C');
+      dot.setAttribute('stroke', '#fff');
+      dot.setAttribute('stroke-width', '2');
+      layer.appendChild(dot);
     });
+
+    svg.appendChild(layer);
+    var padL = anyLeft ? 155 : 0;
+    var padR = anyRight ? 155 : 0;
+    svg.setAttribute('viewBox', (-padL) + ' 0 ' + (width + padL + padR) + ' ' + height);
   }
   refreshMarkers();
 
