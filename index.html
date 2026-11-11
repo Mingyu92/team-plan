@@ -66,6 +66,9 @@
   .stage.now::before{background:var(--orange);}
   .st-date{font-size:25px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.05;}
   .st-date small{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.1em;margin-left:6px;}
+  .countdown{display:inline-block;font-size:12px;font-weight:600;color:var(--orange);
+    background:#fff4ec;border:1px solid #f0d5c6;border-radius:999px;padding:1px 10px;margin:4px 0 2px;letter-spacing:.02em;}
+  .countdown.past{color:var(--muted);background:#f6f4ee;border-color:var(--line);}
   .st-place{font-size:13px;color:var(--orange);font-weight:600;margin:3px 0 10px;letter-spacing:.06em;}
   .st-size{font-size:13px;color:#4a4f5a;margin-bottom:14px;}
   .st-size b{color:var(--navy);font-size:15px;}
@@ -201,11 +204,6 @@
 
     <div class="card chart">
       <svg id="orgchart" xmlns="http://www.w3.org/2000/svg"></svg>
-      <div class="loose">
-        <span class="loose-label">没连线的</span>
-        <span class="chip" data-person="小吴">小吴</span>
-        <span class="chip" data-person="喻燕">喻燕</span>
-      </div>
     </div>
 
     <div class="card ticket">
@@ -232,6 +230,7 @@
     <div class="axis">
       <div class="stage now" data-stage="bali">
         <div class="st-date">12.20<small>2026</small></div>
+        <div class="countdown" data-date="2026-12-20"></div>
         <div class="st-place">巴厘岛</div>
         <div class="st-size">目标团队 <b>20</b> 人 · 本段新增 5 人</div>
         <div class="ticks" id="ticks-bali"></div>
@@ -239,6 +238,7 @@
       </div>
       <div class="stage" data-stage="nanchang">
         <div class="st-date">3.6<small>2027</small></div>
+        <div class="countdown" data-date="2027-03-06"></div>
         <div class="st-place">南昌大会</div>
         <div class="st-size">目标团队 <b>25</b> 人 · 本段新增 5 人</div>
         <div class="ticks" id="ticks-nanchang"></div>
@@ -246,6 +246,7 @@
       </div>
       <div class="stage" data-stage="nanjing">
         <div class="st-date">5.15<small>2027</small></div>
+        <div class="countdown" data-date="2027-05-15"></div>
         <div class="st-place">南京大会</div>
         <div class="st-size">目标团队 <b>30</b> 人 · 本段新增 5 人</div>
         <div class="ticks" id="ticks-nanjing"></div>
@@ -276,11 +277,11 @@
       </thead>
       <tbody>
         <tr><td class="who">诗媛</td><td colspan="2" class="num">+2</td><td colspan="3" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
-        <tr><td class="who">洋洋</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="empty">—</td></tr>
+        <tr><td class="who">洋洋</td><td colspan="2" class="num">+1</td><td colspan="3" class="num">+1</td><td colspan="2" class="empty">—</td></tr>
         <tr><td class="who">思宇</td><td colspan="5" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
         <tr><td class="who">林慧</td><td colspan="2" class="empty">—</td><td colspan="3" class="empty">—</td><td colspan="2" class="empty">—</td></tr>
-        <tr><td class="who">乐妍</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="num">+1</td></tr>
-        <tr><td class="who">小玲</td><td colspan="2" class="num">+1</td><td colspan="2" class="num">+1</td><td class="empty">—</td><td colspan="2" class="num">+1</td></tr>
+        <tr><td class="who">乐妍</td><td colspan="2" class="num">+1</td><td colspan="3" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
+        <tr><td class="who">小玲</td><td colspan="2" class="num">+1</td><td colspan="3" class="num">+1</td><td colspan="2" class="num">+1</td></tr>
         <tr class="total"><td class="who">合计</td><td colspan="2" class="num">+5</td><td colspan="3" class="num">+5</td><td colspan="2" class="num">+4</td></tr>
       </tbody>
     </table>
@@ -472,7 +473,7 @@
   })(tree);
 
   var width  = maxX - minX + R*2 + PAD*2;
-  var height = LEVELS[maxDepth] + R*2 + PAD*2 + 8;
+  var height = LEVELS[maxDepth] + R*2 + PAD + 12;
   var svg = document.getElementById('orgchart');
   svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
 
@@ -1086,9 +1087,22 @@
 
   function boot(){
     refreshNotes();
+    renderCountdowns();
     updateStage();
     renderMind();
     render();
+  }
+
+  function renderCountdowns(){
+    var today = new Date(); today.setHours(0,0,0,0);
+    Array.prototype.slice.call(document.querySelectorAll('.countdown')).forEach(function(el){
+      var p = el.dataset.date.split('-');
+      var target = new Date(+p[0], +p[1]-1, +p[2]);
+      var diff = Math.round((target - today) / 86400000);
+      if(diff > 0){ el.textContent = '还有 ' + diff + ' 天'; el.classList.remove('past'); }
+      else if(diff === 0){ el.textContent = '就是今天'; el.classList.remove('past'); }
+      else { el.textContent = '已过 ' + (-diff) + ' 天'; el.classList.add('past'); }
+    });
   }
 })();
 </script>
