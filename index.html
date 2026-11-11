@@ -72,6 +72,8 @@
   .st-place{font-size:13px;color:var(--orange);font-weight:600;margin:3px 0 10px;letter-spacing:.06em;}
   .st-size{font-size:13px;color:#4a4f5a;margin-bottom:14px;}
   .st-size b{color:var(--navy);font-size:15px;}
+  .st-size .goal{cursor:pointer;border-bottom:1px dashed #cfc8b8;padding:0 1px;}
+  .st-size .goal:hover{color:var(--orange);border-bottom-color:var(--orange);}
   .ticks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
   .tick{width:28px;height:28px;border-radius:50%;border:1.5px solid #d5cfc0;background:#fff;cursor:pointer;
         font-size:14px;line-height:1;color:transparent;display:flex;align-items:center;justify-content:center;padding:0;
@@ -237,25 +239,25 @@
         <div class="st-date">12.20<small>2026</small></div>
         <div class="countdown" data-date="2026-12-20"></div>
         <div class="st-place">巴厘岛</div>
-        <div class="st-size">目标团队 <b>20</b> 人 · 本段新增 5 人</div>
+        <div class="st-size">目标团队 <b class="goal">20</b> 人 · 本段新增 <span class="add">5</span> 人</div>
         <div class="ticks" id="ticks-bali"></div>
-        <div class="st-total">已到 <b>0</b> / 5　·　达标基础骨干</div>
+        <div class="st-total">已到 <b>0</b> / <span class="cap">5</span>　·　达标基础骨干</div>
       </div>
       <div class="stage" data-stage="nanchang">
         <div class="st-date">3.6<small>2027</small></div>
         <div class="countdown" data-date="2027-03-06"></div>
         <div class="st-place">南昌大会</div>
-        <div class="st-size">目标团队 <b>25</b> 人 · 本段新增 5 人</div>
+        <div class="st-size">目标团队 <b class="goal">25</b> 人 · 本段新增 <span class="add">5</span> 人</div>
         <div class="ticks" id="ticks-nanchang"></div>
-        <div class="st-total">已到 <b>0</b> / 5</div>
+        <div class="st-total">已到 <b>0</b> / <span class="cap">5</span></div>
       </div>
       <div class="stage" data-stage="nanjing">
         <div class="st-date">5.15<small>2027</small></div>
         <div class="countdown" data-date="2027-05-15"></div>
         <div class="st-place">南京大会</div>
-        <div class="st-size">目标团队 <b>30</b> 人 · 本段新增 5 人</div>
+        <div class="st-size">目标团队 <b class="goal">30</b> 人 · 本段新增 <span class="add">5</span> 人</div>
         <div class="ticks" id="ticks-nanjing"></div>
-        <div class="st-total">已到 <b>0</b> / 5　·　达标精英骨干奖</div>
+        <div class="st-total">已到 <b>0</b> / <span class="cap">5</span>　·　达标精英骨干奖</div>
       </div>
     </div>
   </section>
@@ -842,25 +844,48 @@
     });
   });
 
-  /* ============ 时间轴 5 个孔 ============ */
-  var stages = [ {id:'bali',ticks:5}, {id:'nanchang',ticks:5}, {id:'nanjing',ticks:5} ];
-  stages.forEach(function(s){
-    var box = document.getElementById('ticks-' + s.id);
-    for(var i=0;i<s.ticks;i++){
-      (function(i){
-        var b = document.createElement('button');
-        b.className = 'tick'; b.type = 'button'; b.textContent = '✔';
-        b.dataset.key = 'tick-' + s.id + '-' + i;
-        if(store[b.dataset.key]) b.classList.add('on');
-        b.addEventListener('click', function(){
-          b.classList.toggle('on');
-          store[b.dataset.key] = b.classList.contains('on');
-          save(); updateStage();
-        });
-        box.appendChild(b);
-      })(i);
-    }
-  });
+  /* ============ 时间轴：目标人数可改，孔数跟着人数走 ============ */
+  var stages = [ {id:'bali'}, {id:'nanchang'}, {id:'nanjing'} ];
+  var BASE_TEAM = 15;
+  var GOAL_DEFAULT = { bali:20, nanchang:25, nanjing:30 };
+  var PLACE_NAME = { bali:'巴厘岛', nanchang:'南昌大会', nanjing:'南京大会' };
+
+  function goalOf(id){
+    var n = parseInt(store['num-' + id], 10);
+    return (isNaN(n) || n <= 0) ? GOAL_DEFAULT[id] : n;
+  }
+
+  function renderStages(){
+    var prev = BASE_TEAM;
+    stages.forEach(function(s){
+      var goal = goalOf(s.id);
+      var add = Math.max(0, Math.min(24, goal - prev));
+      var box = document.querySelector('.stage[data-stage="' + s.id + '"]');
+      box.querySelector('.goal').textContent = goal;
+      box.querySelector('.add').textContent = add;
+      box.querySelector('.cap').textContent = add;
+
+      var ticks = box.querySelector('.ticks');
+      ticks.innerHTML = '';
+      for(var i=0;i<add;i++){
+        (function(i){
+          var b = document.createElement('button');
+          b.className = 'tick'; b.type = 'button'; b.textContent = '✔';
+          b.dataset.key = 'tick-' + s.id + '-' + i;
+          if(store[b.dataset.key]) b.classList.add('on');
+          b.addEventListener('click', function(){
+            b.classList.toggle('on');
+            store[b.dataset.key] = b.classList.contains('on');
+            save(); updateStage();
+          });
+          ticks.appendChild(b);
+        })(i);
+      }
+      prev = goal;
+    });
+    updateStage();
+  }
+
   function updateStage(){
     stages.forEach(function(s){
       var n = document.querySelectorAll('#ticks-' + s.id + ' .tick.on').length;
@@ -868,6 +893,19 @@
       if(el) el.textContent = n;
     });
   }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.stage .goal'), function(b){
+    b.addEventListener('click', function(){
+      var id = b.closest('.stage').dataset.stage;
+      openDialog('目标团队人数', PLACE_NAME[id], String(goalOf(id)), function(v){
+        var n = parseInt(v, 10);
+        if(!v){ delete store['num-' + id]; }
+        else if(!isNaN(n) && n > 0 && n < 200){ store['num-' + id] = n; }
+        save(); renderStages();
+      });
+    });
+  });
+  renderStages();
 
   /* ============ 思维导图（可点击改名） ============ */
   var MIND_DEFAULT = {
@@ -1318,7 +1356,7 @@
   function boot(){
     refreshNotes();
     renderCountdowns();
-    updateStage();
+    renderStages();
     renderMind();
     render();
   }
