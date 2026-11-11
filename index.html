@@ -174,6 +174,11 @@
   .btn-save:hover{background:#16304f;}
   .btn-del{background:#fff;color:#a54a2b;border:1px solid #e6c9bd;}
   .btn-cancel{background:#fff;color:var(--muted);border:1px solid var(--line);}
+  .dialog .field{width:100%;border:1px solid var(--line);border-radius:4px;padding:9px 12px;margin-top:10px;
+    font-family:inherit;font-size:14px;color:var(--ink);outline:none;}
+  .dialog .field:focus{border-color:var(--orange);}
+  .login-err{min-height:18px;margin:8px 0 0;font-size:12.5px;color:#a54a2b;}
+  #sync-note a{color:var(--navy);text-decoration:underline;}
 
   footer{margin-top:52px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:#9a9a94;}
 
@@ -326,11 +331,28 @@
     </div>
   </section>
 
-  <footer>数据存在这台设备的浏览器里，换设备或清缓存会丢。</footer>
+  <footer id="sync-note">数据存在这台设备的浏览器里，换设备或清缓存会丢。</footer>
 </div>
 
 <div class="cheer" id="cheer">今天 4 件事全做完了，恭喜！</div>
 <div id="congrats"></div>
+
+<div class="mask" id="login-mask">
+  <div class="dialog">
+    <h4>登录</h4>
+    <p class="who">登录后，手机和电脑看到的是同一份数据</p>
+    <input class="field" id="login-email" type="email" autocomplete="username" placeholder="邮箱">
+    <input class="field" id="login-pwd" type="password" autocomplete="current-password" placeholder="密码">
+    <p class="login-err" id="login-err"></p>
+    <div class="actions">
+      <span></span>
+      <span>
+        <button type="button" class="btn-cancel" id="login-later">以后再说</button>
+        <button type="button" class="btn-save" id="login-go">登录</button>
+      </span>
+    </div>
+  </div>
+</div>
 
 <div class="mask" id="mask">
   <div class="dialog">
@@ -349,6 +371,14 @@
 
 <script>
 (function(){
+  /* ============ 云端配置（Supabase） ============
+     下面两行填好，手机和电脑就共用一份数据；空着则纯本地，只有这台设备能看到。 */
+  var CLOUD = {
+    url: 'https://odsukwoakbhajrpeiatg.supabase.co',
+    key: 'sb_publishable_4l24lg4fXBz33X1nOHlGPg_kJjm9RBA',
+    table: 'team_plan_kv'
+  };
+
   /* ============ 本地数据库（IndexedDB，失败退回 localStorage） ============ */
   var DB_NAME = 'sy-team-plan', STORE = 'kv';
   var store = {};
@@ -404,7 +434,7 @@
       try{ localStorage.setItem(DB_NAME, JSON.stringify(store)); }catch(e2){}
     }
   }
-  function save(){ dbSave(); }
+  function save(){ dbSave(); if(cloudReady()){ markDirty(); scheduleSync(); } }
 
   function loadLocal(){
     try {
@@ -412,6 +442,145 @@
       if(!v) v = localStorage.getItem('sy-team-plan-v2');
       return JSON.parse(v || '{}');
     } catch(e){ return {}; }
+  }
+
+  /* ============ 云同步 ============ */
+  var AUTH_KEY = 'sy-team-plan-auth', PEND_KEY = 'sy-team-plan-pend', DEL_KEY = 'sy-team-plan-del';
+  var auth = null, pending = {}, pendDel = [], snapshot = {}, pushTimer = null;
+
+  function cloudReady(){ return !!(CLOUD.url && CLOUD.key); }
+  function readJSON(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+  function writeJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function apiHeaders(t, extra){
+    var h = { 'apikey': CLOUD.key, 'Authorization': 'Bearer ' + (t || CLOUD.key), 'Content-Type': 'application/json' };
+    if(extra) Object.keys(extra).forEach(function(k){ h[k] = extra[k]; });
+    return h;
+  }
+
+  function signIn(email, pwd){
+    return fetch(CLOUD.url + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pwd })
+    }).then(function(r){
+      if(!r.ok) throw new Error('邮箱或密码不对');
+      return r.json();
+    }).then(function(j){
+      auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+               expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+      writeJSON(AUTH_KEY, auth);
+      return auth;
+    });
+  }
+
+  function token(){
+    if(!auth) return Promise.reject(new Error('未登录'));
+    if(Date.now() < auth.expires_at - 120000) return Promise.resolve(auth.access_token);
+    return fetch(CLOUD.url + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: auth.refresh_token })
+    }).then(function(r){ if(!r.ok) throw new Error('登录过期'); return r.json(); })
+      .then(function(j){
+        auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+                 expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+        writeJSON(AUTH_KEY, auth);
+        return auth.access_token;
+      });
+  }
+
+  function pull(){
+    return token().then(function(t){
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table + '?select=key,value', { headers: apiHeaders(t) });
+    }).then(function(r){ if(!r.ok) throw new Error('读取失败'); return r.json(); })
+      .then(function(rows){
+        var out = {};
+        rows.forEach(function(row){ out[row.key] = row.value; });
+        return out;
+      });
+  }
+
+  function markDirty(){
+    pending = {};
+    Object.keys(store).forEach(function(k){
+      if(JSON.stringify(store[k]) !== JSON.stringify(snapshot[k])) pending[k] = store[k];
+    });
+    Object.keys(snapshot).forEach(function(k){
+      if(!(k in store) && pendDel.indexOf(k) < 0) pendDel.push(k);
+    });
+    Object.keys(store).forEach(function(k){
+      var i = pendDel.indexOf(k); if(i >= 0) pendDel.splice(i, 1);
+    });
+    writeJSON(PEND_KEY, pending); writeJSON(DEL_KEY, pendDel);
+  }
+
+  function scheduleSync(){
+    if(!cloudReady() || !auth) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(push, 800);
+  }
+
+  function push(){
+    if(!cloudReady() || !auth) return Promise.resolve();
+    var rows = Object.keys(pending).map(function(k){ return { key: k, value: pending[k] }; });
+    var dels = pendDel.slice();
+    if(!rows.length && !dels.length) return Promise.resolve();
+    var jobs = [];
+    return token().then(function(t){
+      if(rows.length){
+        jobs.push(fetch(CLOUD.url + '/rest/v1/' + CLOUD.table, {
+          method: 'POST',
+          headers: apiHeaders(t, { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+          body: JSON.stringify(rows)
+        }).then(function(r){ if(!r.ok) throw new Error('上传失败'); }));
+      }
+      dels.forEach(function(k){
+        jobs.push(fetch(CLOUD.url + '/rest/v1/' + CLOUD.table + '?key=eq.' + encodeURIComponent(k), {
+          method: 'DELETE', headers: apiHeaders(t)
+        }).then(function(r){ if(!r.ok) throw new Error('删除失败'); }));
+      });
+      return Promise.all(jobs);
+    }).then(function(){
+      rows.forEach(function(r){ snapshot[r.key] = r.value; });
+      dels.forEach(function(k){ delete snapshot[k]; });
+      pending = {}; pendDel = [];
+      writeJSON(PEND_KEY, pending); writeJSON(DEL_KEY, pendDel);
+      setStatus('ok');
+    }).catch(function(e){
+      setStatus('off', e && e.message);
+    });
+  }
+
+  function setStatus(state){
+    var el = document.getElementById('sync-note');
+    if(!el) return;
+    if(!cloudReady()){ el.textContent = '数据存在这台设备的浏览器里，换设备或清缓存会丢。'; return; }
+    if(!auth){
+      el.innerHTML = '还没登录，数据只在这台设备上。<a href="#" id="sync-login-link">登录后手机电脑同步</a>';
+      var link = document.getElementById('sync-login-link');
+      if(link) link.onclick = function(ev){ ev.preventDefault(); showLogin(); };
+      return;
+    }
+    el.textContent = state === 'off' ? '没连上，改动先存在本机，联网后自动补传。' : '已同步到云端，手机和电脑看到的是同一份。';
+  }
+
+  function showLogin(){
+    var mask = document.getElementById('login-mask');
+    if(!mask) return;
+    mask.classList.add('show');
+  }
+
+  function doLogin(){
+    var email = document.getElementById('login-email').value.trim();
+    var pwd = document.getElementById('login-pwd').value;
+    var err = document.getElementById('login-err');
+    err.textContent = '';
+    if(!email || !pwd){ err.textContent = '邮箱和密码都要填'; return; }
+    signIn(email, pwd).then(function(){
+      document.getElementById('login-mask').classList.remove('show');
+      start();
+    }).catch(function(e){ err.textContent = e.message || '登录失败'; });
   }
 
   /* ============ 团队结构图 ============ */
@@ -1072,17 +1241,78 @@
   });
 
   /* ============ 启动 ============ */
-  openDB().then(function(d){
-    db = d;
-    if(!db){ store = loadLocal(); boot(); return; }
-    dbGetAll().then(function(all){
-      store = all || {};
-      if(Object.keys(store).length === 0){
+  function start(){
+    openDB().then(function(d){
+      db = d;
+      return (db ? dbGetAll() : Promise.resolve(null)).then(function(all){
         var local = loadLocal();
-        if(Object.keys(local).length){ store = local; dbSave(); }
-      }
-      boot();
+        store = all || {};
+        if(Object.keys(store).length === 0 && Object.keys(local).length){ store = local; dbSave(); }
+
+        if(!cloudReady()){ boot(); setStatus('ok'); return; }
+
+        auth = readJSON(AUTH_KEY, null);
+        pending = readJSON(PEND_KEY, {});
+        pendDel = readJSON(DEL_KEY, []);
+        if(!auth){ boot(); setStatus('off'); return; }
+
+        return pull().then(function(cloud){
+          var keys = Object.keys(cloud);
+          if(keys.length === 0){
+            /* 云端还是空的：把本机这份推上去 */
+            snapshot = {};
+            boot();
+            markDirty();
+            setStatus('ok');
+            push();
+            return;
+          }
+          snapshot = {};
+          keys.forEach(function(k){ snapshot[k] = cloud[k]; });
+          var merged = {};
+          keys.forEach(function(k){ merged[k] = cloud[k]; });
+          Object.keys(pending).forEach(function(k){ merged[k] = pending[k]; });
+          pendDel.forEach(function(k){ delete merged[k]; });
+          store = merged;
+          dbSave();
+          boot();
+          setStatus('ok');
+          push();
+        }).catch(function(e){
+          boot();
+          setStatus('off');
+          if(e && /登录|过期/.test(e.message)){ auth = null; showLogin(); }
+        });
+      });
     });
+  }
+
+  start();
+
+  /* 登录弹窗 */
+  (function bindLogin(){
+    var go = document.getElementById('login-go');
+    var later = document.getElementById('login-later');
+    var pwd = document.getElementById('login-pwd');
+    var mask = document.getElementById('login-mask');
+    if(go) go.addEventListener('click', doLogin);
+    if(later) later.addEventListener('click', function(){ mask.classList.remove('show'); });
+    if(pwd) pwd.addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
+  })();
+
+  /* 切回这个页面时，若另一台设备改过，就刷新一下 */
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function(){
+    if(!cloudReady() || !auth) return;
+    if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+    if(Date.now() - hiddenAt < 60000) return;
+    if(document.querySelector('.mask.show')) return;
+    if(Object.keys(pending).length || pendDel.length) return;
+    pull().then(function(cloud){
+      var keys = Object.keys(cloud), changed = keys.length !== Object.keys(snapshot).length;
+      if(!changed){ keys.forEach(function(k){ if(JSON.stringify(cloud[k]) !== JSON.stringify(snapshot[k])) changed = true; }); }
+      if(changed) location.reload();
+    }).catch(function(){});
   });
 
   function boot(){
