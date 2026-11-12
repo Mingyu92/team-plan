@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>模型网关与成本治理</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 06_工程实践/05_模型网关与成本治理.md</span></div>
+<main>
+<h1 id="_1">模型网关与成本治理</h1>
+<h2 id="_2">面试高频考点</h2>
+<ul>
+<li>为什么生产 LLM 应用通常需要模型网关，而不是业务服务直接调模型 API？</li>
+<li>模型路由、降级、重试、限流、熔断分别解决什么问题？</li>
+<li>如何在质量、延迟、成本之间做 trade-off？</li>
+<li>Prompt caching、response caching、embedding caching 有什么区别？</li>
+<li>怎么设计 LLM 成本监控和配额系统？</li>
+</ul>
+<hr>
+<h2 id="_3">一句话理解</h2>
+<p>模型网关是 LLM 应用的统一入口，把模型调用从业务代码里抽出来，集中处理路由、鉴权、限流、审计、缓存、降级、成本统计和可观测性。</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;业务服务&quot;] --&gt; B[&quot;LLM Gateway&quot;]
+    B --&gt; C[&quot;鉴权 / 配额&quot;]
+    B --&gt; D[&quot;路由 / 降级&quot;]
+    B --&gt; E[&quot;缓存 / 重试&quot;]
+    B --&gt; F[&quot;审计 / 监控&quot;]
+    D --&gt; G[&quot;高能力模型&quot;]
+    D --&gt; H[&quot;低成本模型&quot;]
+    D --&gt; I[&quot;本地开源模型&quot;]
+</code></pre>
+<p>企业知识库问答、工单助手、代码助手这类项目里，模型网关的价值不是“多包一层”，而是把不可控的模型调用变成可治理的基础设施。</p>
+<hr>
+<h2 id="_4">为什么不能直接在业务里调模型</h2>
+<p>直接调用的短期成本低，但生产问题会很快出现：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>直接调用的风险</th>
+<th>网关的做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>成本失控</td>
+<td>每个服务自己拼 prompt，没人知道总 token 花在哪</td>
+<td>统一记录 input/output/cache token</td>
+</tr>
+<tr>
+<td>模型切换困难</td>
+<td>模型名散落在代码里</td>
+<td>统一 alias，比如 <code>qa-fast</code>、<code>qa-strong</code></td>
+</tr>
+<tr>
+<td>故障扩散</td>
+<td>上游模型超时拖垮业务线程</td>
+<td>网关做 timeout、retry、circuit breaker</td>
+</tr>
+<tr>
+<td>权限混乱</td>
+<td>API key 到处分发</td>
+<td>业务只拿内部 token，网关保管供应商 key</td>
+</tr>
+<tr>
+<td>评估困难</td>
+<td>不同服务日志格式不同</td>
+<td>统一 trace、request id、用户反馈</td>
+</tr>
+</tbody>
+</table>
+<p>面试里可以这样说：模型网关是 LLM 应用的 control plane，也是模型调用的数据采集点。</p>
+<hr>
+<h2 id="_5">核心模块</h2>
+<h3 id="1-model-alias">1. Model Alias</h3>
+<p>不要让业务写死具体模型名。</p>
+<pre><code class="language-text">qa-fast    -&gt; 小模型 / 低延迟模型
+qa-strong  -&gt; 强模型 / 高准确率模型
+qa-local   -&gt; 本地部署开源模型
+embed-v1   -&gt; embedding 模型
+rerank-v1  -&gt; rerank 模型
+</code></pre>
+<p>好处：</p>
+<ul>
+<li>模型升级不改业务代码</li>
+<li>可以灰度切流</li>
+<li>可以按租户、场景、风险等级切不同模型</li>
+</ul>
+<hr>
+<h3 id="2-routing">2. Routing</h3>
+<p><strong>工程细节：</strong> 路由策略可以按任务类型、用户等级、上下文长度、风险等级、延迟要求和历史成功率选择模型。简单请求走低成本模型，复杂推理或高风险请求走强模型；失败后可升级模型重试。路由必须用评估集和线上指标验证，否则很容易为了省钱牺牲关键任务质量。</p>
+<p>模型路由不是简单随机分流，而是按任务难度、成本预算、延迟 SLA 和安全等级选择模型。</p>
+<p>常见策略：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定路由</td>
+<td>MVP、内部工具、流量小</td>
+</tr>
+<tr>
+<td>规则路由</td>
+<td>按语言、长度、业务线、租户等级</td>
+</tr>
+<tr>
+<td>Cascade</td>
+<td>先小模型，不确定再大模型</td>
+</tr>
+<tr>
+<td>Learned Router</td>
+<td>用训练好的路由器预测哪个模型性价比最高</td>
+</tr>
+<tr>
+<td>A/B Testing</td>
+<td>比较模型版本、prompt 版本、rerank 策略</td>
+</tr>
+</tbody>
+</table>
+<p>企业知识库助手可以用：</p>
+<pre><code class="language-text">简单 FAQ -&gt; fast model
+高风险技术方案 -&gt; strong model
+无权限或越权问题 -&gt; refuse / policy model
+模型超时 -&gt; fallback model + 标记降级
+</code></pre>
+<hr>
+<h2 id="_6">成本怎么拆</h2>
+<p>LLM 成本通常不是“调用次数”，而是 token、模型单价、缓存命中率和重试次数共同决定。</p>
+<pre><code class="language-text">cost = input_tokens * input_price
+     + output_tokens * output_price
+     + embedding_tokens * embedding_price
+     + rerank_requests * rerank_price
+     + retry_cost
+</code></pre>
+<p>要单独监控：</p>
+<ul>
+<li><code>prompt_tokens</code></li>
+<li><code>completion_tokens</code></li>
+<li><code>cached_tokens</code></li>
+<li><code>embedding_tokens</code></li>
+<li><code>request_count</code></li>
+<li><code>retry_count</code></li>
+<li><code>timeout_count</code></li>
+<li><code>cost_by_user / tenant / app / model</code></li>
+</ul>
+<p>面试时重点说：成本治理必须能回答“哪个业务、哪个用户、哪个模型、哪个 prompt 版本在花钱”。</p>
+<hr>
+<h2 id="_7">缓存策略</h2>
+<p><strong>细化理解：</strong> 缓存要区分 prompt caching、response caching 和 embedding caching。Prompt caching 适合长而稳定的前缀，response caching 适合确定性、低风险、重复问题，embedding caching 适合文档或 query 重复计算。缓存命中率不是唯一指标，还要看缓存污染、权限隔离、数据更新失效和答案时效性。</p>
+<h3 id="prompt-caching">Prompt Caching</h3>
+<p>适合稳定长前缀：</p>
+<ul>
+<li>system prompt</li>
+<li>工具说明</li>
+<li>长文档上下文</li>
+<li>固定 few-shot 示例</li>
+</ul>
+<p>关键原则：</p>
+<ul>
+<li>稳定内容放前面</li>
+<li>动态用户问题放后面</li>
+<li>不要把时间戳、随机 request id 放进可缓存前缀</li>
+</ul>
+<h3 id="response-caching">Response Caching</h3>
+<p>适合确定性问题：</p>
+<ul>
+<li>文档摘要</li>
+<li>标准 FAQ</li>
+<li>配置说明</li>
+<li>API 错误码解释</li>
+</ul>
+<p>不适合：</p>
+<ul>
+<li>强个性化答案</li>
+<li>需要实时权限判断的答案</li>
+<li>包含敏感上下文的答案</li>
+</ul>
+<h3 id="embedding-caching">Embedding Caching</h3>
+<p>适合重复 query 或批量导入：</p>
+<ul>
+<li>文档 chunk embedding</li>
+<li>高频问题 embedding</li>
+<li>标题、标签、错误码 embedding</li>
+</ul>
+<hr>
+<h2 id="_8">限流、熔断与降级</h2>
+<p>生产系统要预设失败路径。</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rate Limit</td>
+<td>防止单用户或单租户打爆预算</td>
+<td>每用户每分钟 30 次</td>
+</tr>
+<tr>
+<td>Timeout</td>
+<td>防止请求无限等待</td>
+<td>生成 30 秒超时</td>
+</tr>
+<tr>
+<td>Retry</td>
+<td>应对偶发网络或上游 5xx</td>
+<td>最多重试 1 次</td>
+</tr>
+<tr>
+<td>Circuit Breaker</td>
+<td>上游连续失败时暂时切断</td>
+<td>5 分钟内错误率 &gt; 30%</td>
+</tr>
+<tr>
+<td>Fallback</td>
+<td>保持服务可用</td>
+<td>强模型超时后切 fast model</td>
+</tr>
+</tbody>
+</table>
+<p>降级时要透明记录：</p>
+<pre><code class="language-text">model_used = qa-fast
+degraded_from = qa-strong
+degrade_reason = timeout
+answer_confidence = low
+</code></pre>
+<p>这样后续才能复盘质量下降是不是由降级引起。</p>
+<hr>
+<h2 id="_9">可观测性指标</h2>
+<h3 id="_10">延迟指标</h3>
+<ul>
+<li>TTFT：首 token 时间</li>
+<li>TPOT：每 token 时间</li>
+<li>E2E latency：端到端延迟</li>
+<li>queue time：排队时间</li>
+</ul>
+<h3 id="_11">质量指标</h3>
+<ul>
+<li>用户点赞/点踩</li>
+<li>人工抽检通过率</li>
+<li>RAG faithfulness</li>
+<li>escalation rate：需要转人工或转强模型的比例</li>
+</ul>
+<h3 id="_12">成本指标</h3>
+<ul>
+<li>单次请求成本</li>
+<li>单用户日成本</li>
+<li>单工单平均成本</li>
+<li>cache hit rate</li>
+<li>retry cost ratio</li>
+</ul>
+<hr>
+<h2 id="_13">面试延伸</h2>
+<h3 id="_14">如果面试官问：怎么把成本降下来？</h3>
+<p>按优先级回答：</p>
+<ol>
+<li>先做日志和成本归因，否则不知道该优化哪里。</li>
+<li>压缩 prompt，减少无效上下文和重复 system prompt。</li>
+<li>RAG 只塞必要证据，使用 rerank 控制 top-k。</li>
+<li>高频稳定前缀使用 prompt caching。</li>
+<li>简单问题走小模型，复杂问题走强模型。</li>
+<li>对超长输出设置合理 max_tokens 和停止条件。</li>
+</ol>
+<h3 id="_15">如果面试官问：路由怎么评估？</h3>
+<p>不能只看成本下降。要同时看：</p>
+<ul>
+<li>质量下降多少</li>
+<li>延迟是否改善</li>
+<li>fallback 比例</li>
+<li>用户负反馈变化</li>
+<li>高风险任务是否误路由到弱模型</li>
+</ul>
+<p>一个靠谱目标是：在质量下降可接受的情况下，把简单请求转给低成本模型。</p>
+<hr>
+<h2 id="_16">常见误区</h2>
+<h3 id="1">误区 1：所有请求都用最强模型</h3>
+<p>质量可能高，但成本和延迟不可控。生产系统应该把强模型当稀缺资源。</p>
+<h3 id="2">误区 2：缓存只看命中率</h3>
+<p>缓存还要看安全性、过期策略和是否会返回旧答案。企业知识库更新后，相关缓存必须失效。</p>
+<h3 id="3">误区 3：重试越多越稳定</h3>
+<p>LLM 请求通常很贵，盲目重试会放大成本和排队。重试要有上限，并区分 429、5xx、timeout。</p>
+<hr>
+<h2 id="_17">学完可以做什么</h2>
+<ol>
+<li>给 RAG 工单助手加一层模型网关，支持 <code>qa-fast</code> 和 <code>qa-strong</code> 两个 alias。</li>
+<li>在日志中记录 token、模型、延迟、错误码和 request id。</li>
+<li>做一个简单路由规则：短 FAQ 走小模型，复杂技术问题走强模型。</li>
+<li>增加成本 dashboard：按用户、模型、接口统计日成本。</li>
+</ol>
+<hr>
+<h2 id="_18">原始论文</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2406.18665">RouteLLM: Learning to Route LLMs with Preference Data</a>：模型路由代表论文，用偏好数据学习什么时候使用强模型。</li>
+<li><a href="https://arxiv.org/abs/2305.05176">FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance</a>：LLM cascade 和成本优化思路。</li>
+<li><a href="https://arxiv.org/abs/2311.04934">Prompt Cache: Modular Attention Reuse for Low-Latency Inference</a>：从 attention 复用角度解释 prompt caching 的低延迟价值。</li>
+<li><a href="https://arxiv.org/abs/2309.06180">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>：理解 serving 系统中 KV Cache 和调度成本。</li>
+<li><a href="https://arxiv.org/abs/2503.10657">RouterEval: A Comprehensive Benchmark for Routing LLMs</a>：专门评估 LLM routing 的 benchmark，适合补充“路由怎么评估”。</li>
+<li><a href="https://arxiv.org/abs/2604.23577">RouteNLP: Closed-Loop LLM Routing with Conformal Cascading and Distillation Co-Optimization</a>：更偏生产闭环的 routing/cascade/distillation 框架，可作为企业降本案例阅读。</li>
+</ul>
+<hr>
+<h2 id="_19">延伸阅读与视频</h2>
+<ul>
+<li><a href="https://platform.openai.com/docs/guides/prompt-caching">OpenAI API - Prompt Caching</a>：官方 prompt caching 文档。</li>
+<li><a href="https://cookbook.openai.com/examples/prompt_caching101">OpenAI Cookbook - Prompt Caching 101</a>：带示例解释 cached tokens 和延迟收益。</li>
+<li><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching">Anthropic Docs - Prompt Caching</a>：Claude API 的 prompt caching 说明。</li>
+<li><a href="https://docs.nvidia.com/nvcf/llm-gateway">NVIDIA LLM Gateway Documentation</a>：模型网关、路由元数据、sticky routing 等生产概念。</li>
+<li><a href="https://docs.litellm.ai/docs/">LiteLLM Documentation</a>：OpenAI-compatible gateway、routing、budget、logging 的开源实现参考。</li>
+<li><a href="https://docs.litellm.ai/docs/routing">LiteLLM Routing, Load Balancing &amp; Fallbacks</a>：模型路由、fallback、负载均衡的工程配置。</li>
+<li><a href="https://portkey.ai/docs/welcome/integration-guides/ai-gateway">Portkey AI Gateway</a>：商业化 AI Gateway 的设计参考，包含治理、观测和路由概念。</li>
+<li><a href="https://docs.vllm.ai/">vLLM Documentation</a>：高吞吐 LLM serving 框架，适合和网关层一起理解。</li>
+</ul>
+<hr>
+<p><em>持续更新中...</em></p>
+</main>
+</body>
+</html>

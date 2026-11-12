@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>什么是 Context Engineering？和 Prompt Engineering 有什么区别？</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/what-is-context-engineering.md</span></div>
+<main>
+<h1 id="context-engineering-prompt-engineering">什么是 Context Engineering？和 Prompt Engineering 有什么区别？</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:高,2025 年后 Agent / 长任务场景面试常见</p>
+<blockquote>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q4 / Q10；正文为本库原创，未摘录该 PDF 答案原文。</p>
+</blockquote>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否说清 Context Engineering 管的是「窗口里装什么、怎么持续维护」，而不只是「指令怎么写」</li>
+<li>能否用对比表区分 Prompt Engineering 与 Context Engineering 的对象、时间尺度与失败形态</li>
+<li>能否落到 PM 抓手：上下文清单与优先级、成本/延迟预算、失败归因（指令问题 vs 材料/历史/工具结果问题）</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>：Prompt Engineering 管「怎么吩咐模型」；Context Engineering 管「这一次推理里窗口里到底有什么、以及这套状态怎么随轮次更新」——后者是前者的自然延伸，而不是换个名字的同义词。</p>
+<p>厂商口径（Anthropic）：Context Engineering 是在推理时<strong>策展并维持最优 token 集合</strong>的策略集合；Prompt 工程侧重写与组织指令，Context 工程覆盖系统指令之外还会进窗的检索结果、工具定义与返回、消息历史等整份上下文状态。（细节与出处见正课。）</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Prompt Engineering</th>
+<th>Context Engineering</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>核心问题</td>
+<td>指令怎么写才稳、才可测</td>
+<td>这一步该装哪些 token、以什么形态装</td>
+</tr>
+<tr>
+<td>典型对象</td>
+<td>System / User 文案、示例、输出格式</td>
+<td>检索片段、对话/工具历史、记忆条目、工具 schema</td>
+</tr>
+<tr>
+<td>时间尺度</td>
+<td>一次写好 + 版本迭代</td>
+<td>每轮/每步动态策展；长任务还要压缩与外置记忆</td>
+</tr>
+<tr>
+<td>失败形态</td>
+<td>歧义、格式漂移、边界不清</td>
+<td>该进的没进、噪声挤爆窗口、tool_result 堆积、缓存打不中</td>
+</tr>
+<tr>
+<td>PM 抓手</td>
+<td>人格、能力边界、验收标准、示例质量</td>
+<td><strong>上下文清单与优先级</strong>、即时拉取 vs 预取、成本/延迟预算、降级口径</td>
+</tr>
+</tbody>
+</table>
+<p><strong>答题展开三步</strong>（别背定义，按框架说）：</p>
+<ol>
+<li><strong>先拆失败</strong>：答得差，更像指令写糊了，还是该进窗的知识/历史/工具结果没进对、或不该进的塞满了？前者回 Prompt 工程化；后者开 Context 复盘。</li>
+<li><strong>再列窗口部件</strong>：系统指令只是一小块；生产里还有工具定义、RAG 片段、多轮历史、tool_result、被选中的记忆、本轮用户输入——「能塞」≠「该塞」。</li>
+<li><strong>最后划职责</strong>：PM 管「要什么上下文、在什么约束下拼、怎样算拼对了」；工程管 caching breakpoint、compaction 触发、清理实现等——你可参与设计，但不代替调参。</li>
+</ol>
+<p><strong>产品场景举例</strong>：客服 Agent 多轮后越答越飘——常见不是「再改一句 System Prompt」，而是历史 tool_result / 日志全文每轮复读把高信号指令挤到边缘；产品侧应要求可观测窗口占比，并约定长任务触顶是摘要、外置记忆还是转人工。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"你们优化过 Prompt，算不算做了 Context Engineering？"
+  → 不算自动等价。改文案是 Prompt 资产；有没有按场景策展检索/历史/工具结果、有没有长任务压缩与成本预算，才是 Context 系统。两者常一起做，但面试里要分得清。</li>
+<li><strong>追问 2</strong>:"窗口都 1M 了，还需要 Context Engineering 吗？"
+  → 需要。窗口变大降低「塞不下」的硬约束，但不消除噪声、成本和「中间遗忘」类风险；原则仍是高信号、少冗余。细节链 <a href="../../01-ai-basics/llm/context-window.html">上下文窗口</a> 与正课。</li>
+<li><strong>追问 3</strong>:"PM 在 Context 这件事上具体写什么进 PRD？"
+  → 上下文清单（必须有 / 可以有 / 禁止进窗）、单次任务 token/延迟上限、工具最小必要集与高风险确认、触顶与失败降级口径；实现参数留给工程，策略变更要进评测/灰度。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/prompt-engineering/context-engineering.html">Context Engineering：从写 Prompt 到拼上下文系统</a>（本题正课）</li>
+<li><a href="../../01-ai-basics/prompt-engineering/prompt-basics.html">Prompt 基本功:角色、任务、约束、示例、输出格式</a></li>
+<li><a href="../../01-ai-basics/prompt-engineering/system-prompt-and-prompt-ops.html">系统提示词设计与 Prompt 工程化:把玄学变工程</a></li>
+<li><a href="../../01-ai-basics/llm/context-window.html">上下文窗口:限制、成本与产品设计影响</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="context-window-and-memory.html">大模型的上下文窗口和记忆机制是什么?</a></li>
+<li><a href="prompt-rag-sft-difference.html">Prompt、RAG、SFT 分别是什么?有什么区别?</a></li>
+</ul>
+</main>
+</body>
+</html>

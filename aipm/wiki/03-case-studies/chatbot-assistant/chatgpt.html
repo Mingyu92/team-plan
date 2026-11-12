@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChatGPT 案例拆解</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/chatbot-assistant/chatgpt.md</span></div>
+<main>
+<h1 id="chatgpt">ChatGPT 案例拆解</h1>
+<p><strong>分类</strong>:对话助手
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_1">一、产品背景</h2>
+<p>ChatGPT 由 OpenAI 于 2022 年 11 月上线,是这一轮生成式 AI 浪潮的起点产品,也是目前全球用户规模最大的 AI 应用,没有之一。</p>
+<p><strong>用户规模</strong>(核实截至 2026 年 7 月的最新数据):</p>
+<ul>
+<li>周活跃用户(WAU):OpenAI 在 2026 年 2-3 月公布已突破 <strong>9 亿</strong>,较 2025 年 10 月披露的 8 亿又增长了约 1 亿。</li>
+<li>月活跃用户(MAU):2026 年 6 月,ChatGPT App 全球月活突破 <strong>10 亿</strong>,是历史上最快达到这一里程碑的应用,快于 TikTok、Instagram、Google 地图。</li>
+<li>增长曲线大致是:1 亿 MAU(2023)→ 4 亿 WAU → 7 亿 WAU(2025 年 7 月)→ 8 亿 WAU(2025 年 10 月)→ 9 亿 WAU(2026 年 2-3 月)。</li>
+</ul>
+<p>这个体量意味着 ChatGPT 早已不是"极客玩具",而是和微信、抖音同一量级的国民级应用。它的产品策略也随之从"单点问答"演化为"承接用户几乎所有数字任务的入口"——对话、搜索、编程、购物、浏览器,全都往里装。</p>
+<p><strong>竞争格局</strong>:海外头部通用助手三分天下——OpenAI ChatGPT(用户规模最大,产品面最广)、Anthropic Claude(定位知识工作者与企业深度协作,以长文本质量和低幻觉见长)、Google Gemini(背靠 Google 全家桶的分发优势,主打长上下文与多模态推理)。国内则有豆包、Kimi、元宝等本土化竞品。ChatGPT 在中国大陆不可直接访问,但其产品逻辑仍是国内团队对标的标杆。</p>
+<p><strong>目标用户</strong>:从零基础的普通消费者(Free/Go 档位),到重度知识工作者、开发者(Plus/Pro),再到企业客户(Business/Enterprise)——一个产品矩阵覆盖全用户分层,这本身就是一种值得研究的产品策略。</p>
+<h2 id="_2">二、核心功能拆解</h2>
+<p>ChatGPT 的核心交互仍是对话框,但对话框背后挂载的能力已经变成一整套"工作台"。下表按当前(2026 年 7 月)产品现状梳理主要功能模块:</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>功能说明</th>
+<th>AI 起作用的环节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基础对话</td>
+<td>由 GPT-5.5(主力模型,Plus 起可用)驱动,免费版为 GPT-5.3(美区免费版目前带广告)</td>
+<td>模型自动在"即时响应"和"深度推理"之间路由,复杂问题触发更长思考链</td>
+</tr>
+<tr>
+<td>ChatGPT Search(搜索)</td>
+<td>对话中直接联网检索并给出带引用的答案,类似"内嵌 RAG"的搜索体验</td>
+<td>检索 + 摘要生成 + 来源标注</td>
+</tr>
+<tr>
+<td>Agent Mode(智能体模式)</td>
+<td>2026 年迭代到 v2:可跨会话保留任务记忆、定时执行任务、原生对接 GitHub/Jira 等连接器,能替用户完成"订机票""填表""发邮件"等多步操作</td>
+<td>任务规划、工具调用、执行结果自检</td>
+</tr>
+<tr>
+<td>Memory(记忆)</td>
+<td>跨会话记住用户偏好与事实;2026 年更新后记忆容量翻倍,用户可在"三点菜单"里删除记忆或一键关闭</td>
+<td>从历史对话中提炼可复用信息,检索式注入新对话</td>
+</tr>
+<tr>
+<td>Deep Research(深度研究)</td>
+<td>输入研究课题后,模型自主规划检索计划、可指定只在可信站点/已连接的企业应用中搜索,生成结构化研究报告,支持中途插话调整方向</td>
+<td>多步网页浏览、信息综合、报告生成</td>
+</tr>
+<tr>
+<td>多模态能力</td>
+<td>图像理解与生成(GPT-Image 系列)、实时语音对话(Advanced Voice Mode,基于语音到语音模型,可感知语气/情绪)、文件与截图理解</td>
+<td>跨模态编码/解码统一在同一模型能力线上</td>
+</tr>
+<tr>
+<td>Codex(编程智能体)</td>
+<td>独立的自主编程 Agent:读写文件、执行命令、跑测试、修 Bug,以"完整任务"为粒度交付而非行级建议;支持 Codex Remote,可在手机端远程操控电脑上的编程任务</td>
+<td>代码生成、自动化测试、自我纠错闭环</td>
+</tr>
+<tr>
+<td>Projects / Tasks</td>
+<td>项目级上下文隔离 + 定时任务调度,类似"给 AI 建文件夹"和"给 AI 设闹钟"</td>
+<td>项目内记忆隔离、周期性任务触发</td>
+</tr>
+<tr>
+<td>Custom GPTs / GPT Store</td>
+<td>用户可配置专属系统提示词、知识库、工具的"迷你产品",在商店内被他人复用</td>
+<td>系统提示词与检索范围的产品化封装</td>
+</tr>
+<tr>
+<td>ChatGPT Atlas(浏览器)</td>
+<td>基于 Chromium 的独立浏览器,ChatGPT 以侧边栏形式嵌入,可总结网页、跨标签页比价、记住"浏览记忆"(如"帮我总结上周看过的招聘信息"),付费用户可开启浏览器内 Agent 模式代替操作网页</td>
+<td>页面内容理解、跨页面记忆检索、网页操作执行</td>
+</tr>
+<tr>
+<td>Shopping Research(购物研究)</td>
+<td>描述购物需求后,ChatGPT 主动追问细节、深度调研商品与评测、结合历史对话生成个性化选购指南</td>
+<td>需求澄清、多源比价与评测综合</td>
+</tr>
+</tbody>
+</table>
+<p>一个值得记录的产品动作是:曾经作为独立旗舰产品线的 <strong>Sora</strong>(文生视频)已于 2026 年 4 月 26 日停止 Web/App 服务,API 也计划于同年 9 月 24 日关闭。据媒体报道,Sora 全球用户峰值约 100 万,后回落到 50 万以下,而其算力成本高达日均百万美元级,与 OpenAI"聚焦企业级 AI、推理模型与编程工具"的核心收入策略不匹配,因此被主动砍掉——包括一笔已谈妥的迪士尼十亿美元级合作也因此中止。这是理解 OpenAI 产品组合策略的重要参照:不是所有热点都要All in,产品线也要有进有退。</p>
+<p>主流程走一遍(以搜索+Agent 组合任务为例):用户提问 →(判断需要联网)自动触发 ChatGPT Search 检索 → 模型基于检索结果生成带引用的回答 → 若用户进一步要求"帮我订好"这类可执行任务,则切换到 Agent Mode → Agent 规划步骤、调用工具(浏览器操作/连接器 API)→ 执行并汇报结果,用户可随时打断介入。整个链路里,AI 承担了"检索—生成—规划—执行—自检"几乎全部环节,人类的角色收缩为"下达意图 + 关键节点确认"。</p>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下内容基于公开产品表现与官方博客描述进行<strong>推测</strong>,OpenAI 未完整公开其内部架构细节,请勿作为确定性技术结论引用。</p>
+</blockquote>
+<ul>
+<li><strong>模型路由(推测)</strong>:ChatGPT 背后并非单一模型,而是在 GPT-5.5/5.6 系列的"Instant(即时)"与"Thinking/Pro(深度推理)"变体之间做自动路由,依据问题复杂度和用户是否显式选择模式来分配算力,这也解释了为何同一对话框里简单问题秒回、复杂问题会显式展示思考过程。</li>
+<li><strong>搜索能力(推测)</strong>:ChatGPT Search 大概率是"检索增强生成(RAG)"的一种产品化实现——联网抓取/调用搜索索引获取实时网页片段,拼接进 Prompt 后由模型生成带编号引用的回答,原理与本仓库《什么是 RAG》一文描述的流程一致,只是检索源换成了实时网络而非私有知识库。</li>
+<li><strong>Agent Mode / Atlas 浏览器(推测)</strong>:官方博客披露 Atlas 浏览器采用了代号 "OWL" 的新架构,但具体技术细节未完全公开;可以合理推测其能力来自"网页 DOM/视觉理解 + 动作规划 + 沙箱执行"的组合,与业界"computer use"类智能体的技术路线相似,通过截图/DOM 树感知页面状态,再输出点击、输入等动作序列,循环执行直至任务完成。</li>
+<li><strong>Memory(推测)</strong>:跨会话记忆很可能是"从历史对话中抽取结构化事实/偏好 → 存入用户专属存储 → 新对话开始时按相关性检索注入 System Prompt"的机制,本质是面向单个用户的轻量级 RAG,而非把全部历史对话都塞进上下文窗口。</li>
+<li><strong>Codex(推测)</strong>:作为独立的编程 Agent 产品线,大概率复用了与 Agent Mode 相同的"规划—工具调用—自我验证"框架,只是工具集换成了文件系统、终端、测试框架,并针对代码场景做了专门的强化学习后训练。</li>
+</ul>
+<h2 id="_4">四、商业模式</h2>
+<h3 id="2026-7">订阅档位(个人版,核实截至 2026 年 7 月)</h3>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>价格</th>
+<th>核心权益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free</td>
+<td>免费(美区含广告)</td>
+<td>GPT-5.3、基础对话与工具,有限额度</td>
+</tr>
+<tr>
+<td>Go</td>
+<td>8 美元/月</td>
+<td>消息量为 Free 的 10 倍、文件上传、图像生成、无限量 GPT-5.3 Instant;仍含广告,不含 GPT-5.5</td>
+</tr>
+<tr>
+<td>Plus</td>
+<td>20 美元/月</td>
+<td>GPT-5.5、每月 10 次 Deep Research、Sora(历史权益)、Codex、Agent Mode</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>100 美元/月(2026 年 4 月新增中间档)或 200 美元/月</td>
+<td>与 200 美元档相同模型矩阵(含 GPT-5.5 Pro),额度为 Plus 的 5 倍</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_5">团队与企业版</h3>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>价格</th>
+<th>核心权益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business</td>
+<td>30 美元/席位/月(月付)或 25 美元/席位/月(年付)</td>
+<td>SOC 2 Type II、SAML SSO、管理后台、60+ 集成</td>
+</tr>
+<tr>
+<td>Enterprise</td>
+<td>定制报价(第三方估算约 40-60 美元/席位/月)</td>
+<td>ISO 27001、SCIM、企业密钥管理、RBAC、10 个区域数据驻留、定制法务条款</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-token-2026-7">API 定价(按每百万 Token,核实截至 2026 年 7 月)</h3>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>输入</th>
+<th>缓存输入</th>
+<th>输出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-5.5</td>
+<td>5 美元</td>
+<td>0.5 美元</td>
+<td>30 美元</td>
+</tr>
+<tr>
+<td>GPT-5.5 Pro</td>
+<td>30 美元</td>
+<td>—</td>
+<td>180 美元</td>
+</tr>
+<tr>
+<td>GPT-5.4(上一代)</td>
+<td>2.5 美元</td>
+<td>0.25 美元</td>
+<td>15 美元</td>
+</tr>
+<tr>
+<td>GPT-5.6 系列(Sol/Terra/Luna,预览版,面向受邀合作伙伴)</td>
+<td>5/2.5/1 美元</td>
+<td>—</td>
+<td>30/15/6 美元</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2026">广告与购物货币化(2026 年新增变化)</h3>
+<p>2026 年 1 月 16 日,OpenAI 正式确认在美区 Free 与 Go 免费/低价档位内测广告;2026 年 5 月推出自助广告平台,取消了此前 5 万美元的最低消费门槛,让中小商家也能投放。广告主要形式是结合 <strong>Shopping Research(购物研究)</strong> 功能的商品信息流广告——零售与生鲜品牌在早期投放中占比最高,逻辑是"用户在对话里主动描述购物需求"本身就是强购买意图信号,比传统搜索广告的点击信号更直接。</p>
+<h3 id="_6">收入结构</h3>
+<p>据媒体报道,OpenAI 年化收入(ARR)在 2026 年 3 月已突破约 250 亿美元(2025 年底约 214 亿美元),其中约 70% 来自 ChatGPT 订阅(约 2000 万付费席位),约 25% 来自 API 调用,其余来自 Sora(注:该产品已于 2026 年 4 月停止服务)及授权等业务。需要说明的是,尽管收入高速增长,据报道公司整体仍处于大幅亏损状态,营收与支出的比例被外部测算为"每赚 1 美元亏 1.22 美元"级别——这也是理解其广告化、分层定价背后动机的关键背景:免费用户规模巨大但转化率有限,广告与更细的付费分层是弥补现金流缺口的必然选择。</p>
+<h2 id="claudegemini">与 Claude、Gemini 的定位差异</h2>
+<p>三家头部通用助手已经形成清晰的差异化叙事:ChatGPT 走"广度优先"——用户规模最大、功能面最全,试图做成"一个入口装下所有任务"的通用工作台,并率先探索广告与购物等消费级货币化路径;Claude 走"深度优先"——更受重度知识工作者与团队青睐,强调长文本协作中的一致性、指令遵循能力和更低的幻觉率,商业化上更偏向企业客户;Gemini 走"生态优先"——依托 Google 在搜索、Android、Chrome 的分发优势和超长上下文能力,把 AI 能力嵌入既有生产力场景。三者并非零和竞争,而是分别在"规模、质量、生态"三个维度上占位。</p>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>产品矩阵要能覆盖全用户分层,但复杂度要靠清晰的"档位阶梯"消化</strong>。Free/Go/Plus/Pro 四个消费级档位 + Business/Enterprise 两个企业级档位,本质是用价格和额度把不同支付意愿的用户自然分流,而不是让所有人挤在同一套体验里——这对任何做订阅制 AI 产品的 PM 都是可复用的分层框架。</li>
+<li><strong>敢于对不匹配核心战略的产品线做减法</strong>。Sora 曾是流量与话题度俱佳的旗舰产品,但在用户留存和 ROI 不达预期、且与企业级/编程/推理的核心收入策略脱节后被果断关停,即使代价是终止与迪士尼的十亿美元级合作。这提醒 PM:资源有限时,"这个产品是否服务于公司当下最重要的战略目标"应该定期被重新拷问,而不是被沉没成本绑架。</li>
+<li><strong>信任与商业化之间的张力需要显式设计,而不是放任模糊</strong>。ChatGPT 选择在低价/免费档位引入广告、同时把"深度推理"与"专业能力"留在付费档位,是一种"先保规模再分层变现"的策略;而购物场景里"用户对话即高意图信号"的广告逻辑,也提示 PM 在设计 AI 产品的商业化路径时,要思考"用户在什么环节暴露了最真实的意图",并围绕那个环节而不是页面曝光去设计变现点。</li>
+</ol>
+<h2 id="_7">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../04-interview/case-analysis/analyze-a-good-ai-product.html">如何分析一个优秀的 AI 产品</a></li>
+<li><a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">AI 产品的商业模式与定价</a></li>
+<li><a href="../search-and-rec/perplexity.html">Perplexity 案例拆解:AI 搜索的答案引擎范式</a></li>
+</ul>
+<h2 id="_8">参考资料</h2>
+<ul>
+<li><a href="https://chatgpt.com/pricing/">ChatGPT Plans | Free, Go, Plus, Pro, Business, and Enterprise</a> — OpenAI 官方定价页,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/pricing">Pricing | OpenAI API</a> — OpenAI 官方 API 定价文档,2026-07 访问</li>
+<li><a href="https://techcrunch.com/2026/02/27/chatgpt-reaches-900m-weekly-active-users/">ChatGPT reaches 900M weekly active users</a> — TechCrunch,2026-07 访问</li>
+<li><a href="https://openai.com/index/introducing-chatgpt-atlas/">Introducing ChatGPT Atlas</a> — OpenAI 官方博客,2026-07 访问</li>
+<li><a href="https://openai.com/index/building-chatgpt-atlas/">How we built OWL, the new architecture behind our ChatGPT-based browser, Atlas</a> — OpenAI 官方博客,2026-07 访问</li>
+<li><a href="https://openai.com/index/chatgpt-shopping-research/">Introducing shopping research in ChatGPT</a> — OpenAI 官方博客,2026-07 访问</li>
+<li><a href="https://openai.com/index/introducing-deep-research/">Introducing deep research</a> — OpenAI 官方博客,2026-07 访问</li>
+<li><a href="https://openai.com/index/previewing-gpt-5-6-sol/">Previewing GPT-5.6 Sol: a next-generation model</a> — OpenAI 官方博客,2026-07 访问</li>
+<li><a href="https://help.openai.com/en/articles/20001152-what-to-know-about-the-sora-discontinuation">What to know about the Sora discontinuation</a> — OpenAI 官方帮助中心,2026-07 访问</li>
+<li><a href="https://techcrunch.com/2026/03/29/why-openai-really-shut-down-sora/">Why OpenAI really shut down Sora</a> — TechCrunch,2026-07 访问</li>
+<li><a href="https://finance.yahoo.com/news/openai-tops-25-billion-annualized-033836274.html">OpenAI tops $25 billion in annualized revenue</a> — Yahoo Finance 转引 The Information,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

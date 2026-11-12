@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>对话助手类案例</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/chatbot-assistant/README.md</span></div>
+<main>
+<h1 id="_1">对话助手类案例</h1>
+<p>通用对话助手与效率工具:ChatGPT、Claude、豆包、Kimi、元宝等。</p>
+<h2 id="_2">案例列表</h2>
+<ul>
+<li><a href="chatgpt.html">ChatGPT 案例拆解</a> —— 9 亿 WAU 的通用工作台:功能矩阵、订阅分层、广告化与 Sora 关停的取舍(2026-07)</li>
+<li><a href="claude-anthropic.html">Claude 案例拆解:知识工作协作的深度优先路线</a> —— Artifacts/Cowork/Code、Sonnet 5 与 Opus 4.8、Max 额度阶梯与企业 Agent 治理(2026-07)</li>
+<li><a href="doubao.html">豆包案例拆解:3 亿月活之后如何收费</a> —— QuestMobile 3.45 亿 MAU 后的 68/200/500 订阅与字节分发变现(2026-07)</li>
+<li><a href="qwen.html">千问案例拆解:对话入口抢交易履约</a> —— 1.66 亿 MAU、春节请客到 5 月淘宝打通,对照豆包「订阅 vs 交易」(2026-07)</li>
+<li><a href="kimi.html">Kimi 案例拆解:从长文本卖点到 Agent 产品化</a> —— 长上下文定锚、月活收缩后的战略转向,以及 OK Computer / Office / Swarm / Claw(2026-07)</li>
+<li><a href="yuanbao.html">元宝（腾讯元宝）案例拆解</a> —— 腾讯生态内容与多应用分发、Hy3 驱动的免费 Agent 文件交付,以及活动拉新、留存与商业化未披露(2026-07)</li>
+<li><a href="workbuddy-vs-marvis.html">WorkBuddy 与 Marvis:腾讯的两条 Agent 产品线</a> —— 办公工作台 vs 系统级 OS Agent:权限边界、隐私模式与半自动安全(2026-07)</li>
+</ul>
+<h2 id="_3">横向主题</h2>
+<ul>
+<li><a href="assistant-positioning-comparison.html">头部通用助手的差异化定位对比</a> —— 完成定义 × 分发资产 × 免费层使命(2026-07)</li>
+<li><a href="assistant-monetization-paths.html">助手类产品的商业化路径:订阅、广告、还是 API</a> —— 五条赚钱路径与成本约束(2026-07)</li>
+</ul>
+<p>欢迎使用 <a href="../../../templates/case-study.html">案例模板</a> 投稿更多案例。</p>
+<h2 id="_4">选题建议</h2>
+<ul>
+<li>Gemini 生态捆绑订阅与额度计量</li>
+<li>助手广告化路径的中美对照合集(本文 #62 仅作五路径总览,未单独立项深挖)</li>
+</ul>
+</main>
+</body>
+</html>

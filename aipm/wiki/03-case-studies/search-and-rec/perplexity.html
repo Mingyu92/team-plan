@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perplexity 案例拆解:AI 搜索的答案引擎范式</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/search-and-rec/perplexity.md</span></div>
+<main>
+<h1 id="perplexity-ai">Perplexity 案例拆解:AI 搜索的答案引擎范式</h1>
+<p><strong>分类</strong>:搜推
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_1">一、产品背景</h2>
+<p>Perplexity 成立于 2022 年,是"AI 搜索"这个品类里定义范式的产品之一。它给自己的定位不是"聊天机器人"也不是"搜索引擎",而是 <strong>answer engine(答案引擎)</strong>——你提出问题,它直接给出一段带引用来源的综合答案,而不是一页排序好的蓝色链接。</p>
+<p><strong>用户规模与增长</strong>(核实截至 2026 年 7 月的最新数据):</p>
+<ul>
+<li>月活跃用户(MAU):2026 年初已超过 <strong>4500 万</strong>,较 2025 年初的 2200 万翻了一倍还多;整体月访问量约 <strong>1.7 亿</strong>。</li>
+<li>月查询量:约 <strong>7.8 亿次/月</strong>(第三方统计口径)。</li>
+<li>年化收入(ARR):2026 年 3 月突破 <strong>4.5 亿美元</strong>,较 2025 年 9 月的 2 亿美元在半年内翻倍多。</li>
+<li>融资:2026 年 6 月完成新一轮 2 亿美元融资,累计融资总额约 <strong>17.2 亿美元</strong>。</li>
+<li><strong>Comet 浏览器</strong>:2026 年 3 月起免费开放,上线 48 小时内冲上美区 App Store 总榜第三;2026 年第一季度月活达到 <strong>1800 万</strong>(一年前仅 240 万)。</li>
+</ul>
+<p>这组数字说明 Perplexity 已经从"极客圈内的小众工具"成长为有真实规模效应的独立入口,并且正在通过 Comet 浏览器把自己从"一个网站"升级为"一个操作系统级的入口",这与 ChatGPT 用 Atlas 浏览器争夺入口的逻辑如出一辙——AI 搜索赛道的下一个战场不是答案质量,而是"谁能成为用户打开互联网的第一站"。</p>
+<p><strong>竞争格局</strong>:上有 Google(搜索垄断者,正在用 AI Overviews/AI Mode 防御性地把生成式回答嵌回传统搜索结果页),侧有 ChatGPT Search(凭借海量用户基数把搜索变成对话助手的一个功能而非独立产品),Perplexity 夹在中间,策略是"专注做好答案引擎与引用溯源体验,并率先放弃广告以强化信任定位"。</p>
+<h2 id="_2">二、核心功能拆解:答案引擎的交互设计</h2>
+<p>Perplexity 的核心交互链路是:提问 → 实时联网检索 → 排序信源 → 生成综合答案 → <strong>逐句标注编号引用</strong>。这个链路里,"引用溯源设计"是整个产品最重要的信任机制,值得重点拆解。</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>交互设计</th>
+<th>解决的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>提问</td>
+<td>支持自然语言追问、多轮对话式检索(Threads)</td>
+<td>降低用户"关键词化"提问的门槛</td>
+</tr>
+<tr>
+<td>检索</td>
+<td>默认实时抓取全网信息,而非依赖模型训练时的静态知识</td>
+<td>保证时效性,能回答"今天/最近"类问题</td>
+</tr>
+<tr>
+<td>信源排序</td>
+<td>综合权威性、时效性(30 天内内容引用权重明显更高)、相关性打分</td>
+<td>让答案基于"当下最优信源"而不是历史缓存</td>
+</tr>
+<tr>
+<td>答案生成</td>
+<td>LLM 基于检索到的片段生成综合叙述,而非简单罗列摘要</td>
+<td>把"搜索结果"变成"可直接使用的答案"</td>
+</tr>
+<tr>
+<td><strong>引用标注</strong></td>
+<td>每句结论后附编号角标,点击可跳转到原始信源;引用不是事后补加的"参考文献",而是驱动生成过程的实际检索材料</td>
+<td>用户可逐句核实答案依据,建立信任;这也是应对"AI 幻觉"质疑最直观的产品化方案</td>
+</tr>
+<tr>
+<td>Focus 模式</td>
+<td>可将检索范围限定在学术论文、Reddit、YouTube 等特定信源池</td>
+<td>针对不同任务(学术调研 vs 找真实体验帖)匹配不同信源分布</td>
+</tr>
+<tr>
+<td>Deep Research</td>
+<td>自主拆解课题、多步检索、生成结构化长报告</td>
+<td>承接需要综合多篇资料的复杂调研任务</td>
+</tr>
+<tr>
+<td>Spaces / 项目空间</td>
+<td>团队/个人可建立专属知识库与协作空间,复用历史检索结果</td>
+<td>从"一次性问答"延伸到"持续性研究项目"</td>
+</tr>
+<tr>
+<td>Shopping(购物)</td>
+<td>直接在答案中展示可比价、可购买的商品卡片</td>
+<td>把"信息检索"和"交易决策"打通</td>
+</tr>
+<tr>
+<td>Finance(金融)</td>
+<td>针对股票、财报等提供结构化数据卡片</td>
+<td>高频垂类场景的信息密度优化</td>
+</tr>
+<tr>
+<td><strong>Model Council</strong></td>
+<td>Max 档位特有:同一问题并行发给多个前沿模型(据报道通常包括 GPT-5.4、Claude Opus 4.8、Gemini 3.1 Pro 等),再综合展示"模型间的共识与分歧"</td>
+<td>把"选哪个模型回答更准"的决策权交还给用户,并显式呈现模型间差异</td>
+</tr>
+<tr>
+<td><strong>Comet 浏览器</strong></td>
+<td>AI 原生浏览器,侧边栏助手可理解当前页面、跨标签页操作,并支持代理模式完成"填表""下单"等任务</td>
+<td>把答案引擎的能力延伸到"帮你把事情做完",而不止"告诉你答案"</td>
+</tr>
+<tr>
+<td>Comet Plus</td>
+<td>5 美元/月增值订阅,与已接入的 2400 多家出版商(含 CNN、Condé Nast、Fortune、华盛顿邮报等)按 80/20 分成</td>
+<td>用真实付费分成换取优质内容源的授权与信任背书</td>
+</tr>
+</tbody>
+</table>
+<p>值得特别记录的一个数据对比:第三方统计显示,ChatGPT 引用信源中 Wikipedia 占比高达 47.9%,而 Perplexity 更偏好 Reddit(46.7%)与 30 天内的新鲜内容(引用权重可达 3.2 倍)。两个产品对"权威信源"的定义完全不同,同一品牌在 ChatGPT 和 Perplexity 中被引用的域名重合度仅 11%——这说明"信源选择偏好"本身已经成为不同 AI 搜索产品之间可感知的差异化体验,而不只是后台的技术细节。</p>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下内容基于产品表现与公开资料进行<strong>推测</strong>,Perplexity 未完整公开其检索/排序算法与模型训练细节,请勿作为确定性技术结论引用。</p>
+</blockquote>
+<ul>
+<li><strong>检索增强生成(RAG)管线(推测,但官方帮助中心也明确将自己描述为"answer engine")</strong>:Perplexity 官方帮助中心将自身工作原理描述为——对大多数查询执行实时网络检索,拉取当前信源,再把信源喂给语言模型生成答案;引用是被检索出来的实际材料,而非事后添加的装饰。可以推测其内部流程与本仓库《什么是 RAG》一文描述的标准 RAG 流程高度一致:问题理解与改写 → 多源检索(自建索引/第三方搜索 API 混合)→ 片段排序与去重 → 拼接为结构化 Prompt(含引用标记与信源元数据如 URL、发布时间)→ 模型生成 → 引用位置回填。</li>
+<li><strong>自有模型 Sonar 系列(部分已知,细节仍属推测)</strong>:Perplexity 对外提供的 API 模型统称 Sonar(Sonar / Sonar Pro / Sonar Reasoning Pro / Sonar Deep Research),推测是在开源基座模型上针对"检索感知生成"做了专门的微调与后训练,而非从零训练自研基座——但这一点官方未明确证实,仅为行业惯常做法的推测。</li>
+<li><strong>信源排序算法(推测)</strong>:时效性、权威域名、社区互动信号等大概率是多因子排序模型的输入特征,类似传统搜索引擎的 Learning to Rank,只是排序目标从"点击率"部分转向了"是否适合被 LLM 引用综合"。</li>
+<li><strong>Model Council(推测)</strong>:大概率是把同一 Prompt 并行发送给多个第三方模型 API(而非自研模型),再用一个综合模型或规则引擎对比多份回答、抽取共识与分歧点做结构化展示,本质是一种"多模型集成 + 差异可视化"的产品化封装。</li>
+<li><strong>Comet 浏览器 Agent 能力(推测)</strong>:大概率采用"页面 DOM/视觉理解 → 动作规划 → 执行 → 反馈校验"的循环,与业界 computer-use 类智能体技术路线相近,通过感知当前页面状态生成点击、输入等操作序列。</li>
+</ul>
+<h2 id="_4">四、商业模式</h2>
+<h3 id="2026-7">订阅档位(核实截至 2026 年 7 月)</h3>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>价格</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free</td>
+<td>免费</td>
+<td>基础答案引擎能力,查询额度有限</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>20 美元/月(或 200 美元/年)</td>
+<td>更高查询额度、Deep Research、文件上传等</td>
+</tr>
+<tr>
+<td>Education Pro</td>
+<td>10 美元/月</td>
+<td>面向学生的折扣档位</td>
+</tr>
+<tr>
+<td>Max</td>
+<td>200 美元/月(或 2000 美元/年,2025 年 7 月上线)</td>
+<td>Pro 全部权益 + 更高的 Deep Research/生图/上传额度、更多视频生成、Model Council</td>
+</tr>
+<tr>
+<td>Enterprise Pro</td>
+<td>40 美元/席位/月</td>
+<td>团队协作、企业级数据不训练承诺、基础合规能力</td>
+</tr>
+<tr>
+<td>Enterprise Max</td>
+<td>325 美元/席位/月</td>
+<td>更高权限层级的 SSO/SCIM/审计日志等企业合规能力</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sonar-api-token-2026-7">Sonar API 定价(按每百万 Token,核实截至 2026 年 7 月,官方文档)</h3>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>输入</th>
+<th>输出</th>
+<th>引用 Token</th>
+<th>推理 Token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sonar</td>
+<td>1 美元</td>
+<td>1 美元</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Sonar Pro</td>
+<td>3 美元</td>
+<td>15 美元</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Sonar Reasoning Pro</td>
+<td>2 美元</td>
+<td>8 美元</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Sonar Deep Research</td>
+<td>2 美元</td>
+<td>8 美元</td>
+<td>2 美元</td>
+<td>3 美元</td>
+</tr>
+</tbody>
+</table>
+<p>此外还按"检索上下文规模"(低/中/高)叠加每千次请求 5-14 美元不等的请求费,Deep Research 额外按每千次搜索查询收取约 5 美元——这种"Token + 请求 + 检索深度"三层计费结构,直接体现了 AI 搜索类产品相比纯生成式对话产品更复杂的成本结构(检索本身也是要花钱的)。</p>
+<h3 id="_5">广告:一次公开的"试了又撤"</h3>
+<p>Perplexity 从 2024 年起就是最早尝试在 AI 搜索结果里投放广告的平台之一,形式包括"相关问题"区域的赞助追问(约占平台四成查询会展示)、以及答案旁的"Sponsored"视频广告,CPM 报价一度超过 50 美元并为部分行业提供类目排他性保证。但 2026 年 2 月,公司宣布<strong>彻底放弃广告</strong>,理由是:一旦答案里出现广告,用户就会开始怀疑回答本身是否掺杂了商业影响,这与"答案引擎"赖以生存的信任基础相冲突。放弃广告后,Perplexity 把目标改为把订阅收入做到 5 亿美元年化规模,并把自己定位为"ChatGPT 与 Google 之外的无广告选项"。</p>
+<p>这个"试点广告 → 主动撤下"的过程,是本案例最值得记录的商业模式决策——它说明在"回答型"产品里,广告与可信度之间的冲突比在传统搜索(用户本就默认结果含广告)里要尖锐得多。</p>
+<h3 id="comet-plus">内容生态分成:Comet Plus</h3>
+<p>作为广告之外的另一条探索路径,Comet Plus 以 5 美元/月的增值订阅与出版商分成(据披露约 80/20,平台留存 20%),换取媒体机构的内容被合规抓取与引用授权。这是一种"给内容源直接付费"而不是"靠广告间接变现内容"的思路,某种程度上是对"AI 抓取新闻网站却不付费"这一行业争议的主动回应。</p>
+<h2 id="google-ai-overviews">与传统搜索、Google AI Overviews 的对比</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统搜索(Google 经典结果页)</th>
+<th>Google AI Overviews / AI Mode</th>
+<th>Perplexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>呈现形式</td>
+<td>十条蓝色链接,用户自行点击、综合</td>
+<td>在搜索结果顶部插入 AI 摘要(自动触发,不可选择关闭);AI Mode 是需要用户主动切换进入的独立对话式体验</td>
+<td>直接给出综合性答案 + 逐句编号引用</td>
+</tr>
+<tr>
+<td>覆盖率/规模</td>
+<td>全部查询</td>
+<td>AI Overviews 已覆盖约 48% 的 Google 查询</td>
+<td>月查询量约 7.8 亿次,规模远小于 Google</td>
+</tr>
+<tr>
+<td>时效性</td>
+<td>依赖索引更新频率</td>
+<td>依赖 Google 索引 + 实时信号</td>
+<td>默认实时抓取全网,对突发新闻/最新价格类查询较有优势</td>
+</tr>
+<tr>
+<td>广告</td>
+<td>结果页顶部大量商业推广位</td>
+<td>据第三方统计,已有约四分之一的 AI Overview 回答旁伴随广告(2025 年初该比例约为 5%)</td>
+<td>2026 年 2 月起主动放弃广告,以"无广告"作为差异化卖点</td>
+</tr>
+<tr>
+<td>信源偏好</td>
+<td>由传统 SEO 排名逻辑主导</td>
+<td>建立在 Google 索引基础上,叠加权威性信号</td>
+<td>明显偏好 Reddit 等社区内容与 30 天内新鲜信息</td>
+</tr>
+<tr>
+<td>转化质量</td>
+<td>点击后需用户自行判断可信度</td>
+<td>摘要压缩了点击欲望,但入口极大</td>
+<td>内联引用链接的点击转化率据第三方统计可达传统自然搜索的数倍</td>
+</tr>
+</tbody>
+</table>
+<p>一句话总结这场对比:Google 的策略是"用 AI 摘要防守自己在搜索里的统治地位",ChatGPT 的策略是"用规模把搜索变成对话助手的附属功能",而 Perplexity 的策略是"押注引用溯源体验和无广告信任感,换取一批愿意为可信答案付费的重度用户"——三者的胜负手完全不在同一个维度上。</p>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>引用溯源不是"合规摆设",而是核心信任机制,值得当作一等产品功能来设计</strong>。Perplexity 把"检索到的原始材料"直接作为可点击的引用角标嵌入答案,而不是事后补一个参考文献列表——这个细节上的选择,直接决定了用户敢不敢把答案当真。任何在做 RAG 类产品的 PM,都应该把"引用怎么展示、点进去看到什么、找不到信源时怎么办"当作核心设计问题,而不是留给最后再补。</li>
+<li><strong>商业化路径的选择要和产品的信任定位一致,必要时应有勇气撤回已经跑通的变现方式</strong>。Perplexity 广告曾经做到了可观的 CPM 报价,却在验证"广告伤害用户对答案可信度的感知"后主动叫停,转而押注订阅与内容分成。这提醒 PM:一个变现方式"能不能赚到钱"和"该不该做"是两个问题,尤其是在"用户是否相信这个回答"本身就是产品核心价值的场景里。</li>
+<li><strong>AI 搜索的下一战场是"入口",不是"答案质量"</strong>。Perplexity 押注 Comet 浏览器免费化,ChatGPT 押注 Atlas 浏览器,本质上是同一个判断:当回答质量的边际差异逐渐收窄后,谁能成为用户默认打开互联网的第一入口,谁就拿到了后续所有交互(包括购物、订阅转化)的分发权。这对做搜推类 AI 产品的 PM 是一个关键提醒——不要只盯着模型效果这一个维度做优化,分发位置本身就是竞争壁垒。</li>
+</ol>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../04-interview/case-analysis/ai-search-north-star-metric.html">AI 搜索的北极星指标怎么定</a></li>
+<li><a href="../../04-interview/case-analysis/analyze-a-good-ai-product.html">如何分析一个优秀的 AI 产品</a></li>
+<li><a href="../chatbot-assistant/chatgpt.html">ChatGPT 案例拆解</a></li>
+</ul>
+<h2 id="_7">参考资料</h2>
+<ul>
+<li><a href="https://www.perplexity.ai/help-center/en/articles/10352895-how-does-perplexity-work">How does Perplexity work?</a> — Perplexity 官方帮助中心,2026-07 访问</li>
+<li><a href="https://www.perplexity.ai/help-center/en/articles/10354917-what-is-an-answer-engine-and-how-does-perplexity-work-as-one">What is an answer engine, and how does Perplexity work as one?</a> — Perplexity 官方帮助中心,2026-07 访问</li>
+<li><a href="https://www.perplexity.ai/enterprise/pricing">Perplexity Pricing</a> — Perplexity 官方定价页,2026-07 访问</li>
+<li><a href="https://www.perplexity.ai/max">Perplexity Max</a> — Perplexity 官方产品页,2026-07 访问</li>
+<li><a href="https://docs.perplexity.ai/docs/getting-started/pricing">Pricing | Perplexity API Docs</a> — Perplexity 官方 API 定价文档,2026-07 访问</li>
+<li><a href="https://www.perplexity.ai/hub/blog/why-we-re-experimenting-with-advertising">Why we're experimenting with advertising</a> — Perplexity 官方博客,2026-07 访问</li>
+<li><a href="https://www.campaignlive.com/article/perplexity-pulls-plug-ads-citing-trust-concerns-ai/1949142">Perplexity pulls the plug on ads, citing trust concerns for AI</a> — Campaign US,2026-07 访问</li>
+<li><a href="https://www.techtimes.com/articles/318028/20260608/perplexity-raises-200-million-comet-ai-browser-agent-economy-front-door.htm">Perplexity Raises $200 Million for Comet: The AI Browser Is the Agent Economy Front Door</a> — Tech Times,2026-07 访问</li>
+<li><a href="https://en.wikipedia.org/wiki/Perplexity_AI">Perplexity AI - Wikipedia</a> — Wikipedia,2026-07 访问</li>
+<li><a href="https://www.usegrowthos.com/blog/google-ai-overviews-vs-chatgpt-vs-perplexity">Google AI Overviews vs ChatGPT vs Perplexity: Which AI Search Tool Wins in 2026</a> — GrowthOS 行业分析,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

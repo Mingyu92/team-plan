@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLM 应用架构与 LLMOps</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 06_工程实践/01_LLM应用架构与LLMOps.md</span></div>
+<main>
+<h1 id="llm-llmops">LLM 应用架构与 LLMOps</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>一个生产级 LLM 应用由哪些模块组成？</li>
+<li>Prompt、RAG、Agent、模型服务、评估、监控怎么组织？</li>
+<li>LLMOps 和传统 MLOps 有什么区别？</li>
+<li>为什么日志、反馈和评估比单次 prompt 更重要？</li>
+</ul>
+<hr>
+<h2 id="llmops">外部图解：LLMOps 全流程</h2>
+<p><img alt="SigNoz：LLMOps 流程图" src="https://d3nu8xzr1i9u95.cloudfront.net/web/img/guides/2024/08/llmops-Untitled.webp"></p>
+<blockquote>
+<p>图源：<a href="https://signoz.io/guides/llmops/">SigNoz LLMOps Guide</a>。这张图适合把模型开发、部署、监控、反馈和评估放在一个闭环里理解。</p>
+</blockquote>
+<hr>
+<h2 id="llm">生产级 LLM 应用的基本结构</h2>
+<pre><code class="language-mermaid">flowchart TD
+    U[&quot;用户 / 业务系统&quot;] --&gt; G[&quot;API Gateway&quot;]
+    G --&gt; A[&quot;应用编排层&quot;]
+    A --&gt; R[&quot;RAG 检索&quot;]
+    A --&gt; T[&quot;工具调用&quot;]
+    A --&gt; M[&quot;模型服务&quot;]
+    R --&gt; V[&quot;向量库 / 搜索引擎&quot;]
+    T --&gt; S[&quot;业务系统&quot;]
+    M --&gt; O[&quot;输出治理&quot;]
+    O --&gt; L[&quot;日志 / 评估 / 反馈&quot;]
+</code></pre>
+<p>核心模块：</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API Gateway</td>
+<td>鉴权、限流、租户隔离</td>
+</tr>
+<tr>
+<td>编排层</td>
+<td>prompt、RAG、工具、流程控制</td>
+</tr>
+<tr>
+<td>检索层</td>
+<td>接入外部知识</td>
+</tr>
+<tr>
+<td>模型层</td>
+<td>统一调用不同模型</td>
+</tr>
+<tr>
+<td>工具层</td>
+<td>查询业务系统、执行动作</td>
+</tr>
+<tr>
+<td>安全层</td>
+<td>权限、脱敏、拒答、审计</td>
+</tr>
+<tr>
+<td>评估层</td>
+<td>离线和线上质量监控</td>
+</tr>
+<tr>
+<td>反馈层</td>
+<td>收集用户反馈，驱动迭代</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="1">1. 模型网关</h2>
+<p><strong>工程细节：</strong> 模型网关是业务和模型供应商之间的控制面，负责鉴权、路由、限流、重试、日志、成本统计和降级。它让业务代码不直接依赖某个模型 API，也方便做灰度、A/B 测试和多供应商容灾。没有网关时，prompt、参数、错误处理和成本通常会散落在各业务模块里，后期很难治理。</p>
+<p>企业里通常不会让业务直接调某个模型 API，而是先经过模型网关。</p>
+<p>模型网关负责：</p>
+<ul>
+<li>统一 OpenAI-compatible 接口</li>
+<li>模型路由</li>
+<li>限流和熔断</li>
+<li>token 统计</li>
+<li>成本归因</li>
+<li>fallback</li>
+<li>版本控制</li>
+</ul>
+<p>例子：</p>
+<pre><code class="language-text">简单 FAQ → 小模型
+复杂推理 → 强模型
+代码问题 → 代码模型
+多模态输入 → VLM
+</code></pre>
+<hr>
+<h2 id="2-prompt">2. Prompt 管理</h2>
+<p>Prompt 不是随手写在代码里的字符串。</p>
+<p>生产里需要：</p>
+<ul>
+<li>版本管理</li>
+<li>A/B 测试</li>
+<li>变量 schema</li>
+<li>输出格式约束</li>
+<li>回滚机制</li>
+<li>敏感指令隔离</li>
+</ul>
+<p>Prompt 失败常见原因：</p>
+<ul>
+<li>指令太多互相冲突</li>
+<li>没有明确拒答条件</li>
+<li>示例和真实输入分布不一致</li>
+<li>输出格式没有校验</li>
+<li>把权限控制交给 prompt</li>
+</ul>
+<hr>
+<h2 id="3-rag">3. RAG 层</h2>
+<p>RAG 不是“向量库 + LLM”，而是一个完整检索系统。</p>
+<p>生产 RAG 至少包括：</p>
+<ul>
+<li>文档解析</li>
+<li>chunk 策略</li>
+<li>embedding</li>
+<li>向量检索</li>
+<li>BM25</li>
+<li>结果融合</li>
+<li>rerank</li>
+<li>权限过滤</li>
+<li>引用生成</li>
+<li>评估闭环</li>
+</ul>
+<p>面试里要强调：</p>
+<blockquote>
+<p>RAG 的质量上限经常由数据工程和检索工程决定，而不是由生成模型单独决定。</p>
+</blockquote>
+<hr>
+<h2 id="4">4. 工具调用层</h2>
+<p>工具调用让模型不只“说”，还能“查”和“做”。</p>
+<p>常见工具：</p>
+<ul>
+<li>查订单</li>
+<li>查库存</li>
+<li>查日志</li>
+<li>查知识库</li>
+<li>建工单</li>
+<li>发通知</li>
+<li>运行代码</li>
+</ul>
+<p>工具调用必须有安全边界：</p>
+<ul>
+<li>只读工具优先</li>
+<li>写操作需要确认</li>
+<li>参数 schema 校验</li>
+<li>超时和重试</li>
+<li>审计日志</li>
+<li>高风险动作转人工</li>
+</ul>
+<hr>
+<h2 id="5">5. 输出治理</h2>
+<p>输出治理包括：</p>
+<ul>
+<li>格式校验</li>
+<li>引用校验</li>
+<li>敏感信息过滤</li>
+<li>事实性检查</li>
+<li>安全拒答</li>
+<li>置信度阈值</li>
+<li>人工兜底</li>
+</ul>
+<p>一个实用规则：</p>
+<blockquote>
+<p>模型可以生成建议，但高风险动作不要让模型独立决定。</p>
+</blockquote>
+<hr>
+<h2 id="6">6. 评估与监控</h2>
+<p><strong>细化理解：</strong> LLMOps 的监控不仅看 QPS、延迟和错误率，还要看答案质量、拒答率、工具调用成功率、RAG 召回质量、token 成本和安全事件。离线评估负责上线前回归，线上监控负责发现数据分布漂移和异常行为。高质量系统会把失败样本自动进入标注、评估和 prompt/检索优化闭环。</p>
+<p>LLMOps 的关键是持续评估。</p>
+<h3 id="_2">离线评估</h3>
+<ul>
+<li>固定黄金集</li>
+<li>版本回归</li>
+<li>prompt 对比</li>
+<li>模型对比</li>
+<li>RAG 检索指标</li>
+</ul>
+<h3 id="_3">线上监控</h3>
+<ul>
+<li>延迟</li>
+<li>成本</li>
+<li>用户反馈</li>
+<li>人工接管率</li>
+<li>幻觉投诉</li>
+<li>工具失败率</li>
+<li>安全拦截率</li>
+</ul>
+<hr>
+<h2 id="7-llmops-mlops">7. LLMOps 和 MLOps 的区别</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>MLOps</th>
+<th>LLMOps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入</td>
+<td>结构化特征较多</td>
+<td>自然语言、多模态、上下文</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>分类/回归为主</td>
+<td>开放文本、工具动作</td>
+</tr>
+<tr>
+<td>评估</td>
+<td>指标较确定</td>
+<td>自动评估 + 人工评估</td>
+</tr>
+<tr>
+<td>迭代</td>
+<td>模型训练为中心</td>
+<td>prompt、RAG、工具、模型共同迭代</td>
+</tr>
+<tr>
+<td>风险</td>
+<td>数据漂移、性能下降</td>
+<td>幻觉、越权、注入、成本失控</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_4">常见误区</h2>
+<h3 id="1llm-api">误区 1：LLM 应用就是调模型 API</h3>
+<p>真正上线需要网关、权限、检索、评估、监控和反馈闭环。</p>
+<h3 id="2prompt">误区 2：Prompt 写好了就稳定</h3>
+<p>用户输入分布会变，知识库会变，模型版本会变，所以必须持续评估。</p>
+<h3 id="3">误区 3：安全靠模型自觉</h3>
+<p>权限、脱敏、工具白名单必须在系统层实现。</p>
+<h3 id="4-rag">误区 4：只要模型强就不用 RAG</h3>
+<p>企业知识、实时数据、权限隔离和引用追溯仍然需要 RAG。</p>
+<hr>
+<h2 id="_5">面试延伸</h2>
+<p><strong>Q：你会如何设计一个企业 LLM 应用？</strong></p>
+<blockquote>
+<p>我会用模型网关统一调用，应用层负责编排 RAG 和工具，检索层做权限过滤和引用，输出层做校验与安全，最后用日志、反馈和黄金集做持续评估。</p>
+</blockquote>
+<p><strong>Q：LLMOps 最核心的指标是什么？</strong></p>
+<blockquote>
+<p>不能只看一个指标。系统层看延迟和成本，质量层看任务成功率、幻觉率、引用准确率，业务层看解决率、采纳率和人工接管率。</p>
+</blockquote>
+<hr>
+<h2 id="_6">生产架构落地清单</h2>
+<p>如果面试官让你“讲一个完整 LLM 应用架构”，可以按下面顺序展开：</p>
+<pre><code class="language-text">前端/业务入口
+  -&gt; API Gateway / Auth
+  -&gt; LLM Orchestrator
+  -&gt; Model Gateway
+  -&gt; RAG / Tools / Memory
+  -&gt; Safety &amp; Output Validator
+  -&gt; Trace / Eval / Feedback
+</code></pre>
+<p>各层职责：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>职责</th>
+<th>典型问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API Gateway</td>
+<td>鉴权、租户、限流</td>
+<td>谁能用、用多少</td>
+</tr>
+<tr>
+<td>Orchestrator</td>
+<td>prompt、RAG、工具编排</td>
+<td>怎么完成任务</td>
+</tr>
+<tr>
+<td>Model Gateway</td>
+<td>模型路由、重试、降级</td>
+<td>用哪个模型、失败怎么办</td>
+</tr>
+<tr>
+<td>RAG Layer</td>
+<td>检索、权限、引用</td>
+<td>知识从哪里来</td>
+</tr>
+<tr>
+<td>Tool Layer</td>
+<td>工具 schema、执行、审计</td>
+<td>能不能执行动作</td>
+</tr>
+<tr>
+<td>Safety Layer</td>
+<td>注入防护、脱敏、输出校验</td>
+<td>会不会泄露或越权</td>
+</tr>
+<tr>
+<td>Eval Layer</td>
+<td>离线回归、线上反馈</td>
+<td>改动有没有变好</td>
+</tr>
+</tbody>
+</table>
+<p>这套讲法比“前端调后端，后端调 LLM”更像生产项目。</p>
+<hr>
+<h2 id="_7">发布与回滚</h2>
+<p>LLM 应用的变更不只有代码，还包括：</p>
+<ul>
+<li>prompt 模板</li>
+<li>模型版本</li>
+<li>embedding 模型</li>
+<li>reranker</li>
+<li>chunk 策略</li>
+<li>工具 schema</li>
+<li>安全规则</li>
+<li>知识库内容</li>
+</ul>
+<p>所以发布流程要支持：</p>
+<ol>
+<li><strong>版本化</strong>：prompt、模型、索引、评估集都有版本号。</li>
+<li><strong>灰度</strong>：按用户、租户、流量比例切新版本。</li>
+<li><strong>回归评估</strong>：上线前跑黄金集，比较准确率、拒答率、引用准确率。</li>
+<li><strong>线上监控</strong>：看延迟、成本、负反馈、安全拦截。</li>
+<li><strong>快速回滚</strong>：prompt 和模型路由能不发版回滚。</li>
+</ol>
+<p>面试里可以强调：</p>
+<blockquote>
+<p>LLMOps 的难点是“非代码资产”也会改变系统行为，所以必须把 prompt、知识库和评估集当成可版本管理的工程资产。</p>
+</blockquote>
+<hr>
+<h2 id="_8">商业项目指标</h2>
+<p>企业知识库问答与工单助手可以这样设指标：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Self-Serve Resolution Rate</td>
+<td>用户不转人工就解决的比例</td>
+</tr>
+<tr>
+<td>Escalation Accuracy</td>
+<td>转工单/转人工是否分流正确</td>
+</tr>
+<tr>
+<td>Citation Accuracy</td>
+<td>引用是否真实支持答案</td>
+</tr>
+<tr>
+<td>First Response Latency</td>
+<td>首次响应延迟</td>
+</tr>
+<tr>
+<td>Cost per Resolved Case</td>
+<td>每个解决问题的平均模型成本</td>
+</tr>
+<tr>
+<td>Unsafe Request Block Rate</td>
+<td>安全拦截比例</td>
+</tr>
+<tr>
+<td>Knowledge Gap Rate</td>
+<td>因知识库缺失导致无法回答的比例</td>
+</tr>
+</tbody>
+</table>
+<p>这些指标能把项目从 demo 拉到商业系统：既看质量，也看成本、安全和业务结果。</p>
+<hr>
+<h2 id="_9">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2005.11401">arxiv.org/abs/2005.11401</a></td>
+</tr>
+<tr>
+<td>Toolformer: Language Models Can Teach Themselves to Use Tools (Schick et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2302.04761">arxiv.org/abs/2302.04761</a></td>
+</tr>
+<tr>
+<td>ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2210.03629">arxiv.org/abs/2210.03629</a></td>
+</tr>
+<tr>
+<td>RAGAS: Automated Evaluation of Retrieval Augmented Generation (Es et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.15217">arxiv.org/abs/2309.15217</a></td>
+</tr>
+<tr>
+<td>PagedAttention / vLLM (Kwon et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.06180">arxiv.org/abs/2309.06180</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_10">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 OpenAI Cookbook</td>
+<td><a href="https://cookbook.openai.com/examples/evaluation/getting_started_with_openai_evals">Evals examples</a></td>
+<td>学如何为 LLM 应用建立回归评估</td>
+</tr>
+<tr>
+<td>📖 Anthropic Docs</td>
+<td><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview">Prompt engineering overview</a></td>
+<td>Prompt 管理和生产提示词设计</td>
+</tr>
+<tr>
+<td>📖 OWASP</td>
+<td><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">Top 10 for LLM Applications</a></td>
+<td>LLM 应用安全风险清单</td>
+</tr>
+<tr>
+<td>📖 LangChain Docs</td>
+<td><a href="https://docs.smith.langchain.com/evaluation">LangSmith evaluation</a></td>
+<td>线上 trace、评估和调试工具入口</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI PM 项目深挖的准备方法</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/preparation/project-deep-dive.md</span></div>
+<main>
+<h1 id="ai-pm">AI PM 项目深挖的准备方法</h1>
+<p>项目深挖不是把项目介绍再讲一遍，而是证明你能对一个 AI 产品结果负责：知道问题从哪里来，为什么选这个方案，自己真正做了什么，如何判断效果，哪里失败过，以及下一次会怎么做得更好。面试官通常会从你的第一段概述中挑一个细节继续追问，准备的目标是让每个关键判断都有事实、证据和边界。</p>
+<blockquote>
+<p><strong>事实</strong>：AI 产品的验收不能只写“功能跑通”，还要定义效果、能力边界、数据回流、成本和上线计划；这是<a href="../../02-pm-skills/prd-and-design/ai-prd-guide.html">AI 产品 PRD 怎么写</a>与现有评测方法反复强调的差异。</p>
+<p><strong>建议</strong>：把项目准备成“事实卡 + 决策链 + 证据包”，不要背一篇无法应对追问的演讲稿。</p>
+</blockquote>
+<h2 id="_1">一、先做一页项目事实卡</h2>
+<p>用一页纸把项目压缩成下面这张卡。每个关键结论旁边都放一个证据来源：产品文档、评测记录、埋点、会议决策、原型、上线复盘或你能合法展示的脱敏材料。</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>需要写清</th>
+<th>证据提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>项目一句话</td>
+<td>为谁解决什么问题，用什么 AI 能力完成什么任务</td>
+<td>PRD 摘要、用户流程</td>
+</tr>
+<tr>
+<td>背景</td>
+<td>用户、场景、原流程和痛点，为什么现在做</td>
+<td>用户访谈、工单、业务目标</td>
+</tr>
+<tr>
+<td>目标</td>
+<td>用户目标、产品目标、业务目标分别是什么</td>
+<td>目标指标、上线线</td>
+</tr>
+<tr>
+<td>你的角色</td>
+<td>你负责的判断、交付和协调，团队其他人负责什么</td>
+<td>任务拆分、评审记录</td>
+</tr>
+<tr>
+<td>方案</td>
+<td>规则、RAG、模型调用、Agent 或人工流程各自做什么</td>
+<td>架构图、工具清单</td>
+</tr>
+<tr>
+<td>关键取舍</td>
+<td>备选方案、选择理由、放弃了什么</td>
+<td>评审结论、对比评测</td>
+</tr>
+<tr>
+<td>结果</td>
+<td>结果指标、效果指标、系统指标、成本和风险</td>
+<td>数据口径、评测报告</td>
+</tr>
+<tr>
+<td>失败</td>
+<td>发生了什么，最早信号是什么，怎么修复</td>
+<td>Badcase、复盘、回归结果</td>
+</tr>
+<tr>
+<td>当前边界</td>
+<td>现在能做什么、不能做什么、下一步是什么</td>
+<td>能力边界清单</td>
+</tr>
+</tbody>
+</table>
+<p><strong>数据不方便公开时，不要用猜的数字填空。</strong>可以说明“只能分享相对变化/区间/趋势”，并把重点放在指标定义、对照方式、你的动作和结论边界上。未经授权的用户规模、收入、成本和公司内部信息，不应写入作品集或面试答案。</p>
+<h2 id="_2">二、背景与目标：先讲为什么值得做</h2>
+<p>一个有说服力的背景段落，建议按以下顺序：</p>
+<ol>
+<li><strong>谁</strong>遇到了什么任务困难；</li>
+<li>现有流程如何完成，主要瓶颈在哪里；</li>
+<li>为什么用 AI，为什么不是规则、搜索、人工或普通自动化；</li>
+<li>项目阶段是什么，成功与失败分别如何定义。</li>
+</ol>
+<p>目标要拆成三层，避免把“接入模型”当成产品目标：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>问题</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户层</td>
+<td>用户完成任务后得到什么</td>
+<td>更快找到可信答案、少做重复整理</td>
+</tr>
+<tr>
+<td>产品层</td>
+<td>功能要改变什么行为或流程</td>
+<td>提高一次解决，降低无效追问/人工接管</td>
+</tr>
+<tr>
+<td>业务层</td>
+<td>对组织结果有什么影响</td>
+<td>缩短处理周期、提高转化或降低单位服务成本</td>
+</tr>
+</tbody>
+</table>
+<p>如果项目目标只是“验证一个方向”，就明确它是探索性目标：验证用户是否需要、验证 RAG/Agent 是否能达到最低效果、验证演示是否能推动立项。探索项目不应包装成已经证明了规模化业务价值。</p>
+<h2 id="_3">三、个人贡献：把“我们”拆成“我做了什么判断”</h2>
+<p>面试官想听的不是你是否参与过会议，而是你对结果产生了哪些不可替代的影响。可以按四类整理：</p>
+<table>
+<thead>
+<tr>
+<th>贡献类型</th>
+<th>追问自己</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题定义</td>
+<td>是我发现/验证了哪个用户问题？如何排除伪需求？</td>
+</tr>
+<tr>
+<td>产品决策</td>
+<td>是我决定了范围、流程、兜底、指标、优先级或上线条件中的哪一项？</td>
+</tr>
+<tr>
+<td>AI 协作</td>
+<td>我如何定义评测标准、组织 Badcase、协调模型/检索/工程方案？</td>
+</tr>
+<tr>
+<td>结果与复盘</td>
+<td>我通过什么数据发现问题，推动了什么修复，结论如何影响下一版？</td>
+</tr>
+</tbody>
+</table>
+<p>推荐使用“我负责 X，和 Y 协作，做了 Z，依据是 A，结果是 B”的句式。涉及团队成果时要明确归属，不把算法、工程、设计或运营的工作全部说成自己完成；但也不要把自己的判断藏在“团队决定”后面。</p>
+<h2 id="_4">四、关键取舍：准备一张决策表</h2>
+<p>每个重要取舍都按下面五格准备：</p>
+<pre><code class="language-text">当时要解决什么问题？
+有哪些可行方案？
+我选择了哪一个，依据是什么？
+放弃的方案有什么代价？
+上线后事实是否支持这个判断？
+</code></pre>
+<p>AI PM 高频取舍包括：</p>
+<table>
+<thead>
+<tr>
+<th>取舍</th>
+<th>你要讲清的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>规则 vs 模型</td>
+<td>场景变化、覆盖范围、可解释性、维护成本和错误代价</td>
+</tr>
+<tr>
+<td>RAG vs 微调</td>
+<td>知识是否频繁更新、是否需要引用、数据和训练条件是否具备</td>
+</tr>
+<tr>
+<td>Chatbot vs Agent</td>
+<td>是否多步骤、是否要调用工具、每步能否验证、高风险动作如何确认</td>
+</tr>
+<tr>
+<td>大模型 vs 小模型</td>
+<td>效果差异是否转化为任务价值，延迟和单位成本是否可承受</td>
+</tr>
+<tr>
+<td>自动执行 vs 人工确认</td>
+<td>副作用、可逆性、权限、合规和用户预期</td>
+</tr>
+<tr>
+<td>快速 Demo vs 生产系统</td>
+<td>要验证的假设是什么，哪些能力必须交给工程师补齐</td>
+</tr>
+</tbody>
+</table>
+<p>如果当时没有做正式对比实验，也可以诚实说明：当时的证据是什么、判断有哪些不确定性、后来如何补评测。<strong>推测</strong>只能标成推测；例如从产品表现推测使用了 RAG，不等于你掌握了真实架构。</p>
+<h2 id="_5">五、数据结果：从“涨了多少”讲到“为什么可信”</h2>
+<p>准备结果时不要只报一个漂亮数字。至少说明：</p>
+<ul>
+<li>指标的定义和分母是什么；</li>
+<li>基线是旧版本、人工流程、规则方案还是对照组；</li>
+<li>观测了多久、样本来自哪里、是否按用户/场景分层；</li>
+<li>变化是离线评测、线上 A/B、灰度还是用户反馈；</li>
+<li>哪些因素可能同时影响结果，哪些结论暂时不能归因给 AI；</li>
+<li>效果提升带来了什么成本、延迟、人工复核或安全代价。</li>
+</ul>
+<p>可以用下面的结果卡回答：</p>
+<pre><code class="language-text">主结果：哪个用户/业务结果发生了什么变化
+证据：采用了什么基线、样本、时间和评测方法
+中间指标：AI 效果和系统指标是否同步变化
+代价：成本、延迟、人工接管或风险如何变化
+限制：哪些场景没有覆盖，结论不能外推到哪里
+</code></pre>
+<p>如果“模型指标涨了，业务指标没涨”，不要急着把它解释成项目失败或业务不配合。可以沿着<a href="../../02-pm-skills/model-evaluation/badcase-analysis.html">Badcase 分析方法论</a>检查：评测集分布、指标定义、上下游体验、用户采纳和观测周期是否对齐。</p>
+<h2 id="_6">六、失败复盘：用事实说明你如何学习</h2>
+<p>高质量复盘不是讲一个“我最大的缺点”，而是讲一次具体的判断偏差或系统失败：</p>
+<ol>
+<li><strong>预期是什么</strong>：当时的假设和上线标准；</li>
+<li><strong>实际发生什么</strong>：用户、评测、系统或安全信号如何偏离；</li>
+<li><strong>最早信号</strong>：什么时候本可以更早发现；</li>
+<li><strong>根因</strong>：区分模型、检索、Prompt、工具、数据、交互、预期和流程问题；</li>
+<li><strong>修复动作</strong>：谁做了什么，如何验证不再复发；</li>
+<li><strong>机制改变</strong>：是否新增评测集、监控、权限、回滚或产品边界；</li>
+<li><strong>下一次选择</strong>：如果重来，你会在什么节点换方案，为什么。</li>
+</ol>
+<p>避免三种无效复盘：把责任归给“模型太笨”；只说“加强沟通”却没有机制；只讲结果变差，却不说明用户影响、风险和修复证据。</p>
+<h2 id="ai">七、AI 技术边界：准备三层讲法</h2>
+<p>项目深挖不要求 PM 代替算法工程师推导模型，但要能把方案讲到可判断的程度：</p>
+<h3 id="_7">第一层：用户流程</h3>
+<p>用户输入什么？系统检索/规划/调用什么？用户在哪里看到来源、等待、确认、编辑或转人工？出错时有什么兜底？</p>
+<h3 id="_8">第二层：能力链路</h3>
+<ul>
+<li>RAG：知识从哪里来、怎么切片和检索、如何确认引用支持答案；</li>
+<li>Agent：任务怎么拆解、有哪些工具、状态/记忆如何管理、何时人工确认；</li>
+<li>Vibe Coding Demo：验证了哪个假设，哪些数据和能力只是原型，离生产还缺什么。</li>
+</ul>
+<h3 id="_9">第三层：验收与运行</h3>
+<p>评测集怎么来、标准答案或 rubric 怎么定、线上 Badcase 如何回流、模型/Prompt/工具怎么回归、成本和延迟如何监控、什么条件触发灰度暂停或回滚。</p>
+<p>可以参考<a href="../../02-pm-skills/ai-product-operations/agent-product-design.html">Agent 产品生产化</a>和<a href="../../02-pm-skills/ai-product-operations/agent-evaluation-and-observability.html">Agent 评测与可观测性</a>准备“生产化追问”。</p>
+<h2 id="_10">八、常见追问与回答骨架</h2>
+<table>
+<thead>
+<tr>
+<th>追问</th>
+<th>回答骨架</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>为什么一定要用 AI？</td>
+<td>用户问题 → 规则/人工的限制 → AI 的适用能力 → 不适用边界</td>
+</tr>
+<tr>
+<td>为什么用 RAG/Agent，而不是另一种方案？</td>
+<td>任务特征 → 备选方案 → 评测和成本证据 → 风险与取舍</td>
+</tr>
+<tr>
+<td>你怎么证明效果变好了？</td>
+<td>成功标准 → 评测集/基线 → 线上验证 → 分层结果和限制</td>
+</tr>
+<tr>
+<td>最大的 Badcase 是什么？</td>
+<td>现象 → 归因 → 用户影响 → 修复 → 回归和监控</td>
+</tr>
+<tr>
+<td>成本怎么估？</td>
+<td>使用假设 → 调用/Token/工具拆解 → 单任务成本 → 上限与降本方案</td>
+</tr>
+<tr>
+<td>Agent 误操作怎么办？</td>
+<td>风险分级 → 最小权限 → 确认/阻断 → 审计 → 人工接管/回滚</td>
+</tr>
+<tr>
+<td>如果指标没提升，你会怎么做？</td>
+<td>先查口径和分布 → 再分环节归因 → 补数据/改交互/改方案 → 重新验证</td>
+</tr>
+<tr>
+<td>你个人还会改什么？</td>
+<td>具体节点 → 当时忽略的信号 → 新方案 → 如何验证改进</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_11">九、建议的练习顺序</h2>
+<ol>
+<li><strong>先讲一句话</strong>：项目为谁解决什么问题，结果如何；</li>
+<li><strong>再讲短版</strong>：背景、目标、方案、个人贡献、结果和一个取舍；</li>
+<li><strong>再讲长版</strong>：补充架构、评测、成本、安全、失败复盘；</li>
+<li><strong>最后做压力测试</strong>：让朋友随机挑事实卡字段追问，回答不确定处时明确“事实/建议/推测”。</li>
+</ol>
+<p>不要把所有技术细节都放在开场。讲解顺序应让面试官先听懂用户价值，再根据兴趣进入方案和证据；但你自己必须把深挖材料准备完整。</p>
+<h2 id="_12">十、项目深挖自查清单</h2>
+<ul>
+<li>[ ] 能在一句话中说清用户、任务、AI 能力和结果。</li>
+<li>[ ] 能区分项目背景、目标、个人贡献和团队贡献。</li>
+<li>[ ] 至少准备两项有证据的关键取舍，并能说出放弃方案的代价。</li>
+<li>[ ] 每个结果都有指标口径、基线、观测方法和不能外推的范围。</li>
+<li>[ ] 能讲一个失败 Badcase 的现象、根因、修复和回归。</li>
+<li>[ ] 能解释 RAG/Agent/模型/工具/人工在项目中的边界。</li>
+<li>[ ] 准备了成本、延迟、权限、数据安全和回滚的回答。</li>
+<li>[ ] 没有编造数字、用户规模、岗位职责或未公开的公司信息。</li>
+<li>[ ] 能按初级 / 中级 / 高级三段位切换讲法（见下一节），而不是只会背项目清单。</li>
+</ul>
+<h2 id="_13">十一、项目经历三段位答法</h2>
+<blockquote>
+<p><strong>选题启发</strong>：磊叔《100 个问题》Q11（大厂问「你做过什么 AI 项目」时，不同段位怎么答）。正文为原创框架，不复述 PDF 中的数字与轶事。</p>
+</blockquote>
+<p>面试官问项目，真正想听的往往不是简历条目，而是你对做过之事有没有判断。同一项目，可以按目标职级切换讲法深度——准备时三档都写好，上场按岗位要求取用。</p>
+<table>
+<thead>
+<tr>
+<th>段位</th>
+<th>核心问题</th>
+<th>听起来像什么</th>
+<th>面试官通常的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初级</td>
+<td>我做了什么</td>
+<td>流程、功能、上线结果罗列</td>
+<td>像协调执行，缺技术/产品判断</td>
+</tr>
+<tr>
+<td>中级</td>
+<td>我为什么这么做</td>
+<td>备选方案、取舍依据、指标与风险边界</td>
+<td>每个关键决策背后有证据</td>
+</tr>
+<tr>
+<td>高级</td>
+<td>我学到了什么，重来会怎么做</td>
+<td>上线后判断如何演进、坑如何变成机制</td>
+<td>能看见反思与可迁移的决策力</td>
+</tr>
+</tbody>
+</table>
+<p><strong>初级（做什么）</strong>：一句话说清用户、任务、AI 能力与结果；交代你的职责边界。适合开场 30 秒，但不要停在这里——否则听起来像项目协调员。</p>
+<p><strong>中级（为什么这么做）</strong>：在事实卡上挂至少两项取舍，例如为何 RAG 而非微调、置信度/转人工门槛如何定、为何先 Workflow 再 Agent。每项用「问题 → 备选 → 依据 → 放弃代价」说完；依据优先来自评测、成本、合规或用户证据，见上文「关键取舍」与<a href="../basics/rag-vs-finetuning.html">RAG vs 微调面试题</a>。</p>
+<p><strong>高级（学到什么 / 重来怎么做）</strong>：补一段具体失败或误判：预期是什么、最早信号、根因、修复、机制改变（评测集、监控、权限、回滚）。能讲清「上线后发现真正瓶颈不在模型分，而在提问引导 / 成本 / 分布 Gap」这类演进，才像对结果负责的人。评测与线上不对齐时，可链<a href="../basics/offline-eval-online-gap.html">离线 Evals 全绿、线上时灵时不灵</a>与<a href="../../02-pm-skills/ai-product-operations/agent-evaluation-and-observability.html">Agent 评测与可观测性</a>。</p>
+<p>练习建议：先用中级档把两个取舍讲顺，再为每个取舍准备一个「若重来」的高级补充；初级档只作开场压缩版。数据不便公开时，讲相对变化、口径与验证方法，不编造绝对值。</p>
+<h2 id="_14">相关阅读</h2>
+<ul>
+<li><a href="../../00-roadmap/spot-fake-ai-pm-jobs.html">如何识别「挂羊头卖狗肉」的 AI PM 岗位</a></li>
+<li><a href="portfolio-and-demo.html">AI PM 作品集与 Demo 准备</a></li>
+<li><a href="../../02-pm-skills/prd-and-design/ai-prd-guide.html">AI 产品 PRD 怎么写：与传统 PRD 的核心差异</a></li>
+<li><a href="../../02-pm-skills/model-evaluation/build-your-eval-set.html">从零建设评测集：用例从哪来、标准答案怎么定</a></li>
+<li><a href="../../02-pm-skills/model-evaluation/badcase-analysis.html">Badcase 分析方法论：收集、归因、分发、验证</a></li>
+<li><a href="../../02-pm-skills/ai-product-operations/agent-product-design.html">Agent 产品生产化：从会执行到可负责地完成任务</a></li>
+<li><a href="../../02-pm-skills/ai-product-operations/ai-product-metrics.html">AI 产品指标体系：从业务结果到成本与风险</a></li>
+<li><a href="../basics/model-evaluation-system.html">如何构建大模型效果评测体系?</a></li>
+<li><a href="../basics/offline-eval-online-gap.html">离线 Evals 全绿、线上「时灵时不灵」，Gap 怎么填？</a></li>
+<li><a href="../behavioral/ai-pm-vs-traditional-pm.html">AI 产品经理和传统产品经理最大的区别是什么?</a></li>
+</ul>
+<h2 id="_15">参考资料</h2>
+<ul>
+<li><a href="https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/">A practical guide to building AI agents</a> —— OpenAI 官方指南，2026-07 访问</li>
+<li><a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">Define success criteria and build evaluations</a> —— Anthropic 官方文档，2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/guides/evaluation-best-practices">Evaluation best practices</a> —— OpenAI 官方文档，2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

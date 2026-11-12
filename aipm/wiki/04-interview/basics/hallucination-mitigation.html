@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>什么是大模型的幻觉?产品上怎么缓解?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/hallucination-mitigation.md</span></div>
+<main>
+<h1 id="_1">什么是大模型的幻觉?产品上怎么缓解?</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:极高,海信、大厂常见题均有出现</p>
+<h2 id="_2">考察点</h2>
+<ul>
+<li>能否准确描述幻觉的本质(模型"自信地编造"而非"不知道")</li>
+<li>是否理解幻觉是概率生成模型的结构性问题,而非偶发 bug</li>
+<li>能否从产品视角给出分层缓解方案,而非只说"优化 Prompt"</li>
+</ul>
+<h2 id="_3">参考答案</h2>
+<p><strong>一句话定义</strong>:幻觉是指大模型生成看似流畅、实则与事实不符或凭空捏造的内容,且往往以高置信度呈现。</p>
+<p><strong>为什么会发生</strong>:大模型的训练目标是"预测下一个 token",不是"保证事实正确"。当上下文信息不足或问题超出训练分布时,模型仍会强行补全,产出似是而非的答案。</p>
+<p><strong>产品缓解三板斧</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>手段</th>
+<th>产品含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成端</td>
+<td>Prompt 约束、拒答策略</td>
+<td>明确"不知道就说不知道",降低强行作答概率</td>
+</tr>
+<tr>
+<td>检索端</td>
+<td>RAG + Rerank</td>
+<td>用高质量外部知识约束生成,减少凭空编造</td>
+</tr>
+<tr>
+<td>呈现端</td>
+<td>引用溯源(Citation)</td>
+<td>让用户可核验来源,即使出错也能快速发现</td>
+</tr>
+</tbody>
+</table>
+<p><strong>选型思路</strong>:高风险场景(医疗、金融、法律)优先"宁可不答也不乱答";低风险场景(创意写作)可容忍一定随机性。缓解幻觉不是消灭幻觉,而是在业务可接受的风险水位下做工程化控制。</p>
+<h2 id="_4">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"除了幻觉,企业 AI 还有哪些典型缺陷?"
+  → 可延伸到时效性(知识过时)、一致性问题(同一问题不同答案)、安全合规(有害输出)等,展示你对 AI 能力边界的全面认知。</li>
+<li><strong>追问 2</strong>:"RAG 上了之后幻觉还是很多,你怎么排查?"
+  → 拆成检索问题(该找的资料没找到)和生成问题(资料找到了但没用好),分别对应知识库质量和 Prompt/模型能力。</li>
+<li><strong>追问 3</strong>:"Citation 引用溯源具体怎么设计?"
+  → 回答应包含:检索片段与回答的对应关系、用户可点击跳转原文、引用缺失时的降级展示策略。</li>
+</ul>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+</ul>
+</main>
+</body>
+</html>

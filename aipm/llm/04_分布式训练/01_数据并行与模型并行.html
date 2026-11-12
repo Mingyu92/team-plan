@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数据并行与模型并行</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 04_分布式训练/01_数据并行与模型并行.md</span></div>
+<main>
+<h1 id="_1">数据并行与模型并行</h1>
+<h2 id="_2">面试高频考点</h2>
+<ul>
+<li>DDP 和 DP 的区别？Ring-AllReduce 如何工作？</li>
+<li>ZeRO 三个阶段分别优化了什么？</li>
+<li>张量并行和流水线并行各自的优缺点？</li>
+<li>为什么大模型训练需要 3D 并行？</li>
+<li>FSDP、ZeRO、TP、PP 分别解决的是哪类瓶颈？</li>
+<li>并行策略到底是省显存、省时间，还是两者兼顾？</li>
+</ul>
+<hr>
+<h2 id="_3">为什么大模型训练一定走向并行</h2>
+<p><strong>细化理解：</strong> 大模型训练需要同时解决显存容量、训练时间和数据吞吐。单卡装不下参数和优化器状态时，需要 ZeRO/FSDP；单卡算力不够时，需要数据并行扩大吞吐；单层矩阵太大时，需要张量并行；层数太多时，可以考虑流水线并行。并行策略本质是在计算、通信和显存之间折中。</p>
+<p>单卡训练大模型会同时撞上三堵墙：</p>
+<ol>
+<li><strong>参数放不下</strong>：模型参数、梯度、优化器状态一起占显存。</li>
+<li><strong>激活放不下</strong>：长序列和大 batch 会让激活内存爆炸。</li>
+<li><strong>算不完</strong>：即使放得下，训练吞吐也不够。</li>
+</ol>
+<p>因此不同并行策略本质上是在解决不同瓶颈：</p>
+<ul>
+<li><strong>数据并行（DP/DDP/FSDP/ZeRO）</strong>：主要解决吞吐扩展和状态冗余。</li>
+<li><strong>张量并行（TP）</strong>：把单层算子拆到多卡，解决单层算不下或单卡算力不够。</li>
+<li><strong>流水线并行（PP）</strong>：把不同层分到不同卡，解决整网装不下。</li>
+</ul>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;模型太大/训练太慢&quot;] --&gt; B[&quot;数据并行&lt;br/&gt;复制模型, 切 batch&quot;]
+    A --&gt; C[&quot;张量并行&lt;br/&gt;切单层矩阵计算&quot;]
+    A --&gt; D[&quot;流水线并行&lt;br/&gt;切网络层&quot;]
+    B --&gt; E[&quot;3D 并行组合&quot;]
+    C --&gt; E
+    D --&gt; E
+</code></pre>
+<hr>
+<h2 id="data-parallelism">数据并行（Data Parallelism）</h2>
+<p><strong>细化理解：</strong> 数据并行让每张卡处理不同 batch，然后同步梯度。DDP 的关键成本是 AllReduce 通信，模型越大、卡越多，通信越可能成为瓶颈。为了维持训练稳定性，扩大全局 batch 后通常要配合学习率缩放、warmup 和梯度累积。</p>
+<h3 id="dp-vs-ddp">DP vs DDP</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>DP（DataParallel）</th>
+<th>DDP（DistributedDataParallel）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通信方式</td>
+<td>主卡聚合</td>
+<td>Ring-AllReduce</td>
+</tr>
+<tr>
+<td>多进程</td>
+<td>单进程多线程</td>
+<td>多进程</td>
+</tr>
+<tr>
+<td>负载均衡</td>
+<td>主 GPU 负载重</td>
+<td>均衡</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>差</td>
+<td>好</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>单机调试</td>
+<td>生产训练</td>
+</tr>
+</tbody>
+</table>
+<p>DP 的问题很直白：主卡会承担模型复制、梯度聚合和输出收集，通信和显存热点都压在一张卡上。DDP 则是每张卡各跑一个进程，反向传播时自动同步梯度，因此扩展性更好。</p>
+<h3 id="ring-allreduce">Ring-AllReduce</h3>
+<p>所有 GPU 组成一个环，梯度分两个阶段同步：
+1. <strong>Scatter-Reduce</strong>：每个 GPU 将自己的梯度分块，逐步发送给下一个 GPU 并累加
+2. <strong>AllGather</strong>：将累加好的梯度广播给所有 GPU</p>
+<p>通信量：每张卡发送和接收 <code>2(N-1)/N × 参数量</code> 的数据，与 GPU 数量近似线性扩展。</p>
+<pre><code class="language-mermaid">flowchart LR
+    G1[&quot;GPU1&quot;] --&gt; G2[&quot;GPU2&quot;]
+    G2 --&gt; G3[&quot;GPU3&quot;]
+    G3 --&gt; G4[&quot;GPU4&quot;]
+    G4 --&gt; G1
+</code></pre>
+<p>直观理解：不是把所有梯度都扔给中心节点，而是每张卡只和邻居通信，边传边聚合。</p>
+<hr>
+<h2 id="zerozero-redundancy-optimizer">ZeRO（Zero Redundancy Optimizer）</h2>
+<p>DeepSpeed 提出的显存优化方案，将模型状态切分到所有 GPU 上：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>切分内容</th>
+<th>显存节省（N 卡）</th>
+<th>通信量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZeRO-1</td>
+<td>优化器状态</td>
+<td>4x（Adam 状态占大头）</td>
+<td>同 DDP</td>
+</tr>
+<tr>
+<td>ZeRO-2</td>
+<td>优化器状态 + 梯度</td>
+<td>8x</td>
+<td>同 DDP</td>
+</tr>
+<tr>
+<td>ZeRO-3</td>
+<td>优化器状态 + 梯度 + 参数</td>
+<td>N×（线性）</td>
+<td>1.5× DDP</td>
+</tr>
+</tbody>
+</table>
+<p><strong>显存公式</strong>（混合精度，Adam 优化器，参数量 <code>Φ</code>）：
+- 完整副本：<code>16Φ</code> bytes（参数 2 + 梯度 2 + 优化器状态 12）
+- ZeRO-3：<code>16Φ / N</code> bytes</p>
+<p><strong>ZeRO-Offload</strong>：将优化器状态和梯度卸载到 CPU 内存，单卡可训练更大模型。<br>
+<strong>ZeRO-Infinity</strong>：进一步卸载到 NVMe SSD。</p>
+<h3 id="zero">ZeRO 真正在解决什么</h3>
+<p>DDP 的核心浪费是：每张卡都完整保存一份参数、梯度和优化器状态。卡数越多，冗余越大。ZeRO 的思路是把这些状态拆开存，让每张卡只负责一部分。</p>
+<h3 id="fsdp-zero-3">FSDP 和 ZeRO-3 的关系</h3>
+<p>两者原理非常接近：</p>
+<ul>
+<li>都是参数分片</li>
+<li>前向/反向时按层临时 all-gather</li>
+<li>用完再释放</li>
+</ul>
+<p>区别更多在工程生态：</p>
+<ul>
+<li><strong>FSDP</strong>：PyTorch 原生，和训练栈集成好。</li>
+<li><strong>ZeRO-3</strong>：DeepSpeed 配套成熟，offload 能力更强。</li>
+</ul>
+<hr>
+<h2 id="tensor-parallelism">张量并行（Tensor Parallelism）</h2>
+<p>将单个矩阵运算切分到多个 GPU 上并行执行，Megatron-LM 的核心方案。</p>
+<p><strong>MLP 切分方式：</strong></p>
+<pre><code class="language-text">输入 X
+  ↓
+A = XW1   （W1 按列切分到 N 卡）
+  ↓
+B = GeLU(A)
+  ↓
+C = BW2   （W2 按行切分到 N 卡）
+  ↓
+输出
+</code></pre>
+<p>每次前向和反向都需要通信，因此 TP 的性能高度依赖卡间带宽，通常优先放在同一台机器内，通过 NVLink / NVSwitch 互联。</p>
+<h3 id="tp">TP 的优点和代价</h3>
+<p><strong>优点：</strong>
+- 单层算子可以横向拆开，单卡放不下的大矩阵能训
+- 可提升单层并行度</p>
+<p><strong>代价：</strong>
+- 通信频繁，尤其 attention/MLP 都要同步
+- 带宽不够时很容易算得越并行越慢</p>
+<p>所以 TP 不是卡越多越好，而是要和机器拓扑匹配。</p>
+<hr>
+<h2 id="pipeline-parallelism">流水线并行（Pipeline Parallelism）</h2>
+<p>将模型不同层分配到不同 GPU，按流水线方式执行。</p>
+<p><strong>GPipe</strong>：将 batch 切成 micro-batch，但存在 bubble（空闲等待）。<br>
+<strong>1F1B（One Forward One Backward）</strong>：交错前向和反向，减少 bubble 到 <code>(N-1)/N</code> 量级。</p>
+<p><strong>Bubble 比例</strong>：<code>(p-1)/(m+p-1)</code>，其中 <code>p</code> 为流水线阶段数，<code>m</code> 为 micro-batch 数。增大 <code>m</code> 可减小 bubble。</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant S1 as Stage1
+    participant S2 as Stage2
+    participant S3 as Stage3
+    S1-&gt;&gt;S2: micro-batch 1
+    S2-&gt;&gt;S3: micro-batch 1
+    S1-&gt;&gt;S2: micro-batch 2
+    S2-&gt;&gt;S3: micro-batch 2
+</code></pre>
+<h3 id="_4">流水线并行的核心问题不是能不能跑，而是负载均衡</h3>
+<p>如果某个 stage 层数太多、attention 太重，整条流水线都会被它卡住。实际部署时经常需要：</p>
+<ul>
+<li>按 layer 计算量而不是按层数平均切分</li>
+<li>使用 virtual pipeline stage 做更细粒度均衡</li>
+<li>控制 micro-batch 数，避免显存和 bubble 两头受损</li>
+</ul>
+<hr>
+<h2 id="3d">3D 并行</h2>
+<p>大规模训练通常将三种并行组合使用：</p>
+<pre><code class="language-text">数据并行（DP）× 张量并行（TP）× 流水线并行（PP）
+</code></pre>
+<p><strong>选择策略：</strong>
+- TP：优先用于卡间 NVLink 互联（带宽高）
+- PP：用于跨节点或跨机柜拆层（通信频率低）
+- DP/FSDP/ZeRO：在 TP×PP 之外继续扩展吞吐</p>
+<h3 id="_5">一个常见的组合例子</h3>
+<p>假设有 64 张卡：</p>
+<ul>
+<li>每 8 张卡做 1 个 TP 组</li>
+<li>2 个 TP 组串成 1 条 PP 流水线</li>
+<li>剩余维度做 4 路 DP</li>
+</ul>
+<p>即：
+<code>64 = TP(8) × PP(2) × DP(4)</code></p>
+<p>这种设计会同时兼顾单层切分、整网切分和 batch 吞吐扩展。</p>
+<hr>
+<h2 id="_6">工程实践视角</h2>
+<h3 id="_7">并行策略怎么选</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型不算特别大，但想提吞吐</td>
+<td>DDP / FSDP</td>
+</tr>
+<tr>
+<td>参数显存是最大瓶颈</td>
+<td>ZeRO-3 / FSDP</td>
+</tr>
+<tr>
+<td>单层矩阵太大放不下</td>
+<td>TP</td>
+</tr>
+<tr>
+<td>模型层数太深、整网放不下</td>
+<td>PP</td>
+</tr>
+<tr>
+<td>千亿级以上训练</td>
+<td>3D 并行 + 激活重计算 + 混合精度</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_8">常见配套优化</h3>
+<ul>
+<li><strong>Activation Checkpointing</strong>：省激活显存，代价是重复前向计算。</li>
+<li><strong>FlashAttention</strong>：减少 attention 的显存访问和 IO 开销。</li>
+<li><strong>Sequence Parallelism / Context Parallelism</strong>：长上下文时代进一步拆序列维。</li>
+<li><strong>混合精度训练</strong>：BF16/FP16 显著降低显存占用。</li>
+</ul>
+<h3 id="_9">真正决定上限的是系统瓶颈</h3>
+<p>训练速度不只由 FLOPs 决定，还受这些因素制约：</p>
+<ul>
+<li>NCCL 通信拓扑是否合理</li>
+<li>节点间网络带宽和时延</li>
+<li>数据加载是否跟得上</li>
+<li>checkpoint 写盘是否拖慢训练</li>
+<li>异常恢复成本高不高</li>
+</ul>
+<p>很多时候，论文里写的是并行策略，工程里打架的是网络和 IO。</p>
+<hr>
+<h2 id="_10">常见误区</h2>
+<h3 id="1-batch">误区 1：数据并行就是把 batch 分给多卡，没什么难的</h3>
+<p>表面是这样，但高效数据并行的关键在梯度同步、bucket 划分、通信重叠和拓扑映射，不处理这些就扩不起来。</p>
+<h3 id="2zero-3-zero-2">误区 2：ZeRO-3 一定优于 ZeRO-2</h3>
+<p>不一定。ZeRO-3 显存最省，但通信和实现复杂度更高。模型没大到那个程度时，ZeRO-2/FSDP 可能性价比更高。</p>
+<h3 id="3tp">误区 3：TP 只要切得更细就更快</h3>
+<p>错。TP 通信很重，切太细会让同步开销吃掉算力收益。</p>
+<h3 id="4">误区 4：流水线并行天然适合跨机</h3>
+<p>只对一部分情况成立。虽然 PP 通信频率低于 TP，但跨机仍然会受 stage 不平衡、micro-batch 调度和激活传输影响。</p>
+<hr>
+<h2 id="_11">面试延伸</h2>
+<p><strong>Q：ZeRO-3 前向传播时参数在哪里？</strong></p>
+<blockquote>
+<p>ZeRO-3 每张卡只保存 1/N 的参数。前向传播时，需要哪一层就临时 all-gather 该层完整参数，用完立即释放，因此不会长期保留完整副本。</p>
+</blockquote>
+<p><strong>Q：流水线并行的 bubble 怎么消除？</strong></p>
+<blockquote>
+<p>完全消除很难，但可以通过增大 micro-batch 数量、使用 Interleaved 1F1B、做更均衡的 stage 切分，以及新型调度策略来逼近更低 bubble。</p>
+</blockquote>
+<p><strong>Q：FSDP（PyTorch）和 ZeRO-3 有什么区别？</strong></p>
+<blockquote>
+<p>原理相近，都是状态分片。FSDP 是 PyTorch 原生实现，生态集成更好；ZeRO-3 是 DeepSpeed 体系，offload 和超大模型训练配套更成熟。</p>
+</blockquote>
+<p><strong>Q：为什么 TP 通常优先放在 NVLink 域内？</strong></p>
+<blockquote>
+<p>因为 TP 每层都要频繁通信，带宽和时延非常敏感。跨节点网络通常扛不住这种高频同步，因此更适合把 PP 或 DP 放到节点间。</p>
+</blockquote>
+<hr>
+<h2 id="_12">学完可以做什么</h2>
+<ol>
+<li>在 2 到 4 张卡上分别跑 DDP 和 FSDP，观察显存和吞吐差异。</li>
+<li>用 Megatron-LM 或 DeepSpeed 跑一个小型 TP/PP 组合实验，理解通信瓶颈。</li>
+<li>做一份不同并行策略的 profile 报告，拆出 compute、communication、data loading 三类耗时。</li>
+</ol>
+<hr>
+<h2 id="_13">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZeRO: Memory Optimizations Toward Training Trillion Parameter Models (Rajbhandari et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/1910.02054">arxiv.org/abs/1910.02054</a></td>
+</tr>
+<tr>
+<td>Megatron-LM: Training Multi-Billion Parameter Language Models (Shoeybi et al., 2019)</td>
+<td><a href="https://arxiv.org/abs/1909.08053">arxiv.org/abs/1909.08053</a></td>
+</tr>
+<tr>
+<td>GPipe: Efficient Training of Giant Neural Networks (Huang et al., 2019)</td>
+<td><a href="https://arxiv.org/abs/1811.06965">arxiv.org/abs/1811.06965</a></td>
+</tr>
+<tr>
+<td>Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM (Narayanan et al., 2021)</td>
+<td><a href="https://arxiv.org/abs/2104.04473">arxiv.org/abs/2104.04473</a></td>
+</tr>
+<tr>
+<td>Synergistic Tensor and Pipeline Parallelism (2025)</td>
+<td><a href="https://arxiv.org/abs/2510.27257">arxiv.org/abs/2510.27257</a></td>
+</tr>
+<tr>
+<td>MegaScale-Omni: Hyper-Scale MultiModal LLM Training (字节跳动, 2026)</td>
+<td><a href="https://arxiv.org/abs/2605.08962">arxiv.org/abs/2605.08962</a></td>
+</tr>
+<tr>
+<td>AsyncMesh: Fully Async Data and Pipeline Parallelism (2026)</td>
+<td><a href="https://arxiv.org/abs/2601.22442">arxiv.org/abs/2601.22442</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_14">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1mm42137X8/">动画理解PyTorch大模型分布式训练：DP、DDP、DeepSpeed ZeRO</a></td>
+<td>5.5万播放，动画直观展示三种并行策略原理</td>
+</tr>
+<tr>
+<td>📖 DeepSpeed Docs</td>
+<td><a href="https://www.deepspeed.ai/tutorials/zero/">ZeRO optimization</a></td>
+<td>官方 ZeRO 分阶段优化教程</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1fb421t7KN/">DeepSpeed优化器并行ZeRO1/2/3原理</a></td>
+<td>1.6万播放，ZOMI酱系统讲解ZeRO三阶段</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

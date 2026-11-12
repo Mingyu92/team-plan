@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>离线 Evals 全绿、线上「时灵时不灵」，Gap 怎么填？</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/offline-eval-online-gap.md</span></div>
+<main>
+<h1 id="evals-gap">离线 Evals 全绿、线上「时灵时不灵」，Gap 怎么填？</h1>
+<p><strong>难度</strong>:⭐⭐⭐ 进阶
+<strong>出现频率</strong>:高，评测 / Agent / 实验向 AI PM 面试常见；选题启发自磊叔《100 个问题》相关评测题（与正课 C6 同族）</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否一句话说清：离线全绿 ≠ 线上稳定好用，Gap 来自分布、指标、链路、方差或过拟合</li>
+<li>是否能给出可操作的排查优先级，而不是只抱怨「用户太挑剔」或「再加几条 case」</li>
+<li>是否知道用「离线质量门 → 灰度/影子 → 线上行为/OEC」闭环把 Gap 补上，并与 A/B 原则对齐</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>：离线报表绿、线上时灵时不灵，通常是离线世界与线上世界脱节——评测分布、评测维度、链路瓶颈或生成方差与真实用户不一致；填 Gap 靠对齐指标、回流真实负向会话、多 trial 看稳定性，再用灰度与正式 A/B 验证业务因果。</p>
+<p><strong>先拆五类常见根因（面试官爱听「怎么查」）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>根因</th>
+<th>表现</th>
+<th>排查动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>评测分布 ≠ 线上分布</td>
+<td>集子是干净规范问法；用户是方言、错别字、多意图揉一起</td>
+<td>按线上频率分桶重采样；长尾单独建切片</td>
+</tr>
+<tr>
+<td>评测维度 ≠ 用户价值</td>
+<td>Evals 涨在流畅度/格式；用户要一次办成、可复制、可信任</td>
+<td>把采纳、完成、转人工等行为指标与分维度 eval 对齐</td>
+</tr>
+<tr>
+<td>链路瓶颈不在模型</td>
+<td>模型分涨了，检索/权限/兜底/UI 仍卡住</td>
+<td>按链路分段看「模型层改善是否触达用户可见结果」</td>
+</tr>
+<tr>
+<td>方差被当成稳定质量</td>
+<td>单次跑分全绿；线上同一任务时好时坏</td>
+<td>离线多 trial；线上按用户/会话聚合看分布</td>
+</tr>
+<tr>
+<td>过拟合评测集</td>
+<td>对着同一批 case 调到满分</td>
+<td>保留 held-out；新日志持续进集；能力集与回归集分开</td>
+</tr>
+</tbody>
+</table>
+<p><strong>离线涨了、业务不动（Gap 的反向版）——排查顺序</strong>：</p>
+<ol>
+<li><strong>指标翻译是否对齐</strong>：离线主指标是否映射到预注册的线上 OEC / 护栏？不对齐就先改评测定义，而不是加流量。</li>
+<li><strong>散点对照</strong>：几次版本变更的离线分 vs 线上行为/业务指标；长期不相关，说明在优化错误目标。</li>
+<li><strong>触达检查</strong>：灰度用户是否真打到新版本？缓存、路由、客户端旧包是否稀释效果？</li>
+<li><strong>体验摩擦</strong>：延迟、确认弹窗、格式变化是否抵消质量收益？</li>
+</ol>
+<p><strong>默认闭环（可背成答题骨架）</strong>：</p>
+<pre><code class="language-text">离线评测集 + 安全闸门
+  → 小流量 / 影子观察质量与稳定性
+  → 正式 A/B（用户随机，预注册 OEC + 护栏）
+  → 结论与离线分维度对照；负向会话脱敏回流评测集
+</code></pre>
+<p>离线回答发版前「系统还行不行」；线上回答发版后「用户感受到了什么」。除了报错率，优先看拿到回答后的下一步：复制/采纳、追问并完成、立即重生成、关闭、转人工。</p>
+<p><strong>场景举例</strong>：知识库助手离线「事实正确率」全绿，线上客诉「有时答对有时胡说」。查下来：评测集全是标准 FAQ，线上 40% 流量是多意图口语；且只跑了单次 trial。动作：按线上意图桶补切片 + 多 trial 报成功率分布；把「一次解决 / 转人工」挂成 OEC；坏会话回流 held-out；未过闸不扩量。</p>
+<p>细节与清单见正课<a href="../../02-pm-skills/ai-product-operations/agent-evaluation-and-observability.html">线下绿、线上灰</a>与<a href="../../02-pm-skills/model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试</a>。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>：「evals 能不能替代线上 A/B？」
+  → 不能互相替代：evals 看任务表现与规格，A/B 看真实用户与业务因果；官方实践也强调互补。离线未过安全/质量闸门，不进正式 A/B。</li>
+<li><strong>追问 2</strong>：「怎么证明不是生成方差在骗人？」
+  → 离线同一用例多跑，报告均值与波动，而不是单次绿灯；线上以用户/会话为分析单元；固定模型版本与采样参数，接受「分布可比」而非「逐字可比」。</li>
+<li><strong>追问 3</strong>：「没有 golden set / 刚上线就喊时灵时不灵，怎么办？」
+  → 先用真实轨迹抽样建种子集（脱敏），再固化可重复 dataset；行为哨兵（重生成、转人工、完成率）与质量哨兵（回归集 + 抽样回放）并行，不等投诉堆满再补评测。</li>
+<li><strong>追问 4</strong>：「供应商悄悄升版会不会造成这种 Gap？」
+  → 会。接口未变 ≠ 行为未变。生产钉死可回滚版本 ID；升版触发固定回归集 + 场景桶对比 + 影子回放；效果分涨但护栏爆了仍不放行。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/ai-product-operations/agent-evaluation-and-observability.html">Agent 评测与可观测性：从最终答案追到完整轨迹</a>（线下绿、线上灰专节）</li>
+<li><a href="../../02-pm-skills/model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试：概率性输出下如何做实验</a></li>
+<li><a href="ai-ab-testing-difference.html">AI 产品的 A/B 测试和传统产品差在哪？</a></li>
+<li><a href="model-evaluation-system.html">如何构建大模型效果评测体系?</a></li>
+<li><a href="llm-output-randomness.html">为什么大模型的输出每次都不一样?</a></li>
+<li><a href="../../02-pm-skills/model-evaluation/build-your-eval-set.html">从零建设评测集：用例从哪来、标准答案怎么定</a></li>
+<li><a href="../../02-pm-skills/model-evaluation/badcase-analysis.html">Badcase 分析方法论：收集、归因、分发、验证</a></li>
+</ul>
+</main>
+</body>
+</html>

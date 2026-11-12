@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2-Layer normalization 篇</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 07_PDF面试题库/12_2-Layer_normalization_篇.md</span></div>
+<main>
+<h1 id="2-layer-normalization">2-Layer normalization 篇</h1>
+<blockquote>
+<p>来源 PDF：<code>200页AI大模型面试高频必刷题（附详解）/2-Layer normalization 篇.pdf</code><br>
+主题：Transformer / 基础架构<br>
+页数：3<br>
+字符数：1104<br>
+索引片段数：3</p>
+</blockquote>
+<h2 id="_1">摘要</h2>
+<p>Layer normalization 篇 来自： AiGC面试宝典 宁静致远 2023年09月29日 12:37 Layer normalization-方法篇 一、Layer Norm 篇 1.1 Layer Norm 的计算公式写一下？ 二、RMS Norm 篇 （均方根 Norm） 2.1 RMS Norm 的计算公式写一下？ 2.2 RMS Norm 相比于 Layer Norm 有什么特点？ RMS Norm 简化了 Layer Norm ，去除掉计算均值进行平移的部分。 对比LN，RMS Norm的计</p>
+<h2 id="_2">代表性原文片段</h2>
+<h3 id="1">片段 1</h3>
+<p>Layer normalization 篇
+来自： AiGC面试宝典
+宁静致远 2023年09月29日 12:37
+Layer normalization-方法篇
+一、Layer Norm 篇
+1.1 Layer Norm 的计算公式写一下？
+二、RMS Norm 篇 （均方根 Norm）
+2.1 RMS Norm 的计算公式写一下？
+2.2 RMS Norm 相比于 Layer Norm 有什么特点？
+RMS Norm 简化了 Layer Norm ，去除掉计算均值进行平移的部分。
+对比LN，RMS Norm的计算速度更快。效果基本相当，甚至略有提升。
+三、Deep Norm 篇
+3.1 Deep Norm 思路？
+Deep Norm方法在执行Layer Norm之前，up-scale了残差连接 (alpha&gt;1)；另外，在初始化阶段down-scale了模
+型参数(beta&lt;1)。
+3.2 写一下 Deep Norm 代码实现？
+Deep Norm 有什么优点？
+扫码加
+查看更多</p>
+<p>-- 1 of 3 --</p>
+<p>Deep Norm可以缓解爆炸式模型更新的问题，把模型更新限制在常数，使得模型训练过程更稳定。</p>
+<h3 id="2">片段 2</h3>
+<p>？
+Deep Norm 有什么优点？
+扫码加
+查看更多</p>
+<p>-- 1 of 3 --</p>
+<p>Deep Norm可以缓解爆炸式模型更新的问题，把模型更新限制在常数，使得模型训练过程更稳定。
+Layer normalization-位置篇
+1 LN 在 LLMs 中的不同位置 有什么区别么？如果有，能介绍一下区别么？
+回答：有，LN 在 LLMs 位置有以下几种：
+1. Post LN：
+a. 位置：layer norm在残差链接之后
+b. 缺点：Post LN 在深层的梯度范式逐渐增大，导致使用post-LN的深层transformer容易出现训练不稳
+定的问题
+2. Pre-LN：
+a. 位置：layer norm在残差链接中
+b. 优点：相比于Post-LN，Pre LN 在深层的梯度范式近似相等，所以使用Pre-LN的深层transformer训
+练更稳定，可以缓解训练不稳定问题
+c. 缺点：相比于Post-LN，Pre-LN的模型效果略差
+3. Sandwich-LN：
+a. 位置：在pre-LN的基础上，额外插入了一个layer norm
+b. 优点：Cogview用来避免值爆炸的问题</p>
+<h3 id="3">片段 3</h3>
+<p>，Pre-LN的模型效果略差
+3. Sandwich-LN：
+a. 位置：在pre-LN的基础上，额外插入了一个layer norm
+b. 优点：Cogview用来避免值爆炸的问题
+c. 缺点：训练不稳定，可能会导致训练崩溃。</p>
+<p>-- 2 of 3 --</p>
+<p>Layer normalization 对比篇
+LLMs 各模型分别用了 哪种 Layer normalization？
+BLOOM在embedding层后添加layer normalization，有利于提升训练稳定性:但可能会带来很大的性能损失
+知识星球</p>
+<p>-- 3 of 3 --</p>
+<h2 id="_3">使用建议</h2>
+<ul>
+<li>这些内容来自授权公开 PDF 的文本抽取结果，网页端会基于同一份静态索引做关键词检索。</li>
+<li>面试复习时建议先用网页 PDF 原文检索定位题目，再回到主 notes 学系统化答案。</li>
+<li>如果片段出现排版噪声，以原 PDF 语义为准，并优先整理成自己的回答模板。</li>
+</ul>
+</main>
+</body>
+</html>

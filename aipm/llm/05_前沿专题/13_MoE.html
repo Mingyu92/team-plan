@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MoE（混合专家模型）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 05_前沿专题/13_MoE.md</span></div>
+<main>
+<h1 id="moe">MoE（混合专家模型）</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>MoE 的基本结构是什么？</li>
+<li>为什么 MoE 能在不线性增加推理成本的前提下扩模型容量？</li>
+<li>路由器、专家、Top-K 激活分别做什么？</li>
+<li>负载均衡为什么难？Expert Collapse 是什么？</li>
+<li>DeepSeek / Mixtral 这类模型在 MoE 上的关键工程点是什么？</li>
+</ul>
+<hr>
+<h2 id="moe_1">MoE 的核心直觉</h2>
+<p><strong>细化理解：</strong> MoE 的直觉是“总容量很大，但每个 token 只激活一小部分参数”。Dense 模型每个 token 走同一套 FFN，MoE 则通过 router 把 token 分配给少数专家，从而在计算量相近的情况下增加参数容量。它的难点不在概念，而在路由稳定、专家负载均衡和跨卡通信。</p>
+<p>传统 dense 模型里，每个 token 都走完整个 FFN 路径。MoE 的思路是：</p>
+<ul>
+<li>放很多专家网络</li>
+<li>每个 token 只激活其中少数几个</li>
+</ul>
+<p>这样就能做到：</p>
+<ul>
+<li><strong>总参数很大</strong></li>
+<li><strong>单次激活参数较少</strong></li>
+</ul>
+<p><img alt="Switch / MoE 路由图" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/moe/03_switch_layer.png"></p>
+<blockquote>
+<p>图源：Hugging Face 官方 MoE 综述文章，所引图片来自 <code>Switch Transformers</code> 相关图示。</p>
+</blockquote>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;输入 token&quot;] --&gt; B[&quot;Router / Gate&quot;]
+    B --&gt; C[&quot;Expert 1&quot;]
+    B --&gt; D[&quot;Expert 2&quot;]
+    B --&gt; E[&quot;Expert 3&quot;]
+    B --&gt; F[&quot;Expert N&quot;]
+    C --&gt; G[&quot;加权合并&quot;]
+    D --&gt; G
+    E --&gt; G
+    F --&gt; G
+</code></pre>
+<hr>
+<h2 id="moe_2">MoE 的基本结构</h2>
+<p><strong>工程细节：</strong> MoE 层通常包括 router、experts、top-k 选择、容量限制和负载均衡损失。router 输出每个 token 到各专家的概率，系统选 top-1 或 top-2 专家执行 FFN。容量因子设置过小会丢 token，过大又浪费显存和通信，因此 MoE 训练需要细致调参。</p>
+<p>MoE 通常把 Transformer 中的 FFN 替换成：</p>
+<ol>
+<li>Router / Gate</li>
+<li>多个 Experts</li>
+<li>Top-K 选择与加权合并</li>
+</ol>
+<h3 id="router">Router 做什么</h3>
+<p>给每个 expert 一个分数，选出 Top-K。</p>
+<pre><code class="language-text">scores = x W_g
+probs = softmax(scores)
+只保留 Top-K expert
+output = Σ g_i * Expert_i(x)
+</code></pre>
+<h3 id="experts">Experts 做什么</h3>
+<p>专家通常本质上还是 FFN，只是每个专家参数不同，因此会学出不同偏好。</p>
+<hr>
+<h2 id="moe_3">为什么 MoE 省推理成本</h2>
+<h3 id="dense">Dense 模型</h3>
+<p>每个 token 都过全部参数。</p>
+<h3 id="moe_4">MoE 模型</h3>
+<p>每个 token 只过少数专家。</p>
+<p>例如：</p>
+<ul>
+<li>总共有 64 个专家</li>
+<li>每次只激活 2 个</li>
+</ul>
+<p>那么总容量很大，但单 token 实际使用参数只占很小一部分。</p>
+<h3 id="_2">关键结论</h3>
+<blockquote>
+<p>MoE 的价值是把“总容量”和“单次激活成本”解耦。</p>
+</blockquote>
+<hr>
+<h2 id="dense-vs-moe-trade-off">Dense vs MoE 的真实 trade-off</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Dense</th>
+<th>MoE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总参数利用</td>
+<td>每次全用</td>
+<td>每次只用一部分</td>
+</tr>
+<tr>
+<td>推理成本</td>
+<td>随总参数涨</td>
+<td>更接近随激活参数涨</td>
+</tr>
+<tr>
+<td>工程复杂度</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>通信复杂度</td>
+<td>相对低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>稳定性</td>
+<td>更稳</td>
+<td>更敏感</td>
+</tr>
+</tbody>
+</table>
+<p>所以 MoE 不是“白拿容量”，而是用更复杂的系统工程换参数效率。</p>
+<hr>
+<h2 id="_3">面试里最好主动区分的两个量</h2>
+<ul>
+<li><code>Total Parameters</code>：模型总容量</li>
+<li><code>Activated Parameters</code>：单个 token 真正走到的参数量</li>
+</ul>
+<p>MoE 的关键价值就是让这两个数字脱钩。</p>
+<p>很多人只会说“MoE 参数大”，但真正有区分度的回答是：MoE 大的是总容量，不是每一步都把所有参数跑一遍。</p>
+<hr>
+<h2 id="_4">负载均衡问题</h2>
+<p>MoE 最大的经典问题是：Router 可能总把 token 发给少数专家。</p>
+<h3 id="expert-collapse">Expert Collapse</h3>
+<p>表现是：</p>
+<ul>
+<li>少数专家特别忙</li>
+<li>大部分专家几乎不工作</li>
+</ul>
+<p>结果：</p>
+<ul>
+<li>训练退化</li>
+<li>大量参数白白浪费</li>
+<li>通信热点严重</li>
+</ul>
+<h3 id="_5">常见解决思路</h3>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auxiliary Load Balancing Loss</td>
+<td>惩罚路由不均衡</td>
+</tr>
+<tr>
+<td>Capacity Factor</td>
+<td>给每个专家设置容量上限</td>
+</tr>
+<tr>
+<td>Router Z-Loss</td>
+<td>稳定 router logits</td>
+</tr>
+<tr>
+<td>Expert Choice / 变体路由</td>
+<td>调整 token-expert 分配机制</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="deepseek-mixtral">DeepSeek / Mixtral 路线的亮点</h2>
+<h3 id="mixtral">Mixtral</h3>
+<p>Mixtral 让很多人第一次直观看到：</p>
+<ul>
+<li>开源 MoE 也能做得很实用</li>
+<li>Top-2 激活的性价比很高</li>
+</ul>
+<h3 id="deepseek">DeepSeek 的工程亮点</h3>
+<p>常被提到的点包括：</p>
+<ol>
+<li>更细粒度专家设计</li>
+<li>共享专家（shared experts）</li>
+<li>更激进的系统优化</li>
+<li>更先进的负载均衡策略</li>
+</ol>
+<h3 id="shared-experts">Shared Experts 的意义</h3>
+<p>共享专家负责更通用的语言能力，路由专家负责更专门的能力。</p>
+<p>这种设计的直觉是：</p>
+<ul>
+<li>通用知识别每次都重新分派</li>
+<li>专业能力再交给路由选择</li>
+</ul>
+<hr>
+<h2 id="moe_5">MoE 的工程难点</h2>
+<h3 id="1-all-to-all">1. All-to-All 通信</h3>
+<p>如果不同专家分布在不同 GPU 上，token 被路由后就要跨卡发送。</p>
+<p>这带来：</p>
+<ul>
+<li>高频 all-to-all</li>
+<li>网络带宽压力</li>
+<li>延迟抖动</li>
+</ul>
+<h3 id="2">2. 显存压力</h3>
+<p>虽然单 token 激活少，但总专家参数还是要放进系统里。</p>
+<h3 id="3">3. 训练稳定性</h3>
+<p>router 很敏感，超参不稳时容易：</p>
+<ul>
+<li>路由失衡</li>
+<li>loss 波动</li>
+<li>专家利用率异常</li>
+</ul>
+<h3 id="4">4. 微调更难</h3>
+<p>MoE 在 SFT / DPO 时往往比 dense 更敏感，因为数据分布一变，router 行为也可能跟着变。</p>
+<h3 id="5-serving">5. Serving 难点</h3>
+<p>推理侧还要处理：</p>
+<ul>
+<li>token 命中不同专家带来的批处理不规则</li>
+<li>专家跨卡放置引入的 all-to-all</li>
+<li>prefilling 和 decoding 的负载模式差异</li>
+</ul>
+<p>所以 MoE 的难点常常不在公式，而在系统实现。</p>
+<hr>
+<h2 id="_6">专家会不会自动专业化</h2>
+<p>会，而且这是 MoE 最有意思的现象之一。</p>
+<p>训练中常能观察到：</p>
+<ul>
+<li>某些专家更偏代码</li>
+<li>某些更偏数学</li>
+<li>某些更偏中文</li>
+<li>某些更偏长句结构或特定风格</li>
+</ul>
+<p>这通常不是手工指定的，而是训练中自发涌现的。</p>
+<hr>
+<h2 id="moe_6">什么时候该用 MoE</h2>
+<h3 id="_7">适合</h3>
+<ul>
+<li>想要更大总容量</li>
+<li>有较强训练和推理系统能力</li>
+<li>多领域、多任务、大规模训练场景</li>
+</ul>
+<h3 id="_8">不适合</h3>
+<ul>
+<li>资源有限，系统栈不成熟</li>
+<li>强调单机部署简单性</li>
+<li>更看重稳定微调和低工程复杂度</li>
+</ul>
+<p>一句话：</p>
+<blockquote>
+<p>MoE 更像大规模系统能力的放大器，不是所有团队都该一上来就用。</p>
+</blockquote>
+<hr>
+<h2 id="_9">常见误区</h2>
+<h3 id="1moe">误区 1：MoE 参数大，就一定更强</h3>
+<p>不对。总参数大不等于激活参数强，数据、路由和系统优化都决定最终效果。</p>
+<h3 id="2moe">误区 2：MoE 推理成本和激活参数完全等价</h3>
+<p>不完全。实际还要付通信和调度成本。</p>
+<h3 id="3_1">误区 3：负载均衡只是工程问题</h3>
+<p>不是。它直接影响训练质量和专家是否真正学到不同能力。</p>
+<h3 id="4moe">误区 4：MoE 一定更适合微调</h3>
+<p>恰恰相反，很多时候 dense 更稳、更省心。</p>
+<hr>
+<h2 id="_10">面试延伸</h2>
+<p><strong>Q：为什么说 MoE 能做到“鱼和熊掌兼得”？</strong></p>
+<blockquote>
+<p>因为它把总参数容量做大，但每个 token 只激活少量专家，因此在推理时不用付出与总参数完全等比例的成本。不过这只是计算层面的近似，实际还要承担路由和通信开销。</p>
+</blockquote>
+<p><strong>Q：Expert Collapse 是什么？</strong></p>
+<blockquote>
+<p>就是路由器把大量 token 集中发给少数专家，其他专家几乎不工作，导致模型退化、参数浪费和通信热点。负载均衡机制就是为了解决这个问题。</p>
+</blockquote>
+<p><strong>Q：MoE 和 Dense 哪个更容易落地？</strong></p>
+<blockquote>
+<p>Dense 更容易。MoE 的收益建立在更复杂的训练、通信、显存和 serving 系统之上，没有这些配套时，Dense 往往更稳。</p>
+</blockquote>
+<hr>
+<h2 id="_11">学完可以做什么</h2>
+<ol>
+<li>画一个 Top-2 MoE 层的 forward 路由图。</li>
+<li>比较一个 dense 模型和一个 MoE 模型的“总参数 vs 激活参数”。</li>
+<li>做一个小实验，统计不同 token 被路由到哪些专家。</li>
+</ol>
+<hr>
+<h2 id="_12">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Outrageously Large Neural Networks: The Sparsely-Gated MoE Layer (Shazeer et al., ICLR 2017)</td>
+<td><a href="https://arxiv.org/abs/1701.06538">arxiv.org/abs/1701.06538</a></td>
+</tr>
+<tr>
+<td>Switch Transformers (Fedus et al., JMLR 2022)</td>
+<td><a href="https://arxiv.org/abs/2101.03961">arxiv.org/abs/2101.03961</a></td>
+</tr>
+<tr>
+<td>GShard: Scaling Giant Models with Conditional Computation (Lepikhin et al., ICLR 2021)</td>
+<td><a href="https://arxiv.org/abs/2006.16668">arxiv.org/abs/2006.16668</a></td>
+</tr>
+<tr>
+<td>Mixtral of Experts (Jiang et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2401.04088">arxiv.org/abs/2401.04088</a></td>
+</tr>
+<tr>
+<td>DeepSeek-V2 (DeepSeek-AI, 2024)</td>
+<td><a href="https://arxiv.org/abs/2405.04434">arxiv.org/abs/2405.04434</a></td>
+</tr>
+<tr>
+<td>DeepSeek-V3 (DeepSeek-AI, 2024)</td>
+<td><a href="https://arxiv.org/abs/2412.19437">arxiv.org/abs/2412.19437</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_13">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 Hugging Face Blog</td>
+<td><a href="https://huggingface.co/blog/moe">Mixture of Experts Explained</a></td>
+<td>MoE 架构、路由和训练挑战的系统解释</td>
+</tr>
+<tr>
+<td>📺 YouTube</td>
+<td><a href="https://www.youtube.com/watch?v=iAR8LkkMMIM">Mixture of Experts explained</a></td>
+<td>明确视频页，补充 MoE 直觉理解</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

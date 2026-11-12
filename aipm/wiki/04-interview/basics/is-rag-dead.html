@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>你怎么看「RAG 已死」这说法?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/is-rag-dead.md</span></div>
+<main>
+<h1 id="rag">你怎么看「RAG 已死」这说法?</h1>
+<p><strong>难度</strong>:⭐⭐ 常规
+<strong>出现频率</strong>:高,RAG/检索/Agent 相关面试常被拿来"接地气"地问一下</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>是否只会背"RAG 没死"的结论,还能不能讲清楚"死的是什么、活的是什么"</li>
+<li>能否区分"检索"这个目标和"向量检索"这一种具体实现手段</li>
+<li>能否落到场景分流,而不是空喊"RAG 永不为奴"</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>:死的是 2023 年那套"固定切块 → 固定 Top-K → 固定拼 Prompt"的 Naive RAG 流水线,不是"先找证据、再基于证据回答"这个思路本身。</p>
+<h3 id="_3">为什么会显得"死了"</h3>
+<p>社交媒体上"RAG 已死"的论据通常是两条:上下文窗口都到百万级了,还检索个啥;Coding Agent 用 grep 就能读懂整个仓库,不需要向量库。这两条冲击的其实都是同一个默认设定——"检索=向量检索,且是系统提前写死的固定步骤",不是"检索"这件事本身。Naive RAG 的三个死穴才是真正被吐槽的对象:</p>
+<ol>
+<li><strong>固定切块</strong>:不管文档结构机械切块,容易把语义单元切断</li>
+<li><strong>固定 Top-K</strong>:不管问题难度和知识库规模都取固定数量候选</li>
+<li><strong>无任务意识</strong>:检索在生成之前就写死跑完,模型没机会判断"该不该查、查哪里、查一次够不够"</li>
+</ol>
+<h3 id="rag_1">RAG 思想没消失,演进出三条路</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>检索怎么做</th>
+<th>谁决定检索策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Naive RAG</td>
+<td>固定切块 → 固定 Top-K 向量检索</td>
+<td>系统提前写死</td>
+</tr>
+<tr>
+<td>Hybrid RAG</td>
+<td>向量 + BM25 等多路召回,再融合/重排</td>
+<td>系统按配置好的规则</td>
+</tr>
+<tr>
+<td>Agentic Retrieval</td>
+<td>模型先判断查询类型,再选检索粒度、决定是否多轮补查</td>
+<td>模型按任务动态决定</td>
+</tr>
+<tr>
+<td>Agent + Tools</td>
+<td>检索降级为众多工具之一,和 grep、API 并列由模型统一规划</td>
+<td>模型自主规划</td>
+</tr>
+</tbody>
+</table>
+<p>到了最后一阶段,"RAG"这个词反而不太被单独提起,不是因为它消失了,而是融入了更大的"上下文工程"体系。</p>
+<h3 id="_4">场景分流,不是非黑即白</h3>
+<table>
+<thead>
+<tr>
+<th>场景特征</th>
+<th>更适合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FAQ、客服知识库、制度问答(问题形态稳定、单跳可答)</td>
+<td>传统 / Hybrid RAG 就够,延迟低、成本可控、行为可预测</td>
+</tr>
+<tr>
+<td>需要精确命中工单号、型号等专有名词</td>
+<td>Hybrid RAG(向量 + BM25),不必上 Agent</td>
+</tr>
+<tr>
+<td>多步骤代码排障、跨文件定位</td>
+<td>Agent(检索作为工具之一),需要"查一次看结果再决定下一步"</td>
+</tr>
+<tr>
+<td>问题类型混杂、难以预判</td>
+<td>Agentic Retrieval,让模型自己先判断再选路径</td>
+</tr>
+</tbody>
+</table>
+<p>面试加分句:<strong>判断该不该"升级"看任务是否有内在分支(有时候查一次不够,有时候根本不用查),不是看这个词最近热不热。</strong></p>
+<h2 id="_5">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"长上下文这么大了,为什么还要 RAG?"
+  → 窗口大小决定"能塞多少",不决定"该不该塞"。还要核对成本随库规模的增长曲线、多用户并发共享、精确引用来源、多租户权限过滤这几个维度,详见<a href="../../01-ai-basics/llm/long-context-vs-rag.html">《长上下文 vs RAG》</a>的决策树。</li>
+<li><strong>追问 2</strong>:"Coding Agent 用 grep 不用向量库,是不是说明向量检索没用了?"
+  → 是场景权衡,不是取代。代码仓库结构清晰、可用符号/文件名精确定位,grep 天然合适;企业文档知识库缺乏这种结构,语义检索依然是主力手段。</li>
+<li><strong>追问 3</strong>:"如果团队现在还在用 Naive RAG,你会先升级哪一步?"
+  → 优先补齐 Hybrid 检索(关键词 + 重排),这一步性价比通常最高;再评估是否真的需要上 Agentic 检索,不要一步跳到最复杂的方案。</li>
+</ul>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/rag-evolution-naive-to-agentic.html">RAG 没死:死的是 Naive 固定流水线</a></li>
+<li><a href="../../01-ai-basics/llm/long-context-vs-rag.html">长上下文 vs RAG:什么时候塞全库,什么时候检索</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="rag-multi-retrieval-paths.html">RAG 系统有哪几种检索路径?分别适合什么场景?</a></li>
+<li><a href="when-agent-vs-rag.html">企业知识库问答和 Coding Agent,检索架构该怎么选?</a></li>
+<li><a href="reranker-with-long-context.html">上下文都到 1M 了,Re-Ranker 还有用吗?</a></li>
+</ul>
+</main>
+</body>
+</html>

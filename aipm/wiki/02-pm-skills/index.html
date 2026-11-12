@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 · AI 产品经理核心技能</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/README.md</span></div>
+<main>
+<h1 id="02-ai">02 · AI 产品经理核心技能</h1>
+<p>AI PM 和传统 PM 的差异集中在这里:你需要为「不确定性」做产品——模型输出是概率性的,效果需要定义、评估和持续迭代。</p>
+<h2 id="_1">目录</h2>
+<ul>
+<li><a href="prd-and-design/index.html">prd-and-design/</a> —— AI 产品的 PRD 与交互设计（含 Agentic UX 与信任校准）</li>
+<li><a href="model-evaluation/index.html">model-evaluation/</a> —— 模型与产品效果评估</li>
+<li><a href="data-annotation/index.html">data-annotation/</a> —— 数据标注与冷启动</li>
+<li><a href="cost-and-tech/index.html">cost-and-tech/</a> —— 成本测算与技术协作</li>
+<li><a href="ai-product-operations/index.html">ai-product-operations/</a> —— Agent 与 AI 功能的生产化、评测、安全、指标和上线运营</li>
+<li><a href="vibe-coding/index.html">vibe-coding/</a> —— 不写代码,用 AI 编程工具亲手做出可运行原型</li>
+</ul>
+<h2 id="_2">核心心法</h2>
+<p>传统 PM 交付的是「确定的功能」,AI PM 交付的是「一个效果可衡量、可持续优化的系统」。六个子板块分别对应:怎么定义(PRD)、怎么衡量(评估)、拿什么优化(数据)、花多少钱(成本)、怎么把能力生产化并持续运营(Agent 与 AI 产品运营)、怎么亲手验证(Vibe Coding)。</p>
+</main>
+</body>
+</html>

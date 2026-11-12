@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>如何判断一个业务问题是否适合用 AI 解决?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/when-to-use-ai.md</span></div>
+<main>
+<h1 id="ai">如何判断一个业务问题是否适合用 AI 解决?</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:高,JD 押题、美团面经均有出现</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否识别 AI 适合和不适合的问题类型</li>
+<li>是否理解"AI 不是万能钥匙",有明确的适用边界</li>
+<li>能否用结构化框架评估,而非凭感觉判断</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>核心原则</strong>:AI 适合解决"模糊、开放、大规模"的问题,不适合"精确、规则明确、小规模"的问题。</p>
+<p><strong>四维评估框架</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>适合 AI</th>
+<th>不适合 AI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题性质</td>
+<td>模式识别、语义理解、生成创作</td>
+<td>精确计算、严格规则、确定性逻辑</td>
+</tr>
+<tr>
+<td>容错空间</td>
+<td>允许近似答案,可人工兜底</td>
+<td>零容错(如支付金额、医疗剂量)</td>
+</tr>
+<tr>
+<td>数据基础</td>
+<td>有足够训练/检索数据</td>
+<td>数据稀缺或高度敏感</td>
+</tr>
+<tr>
+<td>规模效应</td>
+<td>高频、重复、人力成本高</td>
+<td>低频、个案、规则可穷举</td>
+</tr>
+</tbody>
+</table>
+<p><strong>快速判断清单</strong>:
+1. 人能不能做?→ 人能做且规则清晰 → 传统规则引擎可能更好
+2. 错了代价多大?→ 代价极高 → 需要人工审核兜底,或暂不适合
+3. 有没有数据?→ 无历史数据 → 先积累数据,或从 RAG/Prompt 轻量起步
+4. ROI 算不算得过来?→ 人工成本 &lt; AI 成本 → 不值得做</p>
+<p><strong>常见误判</strong>:
+- "有 AI 就能做" → 忽略了数据、成本、风险
+- "ChatGPT 能答就说明能做" → demo 效果和生产级产品差距巨大
+- "竞品做了所以我们也做" → 没评估自身场景是否匹配</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"业务方说'我们也要个大模型',你怎么回应?"
+  → 先问清楚要解决什么具体问题、成功标准是什么、现有方案哪里不够好,再判断 AI 是否是最佳手段。</li>
+<li><strong>追问 2</strong>:"AI 需求和伪需求怎么区分?"
+  → 真需求:有明确痛点、可量化收益、数据基础具备;伪需求:为 AI 而 AI、没有替代方案对比、无法定义"好"。</li>
+<li><strong>追问 3</strong>:"一个场景 AI 搞不定,你会建议什么替代方案?"
+  → 规则引擎、人工 + 工具辅助、简化问题范围、分阶段引入 AI(先辅助后自动)。</li>
+<li><strong>追问 4</strong>:"确认要用 AI 之后,怎么选 AI Native 还是 +AI?"
+  → 先做「拿掉 AI」测试:价值塌掉走 Native,主流程仍成立走 +AI;决策流与投入门槛见正课,本题只判适不适合用 AI。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+<li><a href="../../02-pm-skills/prd-and-design/ai-native-vs-plus-ai.html">AI Native vs +AI：怎么判断该怎么做</a></li>
+</ul>
+</main>
+</body>
+</html>

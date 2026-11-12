@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>38-大模型（LLMs）强化学习—— PPO 面</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 07_PDF面试题库/32_38-大模型（LLMs）强化学习——_PPO_面.md</span></div>
+<main>
+<h1 id="38-llms-ppo">38-大模型（LLMs）强化学习—— PPO 面</h1>
+<blockquote>
+<p>来源 PDF：<code>200页AI大模型面试高频必刷题（附详解）/38-大模型（LLMs）强化学习—— PPO 面.pdf</code><br>
+主题：训练 / 微调<br>
+页数：2<br>
+字符数：1323<br>
+索引片段数：3</p>
+</blockquote>
+<h2 id="_1">摘要</h2>
+<p>大模型（LLMs）强化学习—— PPO 面 来自： AiGC面试宝典 宁静致远 2024年01月27日 20:47 一、大语言模型RLHF中的PPO主要分哪些步骤？ 大语言模型RLHF中的PPO 分为： 对应的实现逻辑如下： 二、举例描述一下 大语言模型的RLHF？ 大语言模型的RLHF，实际上是模型先试错再学习的过程。 大语言模型的RLHF 好比是：老师与学生的角色 • 大模型（LLMs）强化学习—— PPO 面 • 一、大语言模型RLHF中的PPO主要分哪些步骤？ • 二、举例描述一下 大语言模型的RLHF？ </p>
+<h2 id="_2">代表性原文片段</h2>
+<h3 id="1">片段 1</h3>
+<p>大模型（LLMs）强化学习—— PPO 面
+来自： AiGC面试宝典
+宁静致远 2024年01月27日 20:47
+一、大语言模型RLHF中的PPO主要分哪些步骤？
+大语言模型RLHF中的PPO 分为：
+对应的实现逻辑如下：
+二、举例描述一下 大语言模型的RLHF？
+大语言模型的RLHF，实际上是模型先试错再学习的过程。
+大语言模型的RLHF 好比是：老师与学生的角色
+• 大模型（LLMs）强化学习—— PPO 面
+• 一、大语言模型RLHF中的PPO主要分哪些步骤？
+• 二、举例描述一下 大语言模型的RLHF？
+• 三、大语言模型RLHF 采样篇
+• 3.1 什么是 PPO 中 采样过程？
+• 3.2 介绍一下 PPO 中 采样策略？
+• 3.3 PPO 中 采样策略中，如何评估“收益”？
+• 参考
+1. 采样
+2. 反馈
+3. 学习
+policy_model = load_model()
+for k in range(20000):</p>
+<h1 id="_3">采样（生成答案）</h1>
+<p>prompts = sample_prompt()
+data = respond(policy_model, prompts)</p>
+<h1 id="_4">反馈（计算奖励）</h1>
+<h3 id="2">片段 2</h3>
+<p>00):</p>
+<h1 id="_5">采样（生成答案）</h1>
+<p>prompts = sample_prompt()
+data = respond(policy_model, prompts)</p>
+<h1 id="_6">反馈（计算奖励）</h1>
+<p>rewards = reward_func(reward_model, data)</p>
+<h1 id="_7">学习（更新参数）</h1>
+<p>for epoch in range(4):
+policy_model = train(policy_model, prompts, data, rewards)
+• 我们扮演着老师的角色，给出有趣的问题。模型则会像小学生一样，不断尝试给出答案。
+• 模型会根据我们给出的问题，写出它觉得正确的答案，但是这些答案不一定是真的答案，需要我们结合正确
+答案进行打分。如果它表现得好，就会给予它高声赞扬；如果它表现不佳，我们则会给予它耐心的指导和反
+馈，帮助它不断改进，直到达到令人满意的水平。
+扫码加
+查看更多</p>
+<p>-- 1 of 2 --</p>
+<p>三、大语言模型RLHF 采样篇
+3.1 什么是 PPO 中 采样过程？
+PPO 中 采样过程：学生回答问题的过程，是模型根据提示（prompt）输出回答（response）的过程，或者说是</p>
+<h3 id="3">片段 3</h3>
+<p>言模型RLHF 采样篇
+3.1 什么是 PPO 中 采样过程？
+PPO 中 采样过程：学生回答问题的过程，是模型根据提示（prompt）输出回答（response）的过程，或者说是
+模型自行生产训练数据的过程。
+eg:
+3.2 介绍一下 PPO 中 采样策略？
+PPO 中 采样工作 通过一种策略（policy）：policy由两个模型组成，一个叫做演员模型（Actor），另一个叫
+做评论家模型（Critic）。它们就像是学生大脑中的两种意识，一个负责决策，一个负责总结得失。
+演员：我们想要训练出来的大模型。在用PPO训练它之前，它就是RLHF的第一步训练出来的
+SFT（Supervised Fine-Tuning）model。输入一段上下文，它将输出下一个token的概率分布。
+评论家：强化学习的辅助模型，输入一段上下文，它将输出下一个token的“收益”。
+3.3 PPO 中 采样策略中，如何评估“收益”？
+从下一个token开始，模型能够获得的总奖励（浮点数标量）。这里说的奖励包括Reward Model给出的奖励。
+知识星球</p>
+<p>-- 2 of 2 --</p>
+<h2 id="_8">使用建议</h2>
+<ul>
+<li>这些内容来自授权公开 PDF 的文本抽取结果，网页端会基于同一份静态索引做关键词检索。</li>
+<li>面试复习时建议先用网页 PDF 原文检索定位题目，再回到主 notes 学系统化答案。</li>
+<li>如果片段出现排版噪声，以原 PDF 语义为准，并优先整理成自己的回答模板。</li>
+</ul>
+</main>
+</body>
+</html>

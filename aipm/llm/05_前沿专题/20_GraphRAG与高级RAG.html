@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GraphRAG 与高级 RAG</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 05_前沿专题/20_GraphRAG与高级RAG.md</span></div>
+<main>
+<h1 id="graphrag-rag">GraphRAG 与高级 RAG</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>Naive RAG 的主要缺陷是什么？Advanced RAG 如何改进？</li>
+<li>GraphRAG 相比 RAG 解决了什么问题？核心流程是什么？</li>
+<li>HyDE 是什么？Self-RAG 如何判断是否需要检索？</li>
+<li>Chunk 切分策略如何选择？Embedding 模型如何选型？</li>
+<li>如何评估 RAG 系统的质量？RAGAS 有哪些指标？</li>
+<li>RAG、Long Context、GraphRAG 到底怎么选型？</li>
+</ul>
+<hr>
+<h2 id="rag">RAG 演进三代</h2>
+<p><strong>细化理解：</strong> Naive RAG 重点是向量召回加生成，Advanced RAG 加入 query rewrite、hybrid search、rerank、上下文压缩和评估闭环，GraphRAG/Agentic RAG 则进一步处理多跳关系、多源检索和任务规划。演进方向不是替代关系，而是随着问题复杂度增加引入更多结构化检索和控制能力。</p>
+<h3 id="naive-rag">第一代：Naive RAG</h3>
+<pre><code class="language-text">用户 Query -&gt; 向量检索 -&gt; Top-K 文档 -&gt; Prompt 拼接 -&gt; LLM -&gt; 答案
+</code></pre>
+<p><strong>主要问题</strong>：
+- Chunk 切分粗糙，上下文割裂
+- 单路向量检索召回率有限
+- 检索噪声直接影响生成质量
+- 无法处理多跳推理（答案需要跨多个文档关联）</p>
+<h3 id="advanced-rag">第二代：Advanced RAG</h3>
+<p>在检索前后增加处理步骤：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;用户 Query&quot;] --&gt; B[&quot;Pre-Retrieval&lt;br/&gt;查询改写/HyDE/分解&quot;]
+    B --&gt; C[&quot;Hybrid Retrieval&lt;br/&gt;BM25 + Vector + RRF&quot;]
+    C --&gt; D[&quot;Post-Retrieval&lt;br/&gt;Reranker + Context Compression&quot;]
+    D --&gt; E[&quot;LLM 生成答案&quot;]
+</code></pre>
+<h3 id="graphrag-agentic-rag">第三代：GraphRAG / Agentic RAG</h3>
+<p>核心不再只是"找相关片段"，而是构建可导航、可汇总、可多跳推理的知识结构。</p>
+<hr>
+<h2 id="naive-rag_1">为什么 Naive RAG 很快会撞墙</h2>
+<p><strong>工程细节：</strong> Naive RAG 容易在实体关系、多跳问题、跨文档聚合和全局总结上失败。相似文本块不一定包含完整答案，Top-K 也可能被局部相似但无关的片段占满。解决思路包括混合检索、query decomposition、rerank、图谱关系、社区摘要和基于任务的多步检索。</p>
+<p>Naive RAG 的前提是假设：问题的答案就在某几个语义相似 chunk 里。但现实常见的问题是：</p>
+<ul>
+<li>关键信息分散在多个文档里</li>
+<li>用户问题很抽象，不对应某段现成表述</li>
+<li>需要先找实体，再找实体之间关系</li>
+<li>检索到的文本很多，但真正有用的很少</li>
+</ul>
+<p>所以后续所有高级 RAG 技术，本质上都在补三件事：</p>
+<ol>
+<li><strong>召回更准</strong></li>
+<li><strong>上下文更干净</strong></li>
+<li><strong>推理更像知识操作，而不是纯文本拼接</strong></li>
+</ol>
+<hr>
+<h2 id="_2">关键技术详解</h2>
+<h3 id="hyde">HyDE（假设文档嵌入）</h3>
+<p><strong>问题</strong>：用户查询（短）和文档（长）在语义空间中分布差异大，直接匹配效果差。</p>
+<p><strong>方案</strong>：先让 LLM 生成一个"理想答案文档"，再拿这段假设文档做 embedding 检索：</p>
+<pre><code class="language-text">原始 Query: 什么是 RoPE 位置编码？
+      ↓ LLM 生成假设文档
+假设文档: 对 RoPE 的解释性段落
+      ↓ 用假设文档 embedding 检索
+真实文档库 -&gt; 找到真实相关文档 -&gt; 进入生成阶段
+</code></pre>
+<p>HyDE 的本质是做一次<strong>查询扩展 + 表达空间对齐</strong>。</p>
+<h3 id="self-rag-rag">Self-RAG（自反思 RAG）</h3>
+<p>模型自主决定<strong>何时检索、检索什么、如何评估检索结果</strong>，通过特殊 reflection token 显式表达判断：</p>
+<table>
+<thead>
+<tr>
+<th>Token 类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[Retrieve]</code></td>
+<td>需要检索外部知识</td>
+</tr>
+<tr>
+<td><code>[No Retrieve]</code></td>
+<td>可直接回答</td>
+</tr>
+<tr>
+<td><code>[Relevant]</code></td>
+<td>检索内容相关</td>
+</tr>
+<tr>
+<td><code>[Irrelevant]</code></td>
+<td>检索内容不相关</td>
+</tr>
+<tr>
+<td><code>[Fully Supported]</code></td>
+<td>生成内容完全有依据</td>
+</tr>
+<tr>
+<td><code>[Partially Supported]</code></td>
+<td>只有部分有依据</td>
+</tr>
+</tbody>
+</table>
+<p>Self-RAG 的价值是把 RAG 从静态管线推进到<strong>动态决策系统</strong>。</p>
+<h3 id="hybrid-retrieval">混合检索（Hybrid Retrieval）</h3>
+<table>
+<thead>
+<tr>
+<th>检索方式</th>
+<th>原理</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BM25</td>
+<td>词频-逆文档频率，关键词匹配</td>
+<td>专有名词、精确查询</td>
+</tr>
+<tr>
+<td>向量检索</td>
+<td>Embedding 语义相似度</td>
+<td>语义相关、同义词、模糊查询</td>
+</tr>
+<tr>
+<td>混合（RRF 融合）</td>
+<td>两路结果排名倒数加权融合</td>
+<td>大多数生产场景</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python">def rrf_score(rank, k=60):
+    return 1 / (k + rank)
+</code></pre>
+<p>混合检索几乎是生产 RAG 的默认起点，因为关键词与语义检索各有盲区。</p>
+<hr>
+<h2 id="graphrag-2024">GraphRAG（微软 2024）</h2>
+<p><strong>核心问题</strong>：标准 RAG 擅长找局部证据，但不擅长回答"全局总结型"和"跨文档关联型"问题。</p>
+<h3 id="indexing">构建阶段（Indexing）</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;原始文档&quot;] --&gt; B[&quot;文本切分&quot;]
+    B --&gt; C[&quot;LLM 抽取实体和关系&quot;]
+    C --&gt; D[&quot;知识图谱&quot;]
+    D --&gt; E[&quot;社区检测&quot;]
+    E --&gt; F[&quot;社区摘要/报告&quot;]
+</code></pre>
+<h3 id="query">查询阶段（Query）</h3>
+<ul>
+<li><strong>Local Search</strong>：图谱 + 向量检索，适合精确实体查询</li>
+<li><strong>Global Search</strong>：跨社区摘要做 map-reduce 推理，适合主题综合、趋势总结、多跳关系查询</li>
+</ul>
+<h3 id="graphrag-rag_1">GraphRAG 相对传统 RAG 的核心增益</h3>
+<ol>
+<li><strong>显式实体与关系建模</strong>：不再只依赖文本相似度。</li>
+<li><strong>支持全局问题</strong>：可以在社区摘要层回答"这批文档整体在讲什么"。</li>
+<li><strong>更适合多跳推理</strong>：先找节点，再沿关系扩展。</li>
+</ol>
+<h3 id="_3">代价</h3>
+<ul>
+<li>建索引成本高，需要大量 LLM 调用</li>
+<li>图谱质量高度依赖抽取质量</li>
+<li>知识更新更复杂，不像向量库那样直接增量插入就结束</li>
+</ul>
+<hr>
+<h2 id="chunk">Chunk 策略</h2>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>方式</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定大小</td>
+<td>按字符/Token 数切分</td>
+<td>快速实现</td>
+</tr>
+<tr>
+<td>句子切分</td>
+<td>按句子边界</td>
+<td>逻辑完整</td>
+</tr>
+<tr>
+<td>递归字符切分</td>
+<td>段落 -&gt; 句子 -&gt; 词</td>
+<td>通用文档</td>
+</tr>
+<tr>
+<td>语义切分</td>
+<td>根据 embedding 变化点切分</td>
+<td>内容结构复杂文档</td>
+</tr>
+<tr>
+<td>父文档检索</td>
+<td>小 chunk 检索，返回大 chunk 上下文</td>
+<td>精度 + 上下文平衡</td>
+</tr>
+</tbody>
+</table>
+<p><strong>经验法则</strong>：
+- <code>chunk_size</code> 常见 256-512 token
+- <code>overlap</code> 常见 50-100 token
+- 不要为了整齐切分而打断定义、代码块、表格或公式</p>
+<p>Chunk 不是越小越好。太小会丢上下文，太大又会拉低检索精度。</p>
+<hr>
+<h2 id="rag-ragas">RAG 评估（RAGAS 框架）</h2>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>衡量维度</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Faithfulness</td>
+<td>答案是否被检索上下文支撑</td>
+<td>防幻觉</td>
+</tr>
+<tr>
+<td>Answer Relevancy</td>
+<td>答案是否真正回答问题</td>
+<td>防跑题</td>
+</tr>
+<tr>
+<td>Context Recall</td>
+<td>该召回的证据有没有召回到</td>
+<td>防漏召回</td>
+</tr>
+<tr>
+<td>Context Precision</td>
+<td>检索内容中有用信息比例</td>
+<td>防噪声</td>
+</tr>
+</tbody>
+</table>
+<p>理解这几个指标时要分清责任归属：</p>
+<ul>
+<li><strong>Recall 低</strong>：多半是检索问题</li>
+<li><strong>Precision 低</strong>：多半是召回太脏或 rerank 不够</li>
+<li><strong>Faithfulness 低</strong>：生成阶段胡编或上下文利用差</li>
+</ul>
+<hr>
+<h2 id="raglong-contextgraphrag">RAG、Long Context、GraphRAG 怎么选</h2>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优势</th>
+<th>劣势</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Naive/Advanced RAG</td>
+<td>成本可控、可更新、可溯源</td>
+<td>多跳与全局总结有限</td>
+<td>大多数企业知识库问答</td>
+</tr>
+<tr>
+<td>Long Context</td>
+<td>省去检索链路、上下文关系保真</td>
+<td>成本高、窗口仍有限</td>
+<td>文档数量不大但每篇很长</td>
+</tr>
+<tr>
+<td>GraphRAG</td>
+<td>擅长多跳和全局理解</td>
+<td>索引复杂、构建成本高</td>
+<td>研究档案、企业关系网络、复杂知识域</td>
+</tr>
+</tbody>
+</table>
+<p>选型标准不是谁更先进，而是谁更匹配知识形态：</p>
+<ul>
+<li>文档本身强结构、实体关系重，GraphRAG 值得做。</li>
+<li>文档变化快、更新频繁、问题偏局部事实，Advanced RAG 更实用。</li>
+<li>文档量不大但每次都要细读长原文，Long Context 更直接。</li>
+</ul>
+<hr>
+<h2 id="_4">工程实践视角</h2>
+<h3 id="rag_1">一个更真实的生产 RAG 流程</h3>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;文档接入&quot;] --&gt; B[&quot;清洗/切分/Embedding&quot;]
+    B --&gt; C[&quot;向量库 + 倒排索引&quot;]
+    C --&gt; D[&quot;Query 改写/路由&quot;]
+    D --&gt; E[&quot;召回&quot;]
+    E --&gt; F[&quot;Rerank/过滤/压缩&quot;]
+    F --&gt; G[&quot;生成 + 引用&quot;]
+    G --&gt; H[&quot;离线评估 + 线上反馈&quot;]
+</code></pre>
+<h3 id="_5">四个最常见的工程坑</h3>
+<ol>
+<li>
+<p><strong>把问题全推给 embedding 模型</strong><br>
+   很多失败并不是 embedding 不好，而是切分、query rewrite、rerank 和 prompt 设计一起没做好。</p>
+</li>
+<li>
+<p><strong>只看最终答案，不看检索中间态</strong><br>
+   不拆召回、精排、生成三层指标，就不知道问题出在哪。</p>
+</li>
+<li>
+<p><strong>引用链路没做干净</strong><br>
+   用户问的是"有证据吗"，不是只要一个看起来像答案的段落。</p>
+</li>
+<li>
+<p><strong>知识更新只做增量入库，不做失效治理</strong><br>
+   旧文档过期、版本冲突、规范变化，会让 RAG 在"看似可追溯"的前提下稳定答错。</p>
+</li>
+</ol>
+<hr>
+<h2 id="_6">常见误区</h2>
+<h3 id="1rag">误区 1：RAG 的核心是向量数据库</h3>
+<p>向量库只是存储和近邻搜索基础设施。真正决定质量的是查询改写、切分、召回融合、rerank、上下文构造和评估闭环。</p>
+<h3 id="2graphrag-rag">误区 2：GraphRAG 一定比传统 RAG 更强</h3>
+<p>不一定。GraphRAG 对多跳和全局问题更强，但局部 FAQ 场景可能只会引入更多复杂度和成本。</p>
+<h3 id="3chunk-overlap">误区 3：chunk overlap 越大越安全</h3>
+<p>过大 overlap 会显著增加冗余和索引成本，还可能让相似内容在 top-k 中重复出现，浪费上下文窗口。</p>
+<h3 id="4">误区 4：只要有引用就说明没幻觉</h3>
+<p>不对。模型完全可能引用了相关文档，但对文档内容总结错了、拼接错了，甚至借题发挥。</p>
+<hr>
+<h2 id="_7">面试延伸</h2>
+<p><strong>Q：RAG 和 Long Context 长上下文，两者怎么选？</strong></p>
+<blockquote>
+<p>长上下文适合知识库规模不大、文档关系重要、需要精读原文的场景；RAG 适合大规模、频繁更新、需要精确溯源且成本敏感的知识库。两者也可以组合，先检索再把候选长文送进大窗口模型。</p>
+</blockquote>
+<p><strong>Q：Embedding 模型如何选型？</strong></p>
+<blockquote>
+<p>不要只看总榜分数，重点看与业务场景接近的任务子榜。中文场景优先考虑中文检索强项模型，多语言场景再看跨语种表现，最后用自己的 query-doc 对做线下验证。</p>
+</blockquote>
+<p><strong>Q：Reranker 为什么比向量检索精度更高？</strong></p>
+<blockquote>
+<p>因为向量检索通常用 bi-encoder，query 和文档独立编码，交互建模弱；reranker 用 cross-encoder，把 query 和文档拼一起看，能捕捉细粒度匹配关系，但成本高，只适合精排少量候选。</p>
+</blockquote>
+<p><strong>Q：什么时候必须上 GraphRAG？</strong></p>
+<blockquote>
+<p>当你的问题经常需要实体关系、多文档汇总、跨章节因果链分析，而且普通 top-k 检索即使召回很多片段也拼不出完整答案时，GraphRAG 才真正值得投入。</p>
+</blockquote>
+<hr>
+<h2 id="_8">学完可以做什么</h2>
+<ol>
+<li>做一个 <code>BM25 + Vector + Reranker</code> 的混合检索 demo。</li>
+<li>用同一套知识库对比 Naive RAG 和 GraphRAG 在多跳问题上的差异。</li>
+<li>给自己的 RAG 系统加一套最小可用评估面板：recall、faithfulness、引用命中率。</li>
+</ol>
+<hr>
+<h2 id="_9">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAG 原始论文 (Lewis et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2005.11401">arxiv.org/abs/2005.11401</a></td>
+</tr>
+<tr>
+<td>GraphRAG (Edge et al., Microsoft, 2024)</td>
+<td><a href="https://arxiv.org/abs/2404.16130">arxiv.org/abs/2404.16130</a></td>
+</tr>
+<tr>
+<td>Self-RAG (Asai et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2310.11511">arxiv.org/abs/2310.11511</a></td>
+</tr>
+<tr>
+<td>HyDE (Gao et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2212.10496">arxiv.org/abs/2212.10496</a></td>
+</tr>
+<tr>
+<td>RAPTOR (Sarthi et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2401.18059">arxiv.org/abs/2401.18059</a></td>
+</tr>
+<tr>
+<td>RAG Survey 2024</td>
+<td><a href="https://arxiv.org/abs/2312.10997">arxiv.org/abs/2312.10997</a></td>
+</tr>
+<tr>
+<td>LightRAG: Simple and Fast Graph-based RAG (2024)</td>
+<td><a href="https://arxiv.org/abs/2410.05779">arxiv.org/abs/2410.05779</a></td>
+</tr>
+<tr>
+<td>HippoRAG: Neurobiologically Inspired Long-Term Memory (2024)</td>
+<td><a href="https://arxiv.org/abs/2405.14831">arxiv.org/abs/2405.14831</a></td>
+</tr>
+<tr>
+<td>HippoRAG 2: From RAG to Memory (2025)</td>
+<td><a href="https://arxiv.org/abs/2505.03842">arxiv.org/abs/2505.03842</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_10">官方仓库</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LightRAG GitHub</td>
+<td><a href="https://github.com/HKUDS/LightRAG">github.com/HKUDS/LightRAG</a></td>
+</tr>
+<tr>
+<td>Self-RAG GitHub</td>
+<td><a href="https://github.com/AkariAsai/self-rag">github.com/AkariAsai/self-rag</a></td>
+</tr>
+<tr>
+<td>RAGAS GitHub</td>
+<td><a href="https://github.com/vibrantlabs-ai/ragas">github.com/vibrantlabs-ai/ragas</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_11">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1zoKuzoENM/">AI知识图谱GraphRAG是怎么回事？</a></td>
+<td>13万播放，B站最受欢迎的GraphRAG讲解</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1xjNFzgEmR/">面试官：什么场景下必须用GraphRAG？而不是RAG？</a></td>
+<td>3.2万播放，场景选型角度讲透两者差异</td>
+</tr>
+<tr>
+<td>📖 Microsoft GraphRAG</td>
+<td><a href="https://microsoft.github.io/graphrag/">GraphRAG official docs</a></td>
+<td>官方 GraphRAG 流程、索引与查询文档</td>
+</tr>
+<tr>
+<td>📖 LlamaIndex Docs</td>
+<td><a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">RAG concepts</a></td>
+<td>明确资料页，补充基础 RAG 组件</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1DmzABsEty/">RAG优化：17种RAG方案，谁才是RAG最佳选择？</a></td>
+<td>1.1万播放，全面对比高级 RAG 改进方案</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

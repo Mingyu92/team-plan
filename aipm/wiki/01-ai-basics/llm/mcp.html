@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP:给 Agent 接上外部世界的「USB-C」</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/llm/mcp.md</span></div>
+<main>
+<h1 id="mcp-agent-usb-c">MCP:给 Agent 接上外部世界的「USB-C」</h1>
+<blockquote>
+<p>时效说明:协议角色与三大原语相对稳定;公开服务器数量、厂商目录与企业鉴权能力截至 <strong>2026-07</strong>,请以 <a href="https://modelcontextprotocol.io/">modelcontextprotocol.io</a> 与各厂商文档为准。</p>
+</blockquote>
+<h2 id="_1">一句话说清</h2>
+<p><strong>MCP(Model Context Protocol,模型上下文协议)</strong> 是一套开放标准,用来把 AI 应用(Claude、ChatGPT、Cursor、VS Code……)和外部系统(文件、数据库、SaaS、内部 API)用<strong>同一种方式</strong>连起来。官方文档的类比是:<strong>USB-C for AI</strong>——设备(Agent)和配件(工具/数据)各自实现标准接口,而不是每对组合都焊一根定制线。</p>
+<p>它解决的是 Anthropic 所说的 <strong>N×M 集成问题</strong>:N 个 Agent × M 个数据源,若每对都写专用连接器,生态无法扩展;有了 MCP,理想情况变成 <strong>N+M</strong>(Agent 做客户端能力,系统做服务器能力)。</p>
+<h2 id="_2">起源与发展</h2>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+<th>对产品的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2024-11-25</strong></td>
+<td>Anthropic 开源发布 MCP(规范、SDK、Claude Desktop 本地服务器支持、参考服务器仓库)</td>
+<td>「接公司数据」从各厂私有插件,走向可共享的协议层</td>
+</tr>
+<tr>
+<td><strong>2025</strong></td>
+<td>ChatGPT、Cursor、Gemini、Microsoft Copilot、VS Code 等广泛采纳;云厂商提供部署与托管能力;社区 Registry、连接器目录出现</td>
+<td>选型时开始问「有没有现成 MCP」,而不是「要不要自研一套插件协议」</td>
+</tr>
+<tr>
+<td><strong>2025-12-09</strong></td>
+<td>Anthropic 将 MCP 捐赠给 Linux 基金会下的 <strong>Agentic AI Foundation(AAIF)</strong>(与 Block、OpenAI 共同发起,Google、Microsoft、AWS、Cloudflare、Bloomberg 等支持)</td>
+<td>治理中立化,降低「绑死一家模型厂」的顾虑</td>
+</tr>
+<tr>
+<td><strong>2026</strong></td>
+<td>远程 MCP、企业鉴权、异步调用等能力持续演进;新闻与产品侧出现更多托管/远程服务器场景</td>
+<td>从「本机插一个本地服务器」走向可规模化的企业连接</td>
+</tr>
+</tbody>
+</table>
+<p>捐赠公告中的生态快照(2025-12,属高时效数字,仅作量级参考):公开活跃 MCP 服务器逾万、主流 AI 产品已接入、Python/TypeScript SDK 月下载量达数千万级。具体数字会变,趋势比数字更重要:<strong>连接层正在标准化</strong>。</p>
+<p>设计灵感常被拿来和 <strong>LSP(Language Server Protocol)</strong> 类比:当年编辑器与语言服务解耦,今天 Agent 与工具/数据源解耦。</p>
+<h2 id="host-client-server">架构:Host / Client / Server</h2>
+<p>不必背 JSON-RPC 细节,先分清三个角色:</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>是什么</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MCP Host</strong></td>
+<td>使用 AI 的应用程序,负责协调</td>
+<td>Claude Desktop、Cursor、VS Code、ChatGPT</td>
+</tr>
+<tr>
+<td><strong>MCP Client</strong></td>
+<td>Host 内部、与<strong>某一个</strong> Server 保持连接的组件</td>
+<td>Host 连 Sentry 时实例化一个 Client,再连文件系统时再实例化一个</td>
+</tr>
+<tr>
+<td><strong>MCP Server</strong></td>
+<td>对外暴露能力的程序(本地或远程)</td>
+<td>本地 filesystem 服务器、远程 Sentry / 公司内部知识库服务器</td>
+</tr>
+</tbody>
+</table>
+<pre><code>用户 ↔ MCP Host(AI 应用)
+          ├─ MCP Client 1 ── STDIO / HTTP ──► MCP Server A(本地文件)
+          ├─ MCP Client 2 ─────────────────► MCP Server B(数据库)
+          └─ MCP Client 3 ─────────────────► MCP Server C(远程 SaaS)
+</code></pre>
+<p>协议分两层理解即可:</p>
+<ul>
+<li><strong>数据层</strong>:基于 JSON-RPC 2.0 的消息语义——生命周期、工具调用、资源读取等。</li>
+<li><strong>传输层</strong>:怎么把消息送过去——常见是本地 <strong>STDIO</strong>(适合本机进程)和远程 <strong>Streamable HTTP</strong>(适合多客户端连同一远程服务)。</li>
+</ul>
+<p>MCP <strong>只规定上下文与工具如何交换</strong>,不规定你怎么选模型、怎么做 Agent 循环——那是 Host 自己的事。</p>
+<h2 id="tools-resources-prompts">三大原语:Tools / Resources / Prompts</h2>
+<p>服务器侧最重要的是三类能力(官方称 primitives):</p>
+<table>
+<thead>
+<tr>
+<th>原语</th>
+<th>做什么</th>
+<th>谁更主导</th>
+<th>PM 直觉</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tools</strong></td>
+<td>可执行动作:查库、发消息、改文件、调 API</td>
+<td>模型按需决定是否调用</td>
+<td>「能办事」的按钮;通常要鉴权与确认</td>
+</tr>
+<tr>
+<td><strong>Resources</strong></td>
+<td>可读上下文:文档、schema、日历、知识片段</td>
+<td>应用侧组织进上下文</td>
+<td>「给模型看的材料」,偏只读</td>
+</tr>
+<tr>
+<td><strong>Prompts</strong></td>
+<td>预置交互模板,引导如何组合工具与资源</td>
+<td>用户/产品触发</td>
+<td>「一键工作流入口」,降低提示词门槛</td>
+</tr>
+</tbody>
+</table>
+<p>客户端侧还有 <strong>Sampling</strong> 等能力(服务器可请求 Host 侧模型补全),让服务器作者不必内嵌某个厂商的模型 SDK——了解即可,面试一般问到 Tools/Resources 就够。</p>
+<p>一次典型调用可以想成:</p>
+<ol>
+<li>Client 向 Server <code>tools/list</code>,拿到工具名、描述与输入 schema  </li>
+<li>Host 把工具列表交给模型  </li>
+<li>模型决定调用某个工具 → Client <code>tools/call</code>  </li>
+<li>Server 执行并返回结果 → Host 把结果写回对话,模型继续推理  </li>
+</ol>
+<p>这和 <a href="agent-basics.html">Function Calling</a> 是同一类「模型调工具」故事;<strong>MCP 把「工具从哪来、怎么发现、怎么连」标准化了</strong>,而不是取代 Function Calling 本身。</p>
+<h2 id="skillsfunction-calling">和 Skills、Function Calling 怎么分工</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Function Calling / Tools</strong></th>
+<th><strong>MCP</strong></th>
+<th><strong>Agent Skills</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>层级</td>
+<td>模型输出结构化调用的能力</td>
+<td>Agent ↔ 外部系统的<strong>连接协议</strong></td>
+<td>按需加载的<strong>操作手册</strong></td>
+</tr>
+<tr>
+<td>解决的问题</td>
+<td>「这一步调哪个函数」</td>
+<td>「函数/数据从哪接、如何复用」</td>
+<td>「这类任务按什么规范做」</td>
+</tr>
+<tr>
+<td>类比</td>
+<td>会按开关</td>
+<td>USB-C 与线材标准</td>
+<td>入职手册 / SOP</td>
+</tr>
+</tbody>
+</table>
+<p>可以记:<strong>Skills 规定怎么做,MCP 接到外部世界,Function Calling 是模型按下开关的那一下。</strong> 三者叠用,而不是三选一。Skills 与 MCP 的详细对照见 <a href="agent-skills.html">Agent Skills</a>。</p>
+<p>社区里偶有「Skills 是否取代 MCP」的争论——对 PM 更有用的结论是:<strong>本地剧本替代不了带鉴权的实时系统连接</strong>;反过来,光有连接没有规范,Agent 仍会「接得上却做不对」。</p>
+<h2 id="_3">产品价值与边界</h2>
+<p><strong>值得上 MCP 的信号</strong></p>
+<ul>
+<li>多个 Agent / IDE / 助手都要碰同一批内部系统  </li>
+<li>希望供应商生态(官方/社区服务器)降低自研连接器成本  </li>
+<li>需要把「读上下文」和「执行动作」分开治理(Resources vs Tools)</li>
+</ul>
+<p><strong>要注意的边界</strong></p>
+<ul>
+<li><strong>工具爆炸</strong>:一次挂载过多 Server,工具列表挤占上下文、拖慢决策——要做目录治理、按场景启用,而不是「能接尽接」。  </li>
+<li><strong>权限与安全</strong>:Tools 可以写数据、调外部 API;远程 Server、OAuth/企业鉴权、人工确认高风险动作,是产品必选项。  </li>
+<li><strong>延迟与确定性</strong>:每次调用可能是网络往返;结果质量取决于 Server 实现,协议本身不保证业务正确。  </li>
+<li><strong>维护责任</strong>:接了别人的 Server,就要跟对方的版本、配额与故障模式——和接任何第三方 API 一样。</li>
+</ul>
+<h2 id="ai-pm">给 AI PM 的启示</h2>
+<ol>
+<li><strong>立项话术</strong>:别只说「我们要做 Agent」,要说清「Agent 要碰哪些系统、哪些走现成 MCP、哪些必须自建 Server」。  </li>
+<li><strong>能力地图</strong>:把需求拆成 Resources(只读上下文)vs Tools(有副作用动作),分别设计权限与确认策略。  </li>
+<li><strong>生态优先</strong>:先查官方连接器目录与 MCP Registry,再评估自研;自研时按 MCP 暴露,避免做成只能在一个 Host 里用的私有插件。  </li>
+<li><strong>与 Skills 打包交付</strong>:对外连接用 MCP,对内规范用 Skills——例如「按公司报销流程填单」= Skill 写步骤 + MCP 读日历/写表格。  </li>
+<li><strong>治理当成功能</strong>:谁能安装 Server、默认开哪些、审计日志怎么记——这些是企业客户买单点,不是上线后的边角料。</li>
+</ol>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li>B站:<a href="https://www.bilibili.com/video/BV1uronYREWR">MCP 终极指南</a>（马克的技术工作坊，~24 万播放）</li>
+<li>B站:<a href="https://www.bilibili.com/video/BV1XFhPzoEBx">Function Calling、MCP 和 A2A 的核心原理与区别</a>（技术蛋老师，~5.5 万播放）</li>
+<li>B站:<a href="https://www.bilibili.com/video/BV1ojfDBSEPv">一口气拆穿 Skill/MCP/RAG/Agent 底层逻辑</a>（飞天闪客，~88 万播放）</li>
+<li><a href="agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li><a href="../../04-interview/basics/agent-vs-chatbot.html">什么是 Agent?它和 Chatbot 的区别是什么?</a></li>
+<li><a href="../../04-interview/experiences/hisense-ai-pm-202607.html">海信集团 AI 产品校招面经</a></li>
+<li><a href="../glossary.html">AI 术语速查表</a></li>
+</ul>
+<h2 id="_5">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/news/model-context-protocol">Introducing the Model Context Protocol</a> — Anthropic,2024-11-25</li>
+<li><a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">Donating the Model Context Protocol and establishing the Agentic AI Foundation</a> — Anthropic,2025-12-09</li>
+<li><a href="https://modelcontextprotocol.io/docs/getting-started/intro">What is the Model Context Protocol (MCP)?</a> — 官方文档,2026-07 访问</li>
+<li><a href="https://modelcontextprotocol.io/docs/learn/architecture">Architecture overview</a> — 官方文档,2026-07 访问</li>
+<li><a href="https://modelcontextprotocol.io/docs/learn/server-concepts">Understanding MCP servers</a> — 官方文档,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/mcp">Building MCP servers for ChatGPT Apps and API integrations</a> — OpenAI 开发者文档,2026-07 访问</li>
+<li><a href="https://en.wikipedia.org/wiki/Model_Context_Protocol">Model Context Protocol</a> — Wikipedia,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

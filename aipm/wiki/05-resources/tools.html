@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>值得上手的 AI 工具与平台</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 05-resources/tools.md</span></div>
+<main>
+<h1 id="ai">值得上手的 AI 工具与平台</h1>
+<blockquote>
+<p>对 AI PM 来说，「用过」比「听过」重要十倍。这里收录建议亲自上手的工具。<br>
+截至 2026-07，定价与权益可能变化，具体以官网为准。</p>
+</blockquote>
+<h2 id="2-3">对话助手（至少深度使用 2-3 个）</h2>
+<ul>
+<li><strong>Claude</strong>：长文本分析、文档协作和复杂任务拆解能力稳定，适合深度内容工作。</li>
+<li><strong>ChatGPT</strong>：生态最完整，适合做通用助手、原型验证和跨模态实验。</li>
+<li><strong>Gemini</strong>：与 Google 生态联动强，适合已在 Workspace 体系工作的团队。</li>
+<li><strong>DeepSeek</strong>：中文场景和性价比表现突出，适合做成本敏感型方案对照。</li>
+<li><strong>Kimi</strong>：国内可用性与长上下文体验较好，适合中文资料密集场景。</li>
+</ul>
+<h2 id="agent-demo">工作流 / Agent 搭建平台(不写代码做 Demo)</h2>
+<p>编程 Agent、全栈应用生成平台、低代码工作流平台的完整分类盘点与选型建议,见 <a href="../02-pm-skills/vibe-coding/tool-landscape.html">Vibe Coding 工具盘点与选型(2026 年中)</a>。</p>
+<h2 id="_1">效率工具</h2>
+<ul>
+<li><strong>NotebookLM</strong>：做「基于你资料」的调研与问答非常高效，适合快速吸收长文档。</li>
+<li><strong>Perplexity</strong>：带引用搜索体验好，适合先做信息扫描再深入查证。</li>
+<li><strong>Notion AI</strong>：知识库、文档协作、会议整理一体化，适合团队协同。</li>
+<li><strong>Granola</strong>：低打扰会议笔记工具，适合重视私密与轻量流程的团队。</li>
+<li><strong>Fireflies</strong>：自动记录与整理访谈效率高，适合高频访谈或销售协同团队。</li>
+</ul>
+<h2 id="_2">评测 / 标注 / 原型（可选进阶）</h2>
+<ul>
+<li><strong>Braintrust</strong>：适合搭建 LLM 应用评测闭环，把「感觉好用」变成可比较指标。</li>
+<li><strong>Label Studio Community</strong>：开源标注工具，适合中小团队建立训练与评测数据集。</li>
+<li><strong>Figma AI</strong>：适合快速做产品草图与交互迭代，降低从想法到可视化原型的成本。</li>
+</ul>
+<h2 id="skills">面试 Skills（作者原创）</h2>
+<ul>
+<li><a href="https://github.com/archlizheng/interview-self-introduce">interview-self-introduce</a>：根据 JD、简历和面试轮次生成 30/60/90/120 秒自我介绍，支持中文、英文、双语和反模板改写。</li>
+<li><a href="https://github.com/archlizheng/interview-assessment">interview-assessment</a>：基于 JD、简历和面试记录做岗位匹配、面试准备和面试后复盘，支持候选人和招聘方视角。</li>
+</ul>
+<p>安装：</p>
+<pre><code class="language-bash">npx skills add archlizheng/interview-self-introduce
+npx skills add archlizheng/interview-assessment
+</code></pre>
+<h2 id="_3">选择建议</h2>
+<ul>
+<li>个人学习：先固定 2 个对话助手 + 1 个检索工具，避免来回切换导致方法不成型。</li>
+<li>团队协作：优先统一文档、会议、知识沉淀工具，再考虑引入复杂 Agent 平台。</li>
+<li>工具评估：先做 1 个真实场景 A/B 试用，再决定是否长期采购。</li>
+</ul>
+</main>
+</body>
+</html>

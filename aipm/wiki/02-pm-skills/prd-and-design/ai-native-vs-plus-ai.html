@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Native vs +AI：怎么判断该怎么做</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/prd-and-design/ai-native-vs-plus-ai.md</span></div>
+<main>
+<h1 id="ai-native-vs-ai">AI Native vs +AI：怎么判断该怎么做</h1>
+<blockquote>
+<p><strong>选题启发</strong>：磊叔《关于 AI 产品经理的 100 个问题》Q95（仅选题结构，正文为原创）。</p>
+<p><strong>和既有文章的分工</strong>：先判断「该不该用 AI」见 <a href="../../04-interview/basics/when-to-use-ai.html">如何判断一个业务问题是否适合用 AI</a>；真伪需求过滤见 <a href="../../04-interview/product-design/real-vs-fake-ai-demand.html">如何判断一个 AI 需求是真需求还是伪需求</a>。本文不重复四维评估与真伪清单，只回答：<strong>已经确认要用 AI 之后，做成 AI Native，还是做成 +AI</strong>。</p>
+</blockquote>
+<h2 id="_1">一句话</h2>
+<p><strong>AI Native</strong> 把 AI 当作价值引擎与架构前提——拿掉 AI，产品不再成立；<strong>+AI</strong>（业界常称 AI-powered / AI-enhanced）是在既有产品上叠加智能能力——拿掉 AI，主流程仍可跑，只是少一层增益。选错方向的浪费最大：把锦上添花做成从零重构，或把本该重构的体验压成侧边栏聊天框。</p>
+<h2 id="_2">一、先对齐术语（不是营销标签）</h2>
+<p>公开讨论里，「AI native」常被当成 buzzword。可核验的区分更接近<strong>架构依赖</strong>，而不是功能清单里有没有大模型按钮。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>AI Native</th>
+<th>+AI（AI-powered / AI-enhanced）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>价值假设</td>
+<td>没有生成 / 推理 / 编排，核心任务完不成</td>
+<td>核心任务本就可完成；AI 提效、提质、降本</td>
+</tr>
+<tr>
+<td>「拿掉 AI」测试</td>
+<td>产品塌成另一类东西，或几乎不可用</td>
+<td>产品仍是原来的产品，体验变差一点</td>
+</tr>
+<tr>
+<td>UX 重心</td>
+<td>工作流围绕意图、结果与人机协作重做</td>
+<td>在现有菜单 / 文档 / 工单上挂助手、摘要、推荐</td>
+</tr>
+<tr>
+<td>数据与闭环</td>
+<td>交互、反馈、评测从第一天就是一等公民</td>
+<td>可先复用现有日志；闭环可后补，但上限更低</td>
+</tr>
+<tr>
+<td>投入形态</td>
+<td>技术栈、评估、治理、成本一起从零搭</td>
+<td>复用现网架构，增量接入模型 / RAG / 工具</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>事实（业界公开表述，截至 2026-08-06）</strong>：IBM Think 将 AI native 定义为从地基起就把 AI 当作核心组件，而非事后螺栓；并给出「拿掉 AI 则不再有用」的判据。Product School 用同一套「remove it and see」测试区分 AI-native 与 embedded / AI-powered：后者去掉 AI 仍能站住，前者价值机制会塌。详见文末参考资料。</p>
+<p><strong>建议</strong>：对内评审时不要争论「我们算不算 AI Native 公司」，改问：<strong>这个需求的主路径，是否必须以模型能力为前提？</strong></p>
+</blockquote>
+<p>常见误读：</p>
+<ul>
+<li>「用了 GPT 就是 Native」→ 侧边栏粘贴式助手多半是 +AI。</li>
+<li>「老产品永远不能 Native」→ 可以做 <strong>Native 楔子</strong>（一条新旅程从零按 Native 做），不必一夜重写全站。</li>
+<li>「Native = 多 Agent」→ Agent 是实现手段；先定价值依赖，再定是否 Agent（见 <a href="../ai-product-operations/when-not-to-use-multi-agent.html">何时不该上多 Agent</a>）。</li>
+</ul>
+<h2 id="_3">二、决策流：拿到需求后怎么走</h2>
+<p>前置闸门（本文不展开）：若「适合用 AI / 真需求」未过，停在规则、搜索、人工+模板，不要进入本决策流。</p>
+<pre><code class="language-text">收到「要做 AI」的需求
+        │
+        ▼
+[0] 适合用 AI？真需求？ ──否──► 不做 AI / 换手段
+        │是                    （链 when-to-use-ai / real-vs-fake）
+        ▼
+[1] 拿掉 AI，核心用户任务还成立吗？
+        │
+        ├─否（价值塌掉）──────────────────────────► 倾向 AI Native
+        │                                              │
+        │                                              ▼
+        │                                    [2a] 团队能否在可接受周期内
+        │                                         搭评测 / 数据回流 / 成本与
+        │                                         兜底？
+        │                                              │
+        │                                    能 ──► AI Native 立项
+        │                                    否 ──► 先做 +AI 楔子攒能力，
+        │                                           或缩范围做「半条 Native 旅程」
+        │
+        └─是（主产品仍可独立存在）──────────────► 倾向 +AI
+                                                       │
+                                                       ▼
+                                             [2b] AI 能否相对基线
+                                                  显著提升完成率 / 时延 /
+                                                  成本 / 体验？
+                                                       │
+                                             能 ──► +AI（最小增量验证）
+                                             否 ──► 可能根本不该加 AI
+</code></pre>
+<h3 id="prd">节点说明（给 PRD / 评审用）</h3>
+<p><strong>[1] 拿掉 AI 测试</strong>——只问主路径，不看营销页。</p>
+<table>
+<thead>
+<tr>
+<th>信号更像 Native</th>
+<th>信号更像 +AI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户付费点是「生成 / 推理 / 代办完」本身</td>
+<td>用户付费点是文档、交易、协作、内容分发等既有能力</td>
+</tr>
+<tr>
+<td>无模型则无法交付承诺结果</td>
+<td>无模型仍可点选、填写、搜索完成任务</td>
+</tr>
+<tr>
+<td>UX 必须按不确定输出重做（确认、撤销、进度）</td>
+<td>在现有页面加入口即可，失败可静默降级</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[2a] Native 的能力门槛</strong>——不是「会不会调 API」，而是生产化闭环是否齐：效果定义与评测、数据回流、成本上限、失败兜底。写进 PRD 的方式见 <a href="ai-prd-guide.html">AI 产品 PRD 怎么写</a>；交互侧见 <a href="fallback-and-feedback-design.html">兜底、反馈与预期管理</a>。</p>
+<p><strong>[2b] +AI 的增益门槛</strong>——相对<strong>非 AI 基线</strong>要能量化：任务完成率、单位任务成本、人工介入率、留存。增益说不清，多半是「为 AI 而 AI」回流到真伪需求题。</p>
+<h3 id="_4">两条错误路径（优先避免）</h3>
+<ol>
+<li><strong>把 +AI 做成 Native</strong>：全量重做信息架构与技术栈，最后只换了摘要按钮——投入巨大、体验无感。</li>
+<li><strong>把 Native 做成 +AI</strong>：真正依赖生成与编排的新产品，却塞进旧菜单侧栏，上下文割裂、价值被埋没（用户每轮都要重新「解释工作」）。</li>
+</ol>
+<h2 id="_5">三、选型对照：投入、风险、演进</h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>选 AI Native 时</th>
+<th>选 +AI 时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一期范围</td>
+<td>一条可闭环的核心旅程，而不是「全站智能化」</td>
+<td>单个高频入口 + 可降级路径</td>
+</tr>
+<tr>
+<td>成功标准</td>
+<td>无 AI 则任务失败率不可接受；完成率 / 采纳率相对「不可能用手搓」的基线</td>
+<td>相对现网基线的增量（如起草时间、点击率、人效）</td>
+</tr>
+<tr>
+<td>主要风险</td>
+<td>成本与质量波动、治理与预期管理跟不上</td>
+<td>入口隐蔽、上下文不足、变成摆设功能</td>
+</tr>
+<tr>
+<td>常见演进</td>
+<td>Native 楔子做厚 → 吞并相邻流程</td>
+<td>+AI 验证价值 → 再决定是否重构为 Native 旅程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>组织现实</strong>：多数存量产品应默认从 +AI 起步；仅当新产品或战略楔子的价值机制本身依赖模型时，才按 Native 立项。Product School 亦强调用 1–2 条 wedge 推进，而不是公司级口号式「全面 Native」（截至 2026-02 公开文，访问核验 2026-08-06）。</p>
+<h2 id="prd_1">四、落到 PRD 的三句话</h2>
+<p>无论走哪条支路，立项文档至少写清：</p>
+<ol>
+<li><strong>依赖声明</strong>：主路径是否假设模型可用；不可用时的降级是什么。</li>
+<li><strong>路线标签</strong>：本需求按 Native / +AI / 「Native 楔子」哪一种验收，避免口头都叫「AI 重构」。</li>
+<li><strong>Kill 标准</strong>：Native 写清评测与成本红线；+AI 写清相对基线无增益则下线或收口。</li>
+</ol>
+<h2 id="_6">小结</h2>
+<p>先过「该不该 AI」，再用「拿掉 AI 是否塌掉」分 Native 与 +AI；Native 看闭环能力是否跟得上，+AI 看增益是否打得过基线。标签服务于资源分配，不服务于发稿口径。</p>
+<h2 id="_7">相关阅读</h2>
+<ul>
+<li><a href="../../04-interview/basics/when-to-use-ai.html">如何判断一个业务问题是否适合用 AI 解决?</a></li>
+<li><a href="../../04-interview/product-design/real-vs-fake-ai-demand.html">如何判断一个 AI 需求是真需求还是伪需求?</a></li>
+<li><a href="ai-prd-guide.html">AI 产品 PRD 怎么写:与传统 PRD 的核心差异</a></li>
+<li><a href="fallback-and-feedback-design.html">兜底、反馈与预期管理:AI 产品的交互设计三件套</a></li>
+<li><a href="agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准：用户何时该信、何时该介入</a></li>
+<li><a href="../ai-product-operations/when-not-to-use-multi-agent.html">何时不该上多 Agent：复杂度、失败面与维护成本</a></li>
+</ul>
+<h2 id="_8">参考资料</h2>
+<ul>
+<li><a href="https://www.ibm.com/think/topics/ai-native">What Is AI Native? | IBM Think</a> —— AI native vs AI-augmented；「拿掉 AI 则不再有用」判据；发布时间标注 2026-02-03；2026-08-06 访问</li>
+<li><a href="https://productschool.com/blog/artificial-intelligence/ai-native">AI Native: What It Means and How to Get There | Product School</a> —— AI-native vs AI-powered；remove-it-and-see 测试与 wedge 推进；文内更新标注 2026-02-04；2026-08-06 访问</li>
+<li>选题结构启发自磊叔《关于 AI 产品经理的 100 个问题》Q95（飞书 wiki 公开材料）；<strong>正文未摘录其答案原文</strong></li>
+</ul>
+</main>
+</body>
+</html>

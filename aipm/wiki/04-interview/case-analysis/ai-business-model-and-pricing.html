@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek 开始峰谷定价,你怎么看 AI 产品的商业模式?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/case-analysis/ai-business-model-and-pricing.md</span></div>
+<main>
+<h1 id="deepseek-ai">DeepSeek 开始峰谷定价,你怎么看 AI 产品的商业模式?</h1>
+<p><strong>难度</strong>:⭐⭐⭐ 进阶
+<strong>出现频率</strong>:中,常见于战略/商业化方向或偏 ToB 的 AI PM 岗</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否从<strong>成本结构、用户行为、竞争格局</strong>三个维度分析 AI 产品定价,而非只评论"便宜/贵"</li>
+<li>是否理解峰谷定价背后的供需逻辑,以及它对产品设计和用户运营的连锁影响</li>
+<li>能否提出可落地的商业模式框架,而不是泛泛而谈"按量付费"</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话核心</strong>:AI 产品的商业模式本质是<strong>把不确定的推理成本转化为可预期的用户价值</strong>,峰谷定价是成本侧波动向定价侧传导的必然产物,PM 要关注的是它如何重塑产品形态和用户行为。</p>
+<h3 id="ai">框架一:AI 产品的成本结构拆解</h3>
+<pre><code>总成本 = 模型推理成本 + 基础设施 + 研发摊销 + 数据/标注 + 客户获取
+</code></pre>
+<p>其中<strong>模型推理成本</strong>有几个独特属性:
+- <strong>按 token 线性增长</strong>,不像传统 SaaS 的边际成本趋近于零
+- <strong>随模型能力升级而上升</strong>,同样任务可能因换模型而成本翻倍
+- <strong>存在明显的时间波动</strong>:算力供需、批处理 vs 实时推理、缓存命中率</p>
+<p>峰谷定价的本质:把<strong>供给侧的成本波动</strong>通过价格信号传导给需求侧,引导用户在低成本时段使用。</p>
+<h3 id="ai_1">框架二:常见 AI 产品商业模式对比</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>逻辑</th>
+<th>适合场景</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>按量计费(token/次)</td>
+<td>成本与收入线性挂钩</td>
+<td>API 平台、开发者工具</td>
+<td>用户成本不可预期,大客流失</td>
+</tr>
+<tr>
+<td>订阅制(含额度)</td>
+<td>可预期收入,额度内包干</td>
+<td>ToC 助手、ToB SaaS</td>
+<td>重度用户可能"薅羊毛"</td>
+</tr>
+<tr>
+<td>Freemium + 增值</td>
+<td>免费获客,付费解锁能力</td>
+<td>消费级 AI 应用</td>
+<td>免费层成本需严格控制</td>
+</tr>
+<tr>
+<td>峰谷/动态定价</td>
+<td>削峰填谷,优化算力利用率</td>
+<td>算力平台、非实时任务</td>
+<td>用户体验复杂度上升</td>
+</tr>
+<tr>
+<td>效果付费</td>
+<td>按业务结果收费</td>
+<td>营销文案、客服替代</td>
+<td>归因难,合同复杂</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_3">框架三:峰谷定价对产品的影响</h3>
+<p><strong>对用户侧</strong>:
+- 非实时任务(文档总结、批量翻译、代码审查)可引导至低谷时段,降低用户成本
+- 实时对话类场景难以错峰,需在定价和产品体验间做取舍
+- 产品可增加"定时任务""排队处理"等功能承接低谷流量</p>
+<p><strong>对 PM 的设计启示</strong>:
+1. <strong>功能分层</strong>:实时 vs 异步,对应不同定价档位
+2. <strong>额度设计</strong>:订阅包含基础额度 + 峰谷差价返还/积分
+3. <strong>成本可视化</strong>:让用户看到"此刻调用成本",培养错峰习惯(B 端尤其有效)
+4. <strong>缓存与复用</strong>:相同 query 命中缓存,成本趋近于零,可不对用户重复计费</p>
+<h3 id="_4">框架四:竞争格局下的战略选择</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>典型策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>市场教育期</td>
+<td>补贴换规模,定价不是核心变量</td>
+</tr>
+<tr>
+<td>差异化期</td>
+<td>按场景/效果分层,而非单纯价格战</td>
+</tr>
+<tr>
+<td>成熟期</td>
+<td>成本优化 + 生态锁定(模型 + 工具链 + 数据飞轮)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>回答收束</strong>:峰谷定价不是简单的"晚上便宜",而是 AI 产品从"软件逻辑"转向"资源调度逻辑"的信号。PM 应思考:哪些功能可以异步化?如何用产品机制让用户自愿错峰?如何在定价透明度与商业灵活性之间平衡?</p>
+<h2 id="_5">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"如果你是某 AI 写作产品的 PM,你会怎么设计定价?"
+  → 拆用户场景:即时写作(高峰、高单价) vs 批量润色(可异步、低谷);订阅含月额度,超额按量;企业版按席位 + 共享额度池。</li>
+<li><strong>追问 2</strong>:"用户抱怨成本不可预期,你怎么解决?"
+  → 产品侧:成本预估器、消费上限告警、缓存复用;商业侧:包月封顶、预付费折扣;技术侧:小模型路由 + 大模型兜底。</li>
+<li><strong>追问 3</strong>:"开源模型越来越便宜,闭源 API 怎么活?"
+  → 卖的不只是模型:稳定性、合规、工具链、微调服务、SLA;或转向垂直场景的整体解决方案,而非裸 API。</li>
+<li><strong>追问 4</strong>:"订阅、Token、按结果三种,你怎么选?"
+  → 按决策树走:有履约中台优先交易;要账单可预期走订阅/席位+用量;结果可归因再试点按结果;对 C 端慎透传裸 Token。完整树见正课。</li>
+</ul>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/cost-and-tech/ai-pricing-and-monetization.html">AI 产品定价与商业化:订阅、Token、按结果怎么选</a></li>
+<li><a href="../../03-case-studies/chatbot-assistant/assistant-monetization-paths.html">助手类产品的商业化路径</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+<li><a href="estimate-daily-active-chat-cost.html">估算日活 100 万的 AI 对话产品每月模型调用成本</a></li>
+<li><a href="reduce-llm-cost-10x.html">某功能接入大模型后成本涨了 10 倍,如何降本?</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/llm-cost-101.html">AI 产品成本测算入门</a></li>
+</ul>
+</main>
+</body>
+</html>

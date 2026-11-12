@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>从一句话需求到能跑的原型:AI PM 的 Vibe Coding 实战方法论</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/vibe-coding/from-idea-to-demo.md</span></div>
+<main>
+<h1 id="ai-pm-vibe-coding">从一句话需求到能跑的原型:AI PM 的 Vibe Coding 实战方法论</h1>
+<h2 id="_1">为什么这是一项硬技能</h2>
+<p>2025 年初,Andrej Karpathy 提出"Vibe Coding"一词,描述一种新的开发方式:不再逐行写代码,而是用自然语言描述意图,让 AI 生成代码,自己专注判断"方向对不对"。这个词后来被 Collins 词典评为 2025 年度词汇——它描述的不只是编程潮流,更是一项正在下沉到产品岗位的能力。</p>
+<p>对 AI PM 来说,这项技能打通了一个长期存在的断点:过去,一个想法从"我觉得可以这样做"到"证明这个方向靠谱",中间隔着一份 PRD、一次排期、一轮开发。现在 PM 可以自己把想法做成能点、能用、能让人一眼看懂的原型——验证交互是否顺畅,或说服业务方一个方向值得投入。这也是为什么 <a href="../../00-roadmap/transition-guide.html">转型行动计划</a> 把"亲手搭一个小 demo"列为转型早期的必做产出。</p>
+<p>但 Vibe Coding 不是"把需求丢给 AI,等它吐出一个完整应用"。真正决定原型能不能做出来、做得好不好的,是 PM 有没有一套靠谱的工作方法。</p>
+<h2 id="_2">一、完整工作流总览</h2>
+<pre><code>① 需求澄清:把&quot;一句话需求&quot;追问成&quot;谁在什么场景下,要解决什么问题,做完什么样子算成功&quot;
+       ↓
+② 拆解成可执行步骤:拆成 3-6 个可独立验证的小步骤,而不是一个大而全的任务
+       ↓
+③ 选工具:按原型形态选合适的 AI 编程工具,够用就好,不追求最强
+       ↓
+④ 迭代式提示:一步一步喂给 AI,每步验证通过再往下走
+       ↓
+⑤ 调试与自查:遇到报错、卡住、结果不对时有章法地定位,而不是反复重新生成
+       ↓
+⑥ 打磨到可演示状态:补齐空状态、错误提示、演示路径
+</code></pre>
+<p>第④、⑤步会反复循环好几轮,这正是"迭代式"的核心含义。</p>
+<h2 id="_3">二、六个阶段的具体打法</h2>
+<p><strong>① 需求澄清</strong>:拿到需求先想清楚——谁在用(自己验证想法,还是给业务方演示)、解决什么具体问题("客服平均要翻 3 分钟 Excel"比"帮客服提效"更可拆解)、做完什么样子算成功。这一步和 PRD 的"背景与目标"是同一个动作,想清楚、能对自己讲明白即可,详细提问方式可参考 <a href="../prd-and-design/ai-prd-guide.html">AI PRD 怎么写</a>。</p>
+<p><strong>② 拆解成可执行步骤</strong>:新手最容易犯的错误,是把想清楚的完整需求原封不动丢给 AI,期待一次生成"成品"。生成的代码量越大,出问题时越难定位,越容易陷入"改一处坏三处"的死循环。正确做法是像搭积木一样先做出"能跑但很糙"的最小版本,再逐层加功能,每一步都要能在几分钟内肉眼验证对不对。</p>
+<p><strong>③ 选工具</strong>:2026 年的 AI 编程工具大致两类——Lovable、Bolt、Replit Agent 这类"浏览器全栈生成器",输入描述就能生成带界面、可部署的完整应用,几乎不用碰命令行,对零代码基础的 PM 最友好;Claude Code、Codex、Antigravity、Cursor 这类"编程 Agent",操作真实代码库,形态可以是独立桌面端、终端或 IDE,并不一定绑编辑器,更适合精细控制或在已有项目上迭代。具体对比见 <a href="tool-landscape.html">Vibe Coding 工具全景图</a>。第一次做原型优先选前者,等确实需要对接已有代码库或长期维护,再考虑后者。</p>
+<p><strong>④ 迭代式提示</strong>:整套方法论的核心,四个技巧——</p>
+<ul>
+<li><strong>描述交互,不代替 AI 决定实现</strong>:与其说"用数组做过滤",不如说"输入关键词后列表要实时更新,不用点搜索按钮"。前者你大概率说不准,还可能限制更优方案;后者才是你真正在意的产品效果。</li>
+<li><strong>一次只加一个功能</strong>:把拆解好的步骤一步一个 Prompt 喂给 AI,做完自己先验证,再继续下一步。</li>
+<li><strong>给具体例子而非抽象描述</strong>:"检索要准"没有标准;"客服输入'退货要多久',应该排最前的是讲时效的那条,而不是讲流程的那条"才可执行。</li>
+<li><strong>主动设定边界</strong>:AI 倾向"贴心地"多做——加登录页、加数据库、加后台。不需要就在 Prompt 里明说"不需要账号登录,先不接数据库",否则容易在无关功能上耗掉大量轮次。</li>
+</ul>
+<p>常用句式:</p>
+<pre><code class="language-text">描述交互而不是实现:
+&quot;点击这条结果后,原文要能一键复制到剪贴板,按钮上要有'已复制'的文字反馈,
+不需要弹窗提示。&quot;
+
+限定范围:
+&quot;这一步只做搜索和展示,不用加登录、不用接数据库,数据先写死在代码里。&quot;
+
+给出判断标准:
+&quot;如果一个问题在 FAQ 库里找不到足够相关的答案,就显示'没有找到相关答案,
+建议转人工',而不是硬凑一个不相关的答案出来。&quot;
+</code></pre>
+<p><strong>⑤ 调试与自查</strong>:遇到问题按这个顺序处理,比反复重新生成效率高得多——把完整报错信息原样贴给 AI,不要自己转述(关键线索常藏在具体措辞和行号里);要求 AI 先解释原因再给方案,而不是直接"帮我修好";一次只让 AI 改一处,改完立刻验证;卡住超过几轮就换思路或退回上一个能跑的版本,不要在一个细节上死磕。</p>
+<pre><code class="language-text">&quot;刚才这段代码报了这个错:[完整粘贴报错内容]
+先不要急着改,用大白话跟我解释一下这大概率是什么原因导致的,
+以及你打算怎么改、为什么这么改。&quot;
+</code></pre>
+<p>这个习惯不仅为了解决当下报错,更是让你始终清楚"原型现在是怎么运作的"——这一点在第四节"何时交给工程师"会用到:你至少要能讲清楚原型的大致逻辑,而不是甩过去一堆自己也不懂的代码。</p>
+<p><strong>⑥ 打磨到可演示状态</strong>:功能跑通只是及格线,至少还要补齐空状态(无数据/无结果时的提示)、加载状态(请求等待时的反馈)、边界输入处理(空输入、超长文本、连续提交不能让页面崩溃),以及一条提前验证过的"傻瓜式"演示路径。</p>
+<h2 id="faq">三、案例走查:给客服团队做一个 FAQ 检索小工具</h2>
+<p>以下走查为虚构但贴近真实场景,展示提示词如何一轮轮演化。<strong>最初的一句话需求</strong>:"客服同事现在靠 Ctrl+F 翻一个几百行的 Excel 找话术,太慢了,能不能做个工具直接搜。"</p>
+<p><strong>第 1 轮 · 限定范围</strong></p>
+<pre><code class="language-text">我要做一个网页小工具。客服同事输入客户问题的关键词,工具从 FAQ 库
+(先用我给的 10 条示例数据)里找出最相关的 3 条答案,按相关度排列,
+点击可一键复制。不用管账号登录、不用接数据库,先做一个能在浏览器
+里跑起来的单页面就行。
+</code></pre>
+<p>问题:AI 按"关键词精确匹配"实现,客服输入"退货要多久"完全搜不到标题是《退换货时效说明》的答案——现实中提问方式和文档标题几乎不会逐字重合,这是这类工具最常见的第一个坑。</p>
+<p><strong>第 2 轮 · 升级为语义检索</strong></p>
+<pre><code class="language-text">现在是精确匹配关键词,但客服提问方式和 FAQ 标题经常不完全一样,
+导致搜不到。能不能换成按语义相似度匹配?换实现之前,先说一下
+打算怎么做,以及这个方案有什么局限性。
+</code></pre>
+<p>问题:AI 说明需要调用 embedding 接口做向量化,但没配置 API Key,运行直接报错——原型依赖了一个还没准备好的外部条件,新手常见卡点。</p>
+<p><strong>第 3 轮 · 处理报错</strong></p>
+<pre><code class="language-text">刚才运行报了这个错:[粘贴完整报错]
+是不是因为没配置向量化服务的 Key?用大白话说清楚这一步具体依赖
+什么,申请之前有没有更简单的临时方案能先把流程跑通?
+</code></pre>
+<p>在 AI 解释后发现,10 条数据的规模不需要真正的向量数据库,一个轻量的开源文本相似度方法就够用,不必现在申请外部服务。</p>
+<p><strong>第 4 轮 · 接入真实数据</strong></p>
+<pre><code class="language-text">把示例数据换成脱敏后的 200 条真实 FAQ 数据(已去掉姓名和联系方式)。
+如果找不到足够相关的答案,不要硬凑,显示&quot;没有找到相关答案,建议
+转人工处理&quot;。
+</code></pre>
+<p>问题:数据从 10 条变成 200 条后,出现几条相似度评分虚高但明显文不对题的结果——这是语义检索常见的坑,和 <a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG</a> 里"检索不准直接决定答案质量"是同一个问题。这一轮没有靠 AI 自己判断,而是让业务同事实际试用、圈出错误结果反馈调整,原型迭代到这一步已离不开真实用户参与。</p>
+<p><strong>第 5 轮 · 打磨到可演示状态</strong></p>
+<pre><code class="language-text">功能跑通了,现在打磨成可以给团队演示的状态:搜索要有加载提示;
+空输入时提交按钮禁用;样式做得干净、正经一点;最后列一下这个
+原型目前还有哪些已知问题、没做的功能。
+</code></pre>
+<p>五轮迭代后,得到一个可以现场演示、验证"语义检索能把查找时间从分钟级压到秒级"这个核心假设的原型。它还远不能上生产——这正是下一节要讲的边界。</p>
+<h2 id="_4">四、什么时候该喊工程师接手</h2>
+<p><a href="../cost-and-tech/model-selection-framework.html">模型选型框架</a> 讲的是生产阶段 PM 和算法工程师的分工边界;这里讲的是更早一步——demo 阶段就该判断"这件事还能不能自己捣鼓下去"。出现下面任意信号,就该喊工程师接手,而不是硬着头皮往前拱:</p>
+<table>
+<thead>
+<tr>
+<th>信号类别</th>
+<th>具体表现</th>
+<th>为什么危险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据量级</td>
+<td>数据从几百条涨到几万、几十万条</td>
+<td>轻量方案(内存里算相似度)会卡死或慢到不可用,需要正式的存储和检索架构</td>
+</tr>
+<tr>
+<td>安全与隐私</td>
+<td>涉及未脱敏的真实客户数据、账号密码、支付信息</td>
+<td>原型大概率没做权限校验、没有加密存储,一旦泄露是重大合规事故</td>
+</tr>
+<tr>
+<td>对接生产系统</td>
+<td>要接入真实 CRM、工单系统、内部 SSO、生产数据库</td>
+<td>生产系统的接口权限、并发压力、故障恢复,不是原型能承受的复杂度</td>
+</tr>
+<tr>
+<td>长期维护</td>
+<td>团队决定把原型直接留用并持续加功能</td>
+<td>没有测试、没有规范代码结构,越改越难维护</td>
+</tr>
+<tr>
+<td>稳定性要求</td>
+<td>需要 SLA(团队真的要 7x24 依赖它工作)</td>
+<td>原型没有监控、没有容灾,出问题只能等 PM 有空才能修</td>
+</tr>
+<tr>
+<td>多人协作</td>
+<td>需要多人同时开发,要走代码评审和发布流程</td>
+<td>PM 一人用 AI 编程工具的协作方式,支撑不了团队级开发流程</td>
+</tr>
+</tbody>
+</table>
+<p>判断核心不是"复杂不复杂",而是"要不要为真实用户的真实数据、真实业务负责"。一旦答案是"要",原型阶段就该结束,交给工程师从头设计,而不是把 PM 写的原型代码直接"升级"成生产系统——这正是"vibe coding 出的东西直接怼上生产"事故频发的根源。交接时,把第 5 轮要求 AI 列出的"已知问题清单"连同关键提示词记录一并交给工程师,能大幅降低沟通成本。</p>
+<h2 id="_5">五、常见踩坑与对策</h2>
+<table>
+<thead>
+<tr>
+<th>踩坑</th>
+<th>表现</th>
+<th>对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代码"看起来能跑"但有隐藏 bug</td>
+<td>演示时点一遍没问题,换个输入(空值、超长文本、特殊字符)就报错或结果不对</td>
+<td>别只点一次 demo 就收工,主动用几个"刁钻输入"测试真实用户可能遇到的边界情况</td>
+</tr>
+<tr>
+<td>需求一次性丢给 AI,过度自信导致大返工</td>
+<td>一个 Prompt 塞进全部需求,生成几百行代码,某处不对却找不到问题出在哪</td>
+<td>严格执行"拆解成小步骤"和"一次只加一个功能",每步验证通过再继续</td>
+</tr>
+<tr>
+<td>忘记版本管理,进度说丢就丢</td>
+<td>AI 为修一个小问题改动范围过大,把之前能跑的部分改坏,又无法恢复</td>
+<td>每完成一个可用里程碑就保存一份快照,不熟悉命令行就用 GitHub Desktop 之类的图形工具点一次"保存版本"</td>
+</tr>
+<tr>
+<td>把 AI 的解释当成事实,不做验证</td>
+<td>AI 说"已经修好了""逻辑是对的",但实际结果依然不对</td>
+<td>永远以实际跑出来的结果为准,不尽信 AI 的自我判断</td>
+</tr>
+<tr>
+<td>把 demo 数据和生产数据混用</td>
+<td>为图方便直接拿真实客户数据喂给原型测试</td>
+<td>演示和测试阶段一律用脱敏或虚构数据,涉及真实数据前先确认是否合规</td>
+</tr>
+</tbody>
+</table>
+<h2 id="vibe-coding">六、可复用清单:Vibe Coding 项目自查清单</h2>
+<pre><code class="language-markdown"># Vibe Coding 项目自查清单
+
+## 1. 需求与范围
+- [ ] 一句话需求是否已拆解成 3-6 个可独立验证的小步骤?
+- [ ] 是否只描述了&quot;想要的交互效果&quot;,而非代替 AI 决定实现方案?
+- [ ] 每一步是否有明确的&quot;怎么判断做对了&quot;的标准?
+
+## 2. 数据
+- [ ] 开发和演示数据是脱敏数据还是虚构数据?
+- [ ] 数据量级是否在原型能承受的范围内(通常几十到几百条)?
+- [ ] 若后续要接入真实数据,是否已评估数据合规红线?
+
+## 3. 功能验证
+- [ ] 是否用真实场景中的&quot;刁钻输入&quot;测试过(空输入、超长文本、连续提交)?
+- [ ] 是否要求 AI 解释过关键逻辑,而非&quot;能跑就行&quot;?
+- [ ] 是否记录了目前已知的 bug 和局限性?
+
+## 4. 安全与合规
+- [ ] 代码里是否硬编码了密钥、密码、内部系统地址?
+- [ ] 是否处理了真实用户隐私信息?是否需要额外脱敏?
+- [ ] 原型访问范围是否可控,而非默认公网可访问?
+
+## 5. 版本与协作
+- [ ] 是否在每个可用里程碑保存了版本快照,能随时回退?
+- [ ] 关键提示词和迭代过程是否留有记录?
+
+## 6. 演示与交接准备
+- [ ] 是否准备了一条经过验证、不会被随手点崩的演示路径?
+- [ ] 是否写清楚&quot;这个原型验证了什么假设&quot;&quot;没解决什么问题&quot;?
+- [ ] 若要移交工程师,是否整理好工具与数据来源、已知问题清单、下一步真实需求?
+</code></pre>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="what-is-vibe-coding.html">什么是 Vibe Coding</a></li>
+<li><a href="tool-landscape.html">Vibe Coding 工具盘点与选型(2026 年中)</a></li>
+<li><a href="../prd-and-design/ai-prd-guide.html">AI 产品 PRD 怎么写:与传统 PRD 的核心差异</a></li>
+<li><a href="../cost-and-tech/model-selection-framework.html">模型选型决策框架:效果、成本、延迟、合规四要素</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../00-roadmap/transition-guide.html">传统 PM 转型 AI PM 指南</a></li>
+</ul>
+<h2 id="_7">参考资料</h2>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Vibe_coding">Vibe coding</a> — Wikipedia,词汇起源与定义,2026-07 访问</li>
+<li><a href="https://appwrite.io/blog/post/comparing-vibe-coding-tools">Best vibe coding tools in 2026: Cursor, Windsurf, Claude Code, Antigravity, and more</a> — Appwrite Blog,工具分类参考,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

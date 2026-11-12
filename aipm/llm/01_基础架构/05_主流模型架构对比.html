@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>主流模型架构对比（LLaMA / Qwen / DeepSeek）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 01_基础架构/05_主流模型架构对比.md</span></div>
+<main>
+<h1 id="llama-qwen-deepseek">主流模型架构对比（LLaMA / Qwen / DeepSeek）</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>LLaMA 相比原始 Transformer 做了哪些改进？</li>
+<li>RMSNorm 和 LayerNorm 的区别？</li>
+<li>SwiGLU 为什么比 ReLU 效果好？</li>
+<li>DeepSeek-V2 的 MLA（Multi-head Latent Attention）解决了什么问题？</li>
+<li>为什么现代 LLM 几乎都用 Decoder-only？</li>
+<li>GQA / MQA / MLA 的区别？</li>
+</ul>
+<hr>
+<h2 id="llm">一、LLM 发展时间轴</h2>
+<p><img alt="LLM 发展时间轴" src="https://mdpi-res.com/electronics/electronics-14-03580/article_deploy/html/images/electronics-14-03580-g001-550.jpg"></p>
+<blockquote>
+<p>图源：MDPI <code>A Survey of Large Language Models: Evolution, Architectures, Adaptation, Benchmarking, Applications, Challenges, and Societal Implications</code>。</p>
+</blockquote>
+<p>从 2017 年 Transformer 发表到 2025 年 GPT-5，LLM 发展经历了三个阶段：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间</th>
+<th>关键节点</th>
+<th>核心特征</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>架构奠基期</strong></td>
+<td>2017-2020</td>
+<td>Transformer → BERT → GPT-3</td>
+<td>双向 vs 单向路线之争，最终 Decoder-only 胜出</td>
+</tr>
+<tr>
+<td><strong>范式确立期</strong></td>
+<td>2021-2022</td>
+<td>InstructGPT → ChatGPT</td>
+<td>RLHF 对齐范式确立，Chat 成为主流交互方式</td>
+</tr>
+<tr>
+<td><strong>开源繁荣期</strong></td>
+<td>2023-2025</td>
+<td>LLaMA → DeepSeek → Qwen3</td>
+<td>开源模型逼近闭源，MoE/推理模型成为新方向</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_2">二、主流架构参数对比</h2>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>参数量</th>
+<th>上下文</th>
+<th>词表</th>
+<th>位置编码</th>
+<th>注意力</th>
+<th>激活</th>
+<th>归一化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LLaMA 1 7B</td>
+<td>7B</td>
+<td>2K</td>
+<td>32K</td>
+<td>RoPE</td>
+<td>MHA</td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td>LLaMA 2 7B</td>
+<td>7B</td>
+<td>4K</td>
+<td>32K</td>
+<td>RoPE</td>
+<td>MHA</td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td>LLaMA 2 70B</td>
+<td>70B</td>
+<td>4K</td>
+<td>32K</td>
+<td>RoPE</td>
+<td><strong>GQA</strong></td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td>LLaMA 3 8B</td>
+<td>8B</td>
+<td>8K→128K</td>
+<td><strong>128K</strong></td>
+<td>RoPE (base=500K)</td>
+<td>GQA</td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td>Qwen 2.5 7B</td>
+<td>7B</td>
+<td>128K</td>
+<td>152K</td>
+<td>RoPE+YaRN</td>
+<td>GQA</td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td>Qwen 3 32B</td>
+<td>32B</td>
+<td>32K</td>
+<td>152K</td>
+<td>RoPE+YaRN</td>
+<td>GQA</td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td><strong>DeepSeek-V3</strong></td>
+<td>671B (37B 激活)</td>
+<td>128K</td>
+<td>130K</td>
+<td>RoPE+YaRN</td>
+<td><strong>MLA</strong> + MoE</td>
+<td>SwiGLU</td>
+<td>Pre-RMSNorm</td>
+</tr>
+<tr>
+<td>GPT-2 (对比基线)</td>
+<td>1.5B</td>
+<td>1K</td>
+<td>50K</td>
+<td>Learned</td>
+<td>MHA</td>
+<td>GeLU</td>
+<td>Post-LN</td>
+</tr>
+<tr>
+<td>原始 Transformer</td>
+<td>-</td>
+<td>512</td>
+<td>-</td>
+<td>Sinusoidal</td>
+<td>MHA</td>
+<td>ReLU</td>
+<td>Post-LN</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="attention-mha-gqa-mqa-mla">三、Attention 变体对比：MHA / GQA / MQA / MLA</h2>
+<p><strong>细化理解：</strong> MHA 每个 query head 都有独立 K/V，表达力强但 KV Cache 最大；MQA 让多个 query head 共享一组 K/V，显著降低推理显存和带宽，但可能损失部分质量；GQA 是折中方案，把 query heads 分组共享 K/V；MLA 进一步用潜变量压缩 KV 表示，核心目标也是降低长上下文推理成本。面试时可以从“KV Cache 成本”而不是公式出发解释这些变体。</p>
+<h3 id="_3">视觉对比图</h3>
+<p><img alt="GQA 原论文图：MHA / MQA / GQA 对比" src="https://upload.wikimedia.org/wikipedia/commons/6/6c/Overview_of_grouped-query_method.png"></p>
+<blockquote>
+<p>图源：<code>GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</code> 论文图，Wikimedia Commons 转载页标注来源为 arXiv HTML。</p>
+</blockquote>
+<p>每个变体在保留所有 Q 头的同时，对 KV 头的数量做了不同的压缩：</p>
+<table>
+<thead>
+<tr>
+<th>变体</th>
+<th>KV 头数</th>
+<th>KV Cache</th>
+<th>性能损失</th>
+<th>代表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MHA</strong></td>
+<td>h（每头独立）</td>
+<td>100%</td>
+<td>0</td>
+<td>GPT-2, LLaMA 1 7B</td>
+</tr>
+<tr>
+<td><strong>GQA</strong></td>
+<td>h/G</td>
+<td>~25%（G=4 时）</td>
+<td>极小</td>
+<td>LLaMA 2 70B, LLaMA 3, Qwen</td>
+</tr>
+<tr>
+<td><strong>MQA</strong></td>
+<td>1（所有头共享）</td>
+<td>1/h</td>
+<td>有（~1%）</td>
+<td>PaLM, Falcon</td>
+</tr>
+<tr>
+<td><strong>MLA</strong></td>
+<td>低维潜在向量</td>
+<td>~7%</td>
+<td>优于 GQA</td>
+<td>DeepSeek-V2/V3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mlamulti-head-latent-attention">MLA（Multi-head Latent Attention）</h3>
+<p>DeepSeek-V2 的关键创新。不是简单地减少 KV 头数，而是把整个 KV 压缩成<strong>低维潜在向量</strong>：</p>
+<pre><code>传统 MHA：每层缓存 K, V ∈ R^{seq_len × d_model}
+
+MLA：
+  1. 训练时学习低秩压缩：c_KV = W_DKV · x   (W_DKV: d_model → d_c, 通常 d_c &lt;&lt; d_model)
+  2. 推理时只缓存 c_KV ∈ R^{seq_len × d_c}
+  3. 使用时按需还原：K = W_UK · c_KV, V = W_UV · c_KV
+
+KV Cache 节省：d_c / (2 × d_model) ≈ 7%（93% 节省）
+质量：实测优于 GQA，因为信息压缩在训练时联合优化，而非简单的&quot;丢一些 head&quot;
+</code></pre>
+<p><strong>MLA 的代价</strong>：每次使用 K/V 时需要一次额外矩阵乘法（反量化）。但因为 d_c 远小于 d_model，这个开销很小。</p>
+<hr>
+<h2 id="llama">四、LLaMA 系列的关键改进</h2>
+<p>相比原始 Transformer（2017），LLaMA 做了 4 个关键改动，已成为现代 LLM 的标配：</p>
+<h3 id="1-pre-rmsnorm-ln">1. Pre-RMSNorm（前置归一化 + 简化的 LN）</h3>
+<pre><code>原始 Transformer (Post-LN):
+  y = LayerNorm(x + Sublayer(x))   ← LN 在残差之后
+  问题：训练不稳定，需要 warmup
+
+LLaMA (Pre-RMSNorm):
+  y = x + Sublayer(RMSNorm(x))     ← LN 在子层之前 + 用 RMSNorm
+  优势：训练稳定无需 warmup，深度可以堆得更深
+
+RMSNorm vs LayerNorm:
+  LayerNorm: y = (x - mean) / sqrt(var + ε) × γ + β
+  RMSNorm:   y = x / RMS(x) × γ   其中 RMS(x) = sqrt(mean(x²))
+            ↑ 不减均值，参数也少了 β
+  - 计算量少 ~7%（省去 mean 计算）
+  - 性能基本相同，已成为现代 LLM 主流
+</code></pre>
+<h3 id="2-swiglu">2. SwiGLU 激活函数</h3>
+<pre><code>原始 FFN (ReLU):
+  FFN(x) = ReLU(xW₁ + b₁)W₂ + b₂
+  参数量：2 × d_model × d_ff
+
+LLaMA SwiGLU FFN:
+  FFN(x) = (Swish(xW_gate) ⊙ xW_up) · W_down
+  其中 Swish(x) = x · σ(x)
+  参数量：3 × d_model × d_ff （多了一个 gate 矩阵）
+
+为保持总参数量不变：d_ff 从 4d 调整为 2/3 × 4d ≈ 2.67d
+
+优势：
+  - 门控机制让 FFN 学会&quot;选择性通过&quot;信息（不像 ReLU 硬截断）
+  - 处处可微，无 dying ReLU 问题
+  - 下游任务普遍优于 ReLU 1-3%
+</code></pre>
+<h3 id="3-rope">3. RoPE 位置编码</h3>
+<p>替换原始的 Sinusoidal 加法位置编码。RoPE 通过旋转 Q 和 K 注入位置信息，天然编码相对位置，外推友好（配合 YaRN 可扩展到 128K+）。详见 <a href="./04_位置编码.html">04_位置编码.md</a>。</p>
+<h3 id="4-gqa">4. GQA（分组查询注意力）</h3>
+<p>LLaMA 2 70B 起采用，将 KV 头数从 64 减少到 8（G=8），KV Cache 减少 8 倍。LLaMA 3 全系列都用 GQA。</p>
+<hr>
+<h2 id="qwen">五、Qwen 系列的特色</h2>
+<p>阿里通义千问系列，在中文和多语言上表现优秀：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Qwen 配置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>词表</td>
+<td>152K（含大量中文子词）</td>
+<td>是 LLaMA 32K 词表的 4.7 倍</td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>默认 128K（YaRN 扩展）</td>
+<td>长文档场景友好</td>
+</tr>
+<tr>
+<td>训练数据</td>
+<td>强调多语言均衡</td>
+<td>中文性能显著优于 LLaMA</td>
+</tr>
+<tr>
+<td>Qwen3 创新</td>
+<td>混合推理模式</td>
+<td>同模型可切换"思考模式"和"快速模式"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="qwen3">Qwen3 的混合推理模式</h3>
+<pre><code>传统模型：要么&quot;快但浅&quot;（聊天），要么&quot;慢但深&quot;（推理）
+Qwen3：单一模型，通过特殊 token &lt;think&gt; 切换
+
+普通模式：
+  User: 1+1=?
+  Assistant: 2
+
+推理模式：
+  User: 复杂数学题  &lt;think&gt;
+  Assistant: &lt;think&gt;让我一步步思考...&lt;/think&gt; 答案是 X
+
+工程价值：避免维护两个独立模型，资源利用率高
+</code></pre>
+<hr>
+<h2 id="deepseek">六、DeepSeek 系列的工程突破</h2>
+<p>DeepSeek 走的是"极致优化"路线，每代都有显著工程创新：</p>
+<h3 id="deepseek-v2-20245">DeepSeek-V2 (2024.5)</h3>
+<ul>
+<li><strong>MLA</strong>：KV Cache 减少 93%</li>
+<li><strong>细粒度 MoE</strong>：160 个专家，每次激活 6 个（vs Mixtral 8 选 2）</li>
+<li><strong>共享专家</strong>：除了 Router 专家，还有所有 token 都经过的共享专家</li>
+</ul>
+<h3 id="deepseek-v3-202412">DeepSeek-V3 (2024.12)</h3>
+<ul>
+<li><strong>FP8 训练</strong>：全程 FP8 混合精度，是首个公开做大规模 FP8 训练的模型</li>
+<li><strong>256 个专家</strong>：进一步细粒度化</li>
+<li><strong>无辅助损失负载均衡</strong>：用动态偏置自动平衡，无需传统的 aux loss</li>
+<li><strong>训练成本</strong>：仅 ~$5.5M（vs GPT-4 估计 $100M+）</li>
+</ul>
+<h3 id="deepseek-r1-20251">DeepSeek-R1 (2025.1)</h3>
+<ul>
+<li><strong>纯 RL 训练推理能力</strong>：无需 SFT，直接用 GRPO + 规则奖励让模型涌现 CoT</li>
+<li>详见 <a href="../02_训练与对齐/10_前沿对齐技术.html">10_前沿对齐技术.md</a></li>
+</ul>
+<hr>
+<h2 id="decoder-only">七、Decoder-only 为何成为主流？</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Encoder-only</th>
+<th>Encoder-Decoder</th>
+<th>Decoder-only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代表</td>
+<td>BERT, RoBERTa</td>
+<td>T5, BART</td>
+<td>GPT, LLaMA</td>
+</tr>
+<tr>
+<td>注意力</td>
+<td>双向</td>
+<td>Enc 双向 + Dec 单向</td>
+<td>单向（causal）</td>
+</tr>
+<tr>
+<td>预训练</td>
+<td>MLM</td>
+<td>Span Corruption</td>
+<td>Next Token Prediction</td>
+</tr>
+<tr>
+<td>生成能力</td>
+<td>弱</td>
+<td>强</td>
+<td>强</td>
+</tr>
+<tr>
+<td><strong>Scaling 表现</strong></td>
+<td>一般</td>
+<td>一般</td>
+<td><strong>最好</strong></td>
+</tr>
+<tr>
+<td>In-Context Learning</td>
+<td>弱</td>
+<td>一般</td>
+<td><strong>强</strong>（涌现）</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>分类、NER</td>
+<td>翻译、摘要</td>
+<td><strong>通用生成（主流）</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="decoder-only_1">Decoder-only 胜出的原因</h3>
+<ol>
+<li><strong>统一任务格式</strong>：所有 NLP 任务都可建模为"给定前缀，预测后续"</li>
+<li><strong>监督信号密度高</strong>：每个 token 都参与训练（MLM 只有 15% 的 mask 位置参与）</li>
+<li><strong>In-Context Learning</strong>：自然支持 few-shot（拼接示例在前缀）</li>
+<li><strong>工程简单</strong>：无 Encoder-Decoder 交叉注意力，KV Cache 实现直接</li>
+<li><strong>Scaling Law 友好</strong>：在相同算力下下游性能优于其他架构</li>
+</ol>
+<hr>
+<h2 id="_4">八、面试延伸</h2>
+<p><strong>Q：为什么 LLaMA 3 把词表从 32K 扩到 128K？</strong></p>
+<blockquote>
+<p>① 多语言和代码场景下，单个 token 能覆盖的字符更多 → 序列变短 → 推理效率提高；② 减少了多字节字符（如中文、emoji）被拆分的概率，保留语义完整性；③ 配合 15T tokens 训练数据，词表扩大不会引入欠拟合。代价：Embedding 层参数从 ~131M（32K×4096）增至 ~524M，但相对 8B 总参数占比仍很小。</p>
+</blockquote>
+<p><strong>Q：SwiGLU 为什么要用 2/3 × 4d 而不是 4d 作为隐藏层维度？</strong></p>
+<blockquote>
+<p>SwiGLU 使用 3 个权重矩阵（W_gate, W_up, W_down），如果保持隐藏层 = 4d，参数量会比标准 FFN 多 50%。LLaMA 团队调整为 d_ff = (2/3) × 4d ≈ 2.67d，使 3 × d × 2.67d ≈ 2 × d × 4d，总参数量基本相同，便于与原架构对比性能。</p>
+</blockquote>
+<p><strong>Q：DeepSeek-V2 的 MoE 和 MLA 分别解决什么问题？</strong></p>
+<blockquote>
+<p>MoE 解决"如何用更少计算量扩大模型容量"：236B 总参数但每次只激活 21B（参数效率 9%）。MLA 解决"长上下文下 KV Cache 显存爆炸"：通过低秩压缩，KV Cache 减少 93%。两者正交，DeepSeek-V2 同时使用，使其在长上下文场景下同时拥有大容量和低显存。</p>
+</blockquote>
+<p><strong>Q：MLA 和 GQA 哪个更好？</strong></p>
+<blockquote>
+<p>MLA 的 KV Cache 比 GQA 更小（7% vs 25%），且在 DeepSeek 实测中下游性能也优于 GQA。但 MLA 实现更复杂，需要训练时联合学习压缩矩阵，且推理时需要额外的解压操作。GQA 实现简单（直接减头数），是大多数开源框架的默认选择。如果团队有能力实现 MLA，长上下文场景下 MLA 是更好的选择。</p>
+</blockquote>
+<p><strong>Q：为什么现代 LLM 都用 Pre-Norm 而不是 Post-Norm？</strong></p>
+<blockquote>
+<p>Pre-Norm 的核心优势是训练稳定性。Post-Norm 中残差分支的输出方差未经控制，深层模型训练时容易梯度爆炸或消失，需要精心的学习率 warmup。Pre-Norm 把 LayerNorm 放在残差分支内部，主路径 x 始终有 +1 的梯度通道，深度可堆 80+ 层（LLaMA 3 70B 有 80 层）也能稳定训练，无需 warmup。</p>
+</blockquote>
+<hr>
+<h2 id="_5">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LLaMA 2 (Touvron et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2307.09288">arxiv.org/abs/2307.09288</a></td>
+</tr>
+<tr>
+<td>LLaMA 3 技术报告 (Meta, 2024)</td>
+<td><a href="https://arxiv.org/abs/2407.21783">arxiv.org/abs/2407.21783</a></td>
+</tr>
+<tr>
+<td>DeepSeek-V2 (DeepSeek, 2024)</td>
+<td><a href="https://arxiv.org/abs/2405.04434">arxiv.org/abs/2405.04434</a></td>
+</tr>
+<tr>
+<td>DeepSeek-V3 (DeepSeek, 2024)</td>
+<td><a href="https://arxiv.org/abs/2412.19437">arxiv.org/abs/2412.19437</a></td>
+</tr>
+<tr>
+<td>Qwen2 技术报告 (Alibaba, 2024)</td>
+<td><a href="https://arxiv.org/abs/2407.10671">arxiv.org/abs/2407.10671</a></td>
+</tr>
+<tr>
+<td>GLU Variants Improve Transformer — SwiGLU (Shazeer, 2020)</td>
+<td><a href="https://arxiv.org/abs/2002.05202">arxiv.org/abs/2002.05202</a></td>
+</tr>
+<tr>
+<td>Root Mean Square Layer Normalization (Zhang &amp; Sennrich, 2019)</td>
+<td><a href="https://arxiv.org/abs/1910.07467">arxiv.org/abs/1910.07467</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1damrBbErz/">手撕LLM-LLaMA（SwiGLU、GQA数学原理分析）</a></td>
+<td>源码级拆解LLaMA中SwiGLU激活函数和GQA分组注意力的数学原理</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1yspRzPEw8/">10分钟了解DeepSeek-V2的创新点：MLA</a></td>
+<td>专门讲解DeepSeek独创的Multi-head Latent Attention机制</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1eCa5zwEhe/">源码级拆解Qwen3、LLaMA4、DeepSeek-V3三大模型核心技术</a></td>
+<td>三模型并排对比，源码级分析架构差异</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1FKk3BTEBL/">13分钟彻底搞懂KV Cache和分组多头注意力GQA</a></td>
+<td>从KV Cache原理推导MQA/GQA的设计动机与区别</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

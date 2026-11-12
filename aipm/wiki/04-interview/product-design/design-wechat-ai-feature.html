@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为微信设计一个 AI 功能</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/product-design/design-wechat-ai-feature.md</span></div>
+<main>
+<h1 id="ai">为微信设计一个 AI 功能</h1>
+<p><strong>难度</strong>:⭐⭐⭐ 进阶
+<strong>出现频率</strong>:高(大厂产品设计题经典框架题)</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>是否理解微信「连接、克制、隐私」的产品哲学,而非照搬 ChatGPT 套壳</li>
+<li>能否在超级 App 里找到 AI 的<strong>自然切入点</strong>,不破坏现有习惯</li>
+<li>技术方案是否与场景匹配,并考虑社交信任与合规</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>:微信里的 AI 应做「<strong>关系链内的智能助手</strong>」,嵌入已有高频路径(聊天、搜一搜、小程序),强化连接效率,而不是做一个独立 AI 入口抢 DAU。</p>
+<h3 id="1">1. 澄清与界定</h3>
+<p><strong>用户</strong>:25–45 岁,日活微信但信息过载——群消息多、公众号文章看不完、办事要在多个小程序间跳转。</p>
+<p><strong>问题</strong>:「找信息、做小事、记事情」分散,认知负担高。</p>
+<p><strong>指标</strong>:功能渗透率、任务完成率(如「帮我总结群公告并提醒」)、用户主动关闭率(反感度 proxy)。</p>
+<p><strong>边界</strong>:不做开放域陪聊;不默认读取全量聊天记录,需用户显式授权场景。</p>
+<h3 id="2">2. 方案设计(示例:「聊天上下文助手」)</h3>
+<p><strong>场景</strong>:用户在群聊/私聊长按消息 →「AI 帮我」→ 可选:总结未读要点、提取待办、生成礼貌回复草稿、翻译。</p>
+<p><strong>为何适合微信</strong>:AI 在<strong>已有对话上下文</strong>中触发,无需新 App;结果可一键发回聊天,闭环短。</p>
+<p><strong>备选方向</strong>(可面试时对比):搜一搜 AI 问答、公众号阅读摘要、小程序办事向导——选一事深做,体现取舍。</p>
+<h3 id="3">3. 技术方案</h3>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>方案</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>摘要/待办</td>
+<td>端侧小模型 + 云端大模型</td>
+<td>敏感内容可本地预处理</td>
+</tr>
+<tr>
+<td>知识类(公众号)</td>
+<td>RAG 索引已订阅内容</td>
+<td>仅用户授权范围</td>
+</tr>
+<tr>
+<td>回复草稿</td>
+<td>Prompt + 风格约束</td>
+<td>避免过度亲昵,符合微信语境</td>
+</tr>
+<tr>
+<td>复杂办事</td>
+<td>Agent 调小程序 API</td>
+<td>订会议室、查快递等标准化能力</td>
+</tr>
+</tbody>
+</table>
+<p>不强调微调基座;微信级 DAU 更重<strong>延迟、成本、合规</strong>,见 <a href="../basics/rag-vs-finetuning.html">RAG vs 微调</a> 的成本维度。</p>
+<h3 id="4">4. 风险与兜底</h3>
+<ul>
+<li><strong>隐私</strong>:最小权限、本地提示「仅本次选中的消息」、可删除 AI 处理记录</li>
+<li><strong>幻觉</strong>:待办/时间地点需结构化抽取 + 用户确认卡片,不自动发群</li>
+<li><strong>社交风险</strong>:回复草稿默认「编辑后发送」,避免 AI 代聊引发误会</li>
+<li><strong>失败</strong>:生成失败给模板化备选(「收到,晚点回复」),不卡住发送流程</li>
+</ul>
+<h3 id="5">5. 衡量与迭代</h3>
+<p>分场景看:总结准确率(抽检)、草稿采纳率、功能 7 日留存。bad case 按「误解语境 / 过度发挥 / 隐私担忧」分类迭代。灰度从办公群、家长群等<strong>信息密度高</strong>场景切入,再扩人群。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"为什么不做微信版 ChatGPT?"
+  → 微信优势是关系与场景,开放陪聊与定位不符,且监管与内容安全风险高。</li>
+<li><strong>追问 2</strong>:"如何和腾讯已有元宝/混元区分?"
+  → 微信内嵌重场景与社交闭环,元宝可重通用能力与生态外溢;内外协同而非重复建设。</li>
+<li><strong>追问 3</strong>:"老人会用吗?"
+  → 入口跟随长按等已有肌肉记忆,少新名词;语音播报摘要降低阅读门槛。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../basics/rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+</ul>
+</main>
+</body>
+</html>

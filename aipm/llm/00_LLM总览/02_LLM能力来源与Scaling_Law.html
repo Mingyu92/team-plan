@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLM 能力来源与 Scaling Law</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 00_LLM总览/02_LLM能力来源与Scaling_Law.md</span></div>
+<main>
+<h1 id="llm-scaling-law">LLM 能力来源与 Scaling Law</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>LLM 的能力到底从哪里来？</li>
+<li>参数量、数据量、计算量分别影响什么？</li>
+<li>Scaling Law 是什么？为什么重要？</li>
+<li>涌现能力是不是玄学？</li>
+<li>为什么小模型也能通过蒸馏、RAG、工具调用变得有用？</li>
+</ul>
+<hr>
+<h2 id="scaling-law">外部图解：Scaling Law 曲线</h2>
+<p><img alt="Scaling Laws 原论文图：模型规模、数据和计算量与损失的幂律关系" src="https://ar5iv.labs.arxiv.org/html/2001.08361/assets/x1.png"></p>
+<blockquote>
+<p>图源：<a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a>。这张图适合解释为什么模型规模、数据规模和计算预算扩大时，loss 会呈现可预测的下降趋势。</p>
+</blockquote>
+<hr>
+<h2 id="_2">一句话理解</h2>
+<p>LLM 的能力主要来自三件事：</p>
+<blockquote>
+<p>大规模 next-token prediction 训练、足够大的模型容量、足够多且高质量的数据。</p>
+</blockquote>
+<p>可以粗略拆成：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据</td>
+<td>提供知识、语言模式、任务示例</td>
+</tr>
+<tr>
+<td>参数</td>
+<td>存储和组合模式的容量</td>
+</tr>
+<tr>
+<td>计算</td>
+<td>让模型充分学习数据分布</td>
+</tr>
+<tr>
+<td>架构</td>
+<td>决定信息如何流动和扩展</td>
+</tr>
+<tr>
+<td>对齐</td>
+<td>让能力以人类可用的方式释放</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="1-next-token-prediction">1. Next-token prediction 为什么有效</h2>
+<p><strong>细化理解：</strong> Next-token prediction 看起来只是语言建模，但在大规模数据上会把很多能力压进同一个目标里：要预测代码的下一个 token，就必须学会语法和局部执行模式；要预测数学推导，就必须学会中间步骤；要预测问答文本，就必须学会问题到答案的映射。它的优势是数据来源广、监督信号密集，每个 token 都是一个训练样本；限制是目标本身不区分真实、偏见、风格和安全，所以后训练与评估闭环仍然必要。</p>
+<p>训练目标很简单：</p>
+<pre><code class="language-text">给定前文 x_1, x_2, ..., x_t
+预测下一个 token x_{t+1}
+</code></pre>
+<p>看起来只是补全，但要做好这件事，模型必须学会：</p>
+<ul>
+<li>语法和语义</li>
+<li>世界知识</li>
+<li>代码和数学模式</li>
+<li>对话格式</li>
+<li>推理链条</li>
+<li>文档结构</li>
+<li>任务说明和答案之间的映射</li>
+</ul>
+<p>所以 next-token prediction 是一个非常密集的自监督信号。</p>
+<hr>
+<h2 id="2">2. 参数量：模型容量</h2>
+<p>参数可以理解为模型存储和组合模式的空间。</p>
+<p>参数量增大通常带来：</p>
+<ul>
+<li>更强的表达能力</li>
+<li>更好的复杂模式拟合</li>
+<li>更强的上下文学习能力</li>
+<li>更稳定的多任务泛化</li>
+</ul>
+<p>但参数不是越大越好。如果数据或计算不足，会出现欠训练。</p>
+<pre><code class="language-text">参数大 + 数据不够 = 模型容量浪费
+参数小 + 数据很多 = 表达能力受限
+</code></pre>
+<hr>
+<h2 id="3">3. 数据量和数据质量</h2>
+<p>数据影响两件事：</p>
+<ol>
+<li>模型知道什么</li>
+<li>模型以什么风格表达</li>
+</ol>
+<p>高质量数据包括：</p>
+<ul>
+<li>事实准确</li>
+<li>结构清晰</li>
+<li>多样性足够</li>
+<li>噪声少</li>
+<li>覆盖多语言、代码、数学、对话、长文档</li>
+</ul>
+<p>低质量数据的问题：</p>
+<ul>
+<li>学到错误事实</li>
+<li>模板化</li>
+<li>重复污染</li>
+<li>评测集泄漏</li>
+<li>有害或偏见内容</li>
+</ul>
+<p>现代训练越来越强调数据质量，而不只是 token 数。</p>
+<hr>
+<h2 id="4">4. 计算量：训练是否充分</h2>
+<p>训练计算量大致和下面三者相关：</p>
+<pre><code class="language-text">训练 FLOPs ≈ 参数量 × token 数 × 常数
+</code></pre>
+<p>如果计算预算固定，就要在参数量和数据量之间做平衡。</p>
+<p>Scaling Law 的核心意义是：</p>
+<blockquote>
+<p>它告诉你在给定算力下，模型多大、数据多少更划算。</p>
+</blockquote>
+<hr>
+<h2 id="5-scaling-law">5. Scaling Law 是什么</h2>
+<p><strong>细化理解：</strong> Scaling Law 关注的是参数量、数据量、计算量与 loss 之间的经验关系。它不能精确预言某个能力何时出现，但能指导训练预算怎么分配：参数太大但数据不够会欠训练，数据很多但模型太小会容量不足，算力预算固定时需要在模型规模和 token 数之间做平衡。面试里不要只说“大力出奇迹”，更要说 scaling 是资源配置方法，而不是无限堆参数。</p>
+<p>Scaling Law 观察到：模型性能会随着参数量、数据量、计算量增加而按规律改善。</p>
+<p>直觉：</p>
+<pre><code class="language-text">更多参数 + 更多数据 + 更多计算
+→ loss 下降
+→ 下游能力提升
+</code></pre>
+<p>但收益是递减的。</p>
+<p>所以商业训练不会盲目堆参数，而会问：</p>
+<ul>
+<li>这个算力预算下该训多大模型？</li>
+<li>数据 token 是否够？</li>
+<li>是否需要继续预训练？</li>
+<li>是否改用 MoE 提升参数效率？</li>
+</ul>
+<hr>
+<h2 id="6">6. 涌现能力怎么理解</h2>
+<p>涌现能力指模型规模到某个范围后，某些任务表现突然明显提升。</p>
+<p>常见例子：</p>
+<ul>
+<li>few-shot learning</li>
+<li>chain-of-thought reasoning</li>
+<li>多步数学推理</li>
+<li>工具使用</li>
+<li>复杂指令遵循</li>
+</ul>
+<p>不要把涌现讲成玄学。更稳的说法是：</p>
+<blockquote>
+<p>当模型容量和训练数据足够大时，原本零散的模式可以被组合起来，表现为某些复杂任务能力突然可用。</p>
+</blockquote>
+<hr>
+<h2 id="7">7. 对齐如何释放能力</h2>
+<p><strong>细化理解：</strong> 对齐通常不负责注入大量新知识，而是把预训练模型中已经具备的能力调整成用户可用的行为。SFT 让模型学会指令格式和回答风格，偏好优化让模型更倾向于人类认为有帮助、安全、清晰的输出。对齐也可能带来副作用，例如过度拒答、答案变模板化、创造性下降，所以需要在 helpfulness、harmlessness、honesty 之间评估权衡。</p>
+<p>预训练模型更像“文本续写器”，不一定像助手。</p>
+<p>SFT / RLHF / DPO 的作用是：</p>
+<ul>
+<li>让模型理解指令格式</li>
+<li>学会拒答和安全边界</li>
+<li>优化帮助性和表达方式</li>
+<li>让输出更符合人类偏好</li>
+</ul>
+<p>所以面试里可以说：</p>
+<blockquote>
+<p>预训练提供能力，对齐决定能力如何被调用和呈现。</p>
+</blockquote>
+<hr>
+<h2 id="8">8. 小模型为什么也有价值</h2>
+<p>小模型能力弱一些，但有优势：</p>
+<ul>
+<li>成本低</li>
+<li>延迟低</li>
+<li>易部署</li>
+<li>可私有化</li>
+<li>适合专门任务</li>
+</ul>
+<p>增强方式：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAG</td>
+<td>补外部知识</td>
+</tr>
+<tr>
+<td>SFT</td>
+<td>改任务行为</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>改偏好风格</td>
+</tr>
+<tr>
+<td>蒸馏</td>
+<td>从强模型学能力</td>
+</tr>
+<tr>
+<td>工具调用</td>
+<td>把计算交给外部系统</td>
+</tr>
+<tr>
+<td>Agent Workflow</td>
+<td>用流程弥补单模型不足</td>
+</tr>
+</tbody>
+</table>
+<p>商业项目里经常不是直接上最大模型，而是组合小模型、检索、工具和评估。</p>
+<hr>
+<h2 id="_3">常见误区</h2>
+<h3 id="1">误区 1：能力都来自参数量</h3>
+<p>不对。数据质量、训练 token、对齐方式、推理策略都重要。</p>
+<h3 id="2scaling-law">误区 2：Scaling Law 只对训练大模型有用</h3>
+<p>不对。它也帮助你理解为什么小数据微调不能凭空制造大量新知识。</p>
+<h3 id="3_1">误区 3：涌现能力完全不可解释</h3>
+<p>不是完全不可解释。它通常和规模、数据覆盖、任务度量方式有关。</p>
+<h3 id="4_1">误区 4：对齐会让模型更懂知识</h3>
+<p>对齐主要改变行为和偏好，不是补充大量新知识。</p>
+<hr>
+<h2 id="_4">面试延伸</h2>
+<p><strong>Q：为什么预训练模型已经有能力，还要 SFT？</strong></p>
+<blockquote>
+<p>预训练学到的是续写分布，不一定知道如何按人类指令稳定回答。SFT 把能力包装成可用的助手接口。</p>
+</blockquote>
+<p><strong>Q：继续预训练和 SFT 怎么选？</strong></p>
+<blockquote>
+<p>缺领域知识时做继续预训练；知道但不会按格式完成任务时做 SFT；回答风格和偏好不符合预期时做 DPO/RLHF。</p>
+</blockquote>
+<p><strong>Q：为什么 RAG 能让小模型在企业场景有用？</strong></p>
+<blockquote>
+<p>因为企业问答很多问题的难点不是推理，而是拿到正确私有知识。RAG 把知识从参数里移到检索系统里，降低了模型本体要求。</p>
+</blockquote>
+<hr>
+<h2 id="_5">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scaling Laws for Neural Language Models (Kaplan et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2001.08361">arxiv.org/abs/2001.08361</a></td>
+</tr>
+<tr>
+<td>Training Compute-Optimal Large Language Models / Chinchilla (Hoffmann et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2203.15556">arxiv.org/abs/2203.15556</a></td>
+</tr>
+<tr>
+<td>Emergent Abilities of Large Language Models (Wei et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2206.07682">arxiv.org/abs/2206.07682</a></td>
+</tr>
+<tr>
+<td>Are Emergent Abilities of Large Language Models a Mirage? (Schaeffer et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2304.15004">arxiv.org/abs/2304.15004</a></td>
+</tr>
+<tr>
+<td>A Survey of Large Language Models (Zhao et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2303.18223">arxiv.org/abs/2303.18223</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 OpenAI / Paper</td>
+<td><a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a></td>
+<td>理解参数、数据、计算与 loss 的幂律关系</td>
+</tr>
+<tr>
+<td>📖 DeepMind / Paper</td>
+<td><a href="https://arxiv.org/abs/2203.15556">Chinchilla: Training Compute-Optimal LLMs</a></td>
+<td>理解为什么“更多 token + 合适参数量”比单纯堆参数重要</td>
+</tr>
+<tr>
+<td>📺 YouTube</td>
+<td><a href="https://www.bilibili.com/video/BV1cF411p7R5/">李沐论文精读：Scaling Law / Chinchilla</a></td>
+<td>中文论文精读入口，可配合原文看</td>
+</tr>
+<tr>
+<td>📖 Hugging Face Papers</td>
+<td><a href="https://huggingface.co/papers/2206.07682">Emergent Abilities of LLMs</a></td>
+<td>快速查看涌现能力论文和相关模型讨论</td>
+</tr>
+<tr>
+<td>📺 Course</td>
+<td><a href="https://stanford-cs336.github.io/spring2025/">Stanford CS336: Language Modeling from Scratch</a></td>
+<td>系统学习预训练、scaling、数据和评估</td>
+</tr>
+<tr>
+<td>📖 OpenAI Blog</td>
+<td><a href="https://openai.com/index/scaling-laws-for-neural-language-models/">Scaling Laws for Neural Language Models</a></td>
+<td>OpenAI 官方 scaling law 背景文章</td>
+</tr>
+<tr>
+<td>📖 DeepMind Blog</td>
+<td><a href="https://www.deepmind.com/blog/an-empirical-analysis-of-compute-optimal-large-language-model-training">Compute-optimal LLM training</a></td>
+<td>Chinchilla 官方解读</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

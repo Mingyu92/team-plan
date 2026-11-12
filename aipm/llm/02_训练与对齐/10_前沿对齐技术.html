@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>对同一问题采样 G 条输出</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 02_训练与对齐/10_前沿对齐技术.md</span></div>
+<main>
+<p>﻿# 2025 前沿对齐技术（RLVR / DAPO / RLAIF / OpenRLHF / veRL）</p>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>RLVR 和 RLHF 的核心区别是什么？为什么适合推理模型训练？</li>
+<li>DAPO 解决了 GRPO 的什么问题？Clip-Higher 策略是什么？</li>
+<li>OpenRLHF、veRL、TRL 三个框架如何选型？</li>
+<li>Constitutional AI（RLAIF）如何减少对人工标注的依赖？</li>
+<li>什么是对齐税（Alignment Tax）？如何缓解？</li>
+</ul>
+<hr>
+<h2 id="_2">一、对齐技术演进路线</h2>
+<pre><code>RLHF（InstructGPT, 2022）
+  ├─ PPO：四模型，训练复杂，显存压力大
+  └─ 改进方向：
+       ├─ DPO（2023）：去掉 RM，离线偏好优化
+       ├─ RLVR（2025）：可验证奖励，专攻推理
+       │    ├─ GRPO（DeepSeek-R1）
+       │    ├─ DAPO（字节/清华）
+       │    ├─ Dr. GRPO
+       │    └─ REINFORCE++
+       └─ RLAIF/Constitutional AI：AI 替代人工标注
+</code></pre>
+<hr>
+<h2 id="rlvrreinforcement-learning-with-verifiable-rewards">二、RLVR（Reinforcement Learning with Verifiable Rewards）</h2>
+<p><strong>核心思想</strong>：用<strong>可程序化验证</strong>的奖励信号替代奖励模型，彻底绕开 Reward Hacking 问题。</p>
+<h3 id="_3">可验证奖励的形式</h3>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>验证方式</th>
+<th>奖励信号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数学</td>
+<td>符号计算引擎验证最终答案</td>
+<td>正确 +1，错误 0</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>运行单元测试</td>
+<td>通过率作为连续奖励</td>
+</tr>
+<tr>
+<td>逻辑推理</td>
+<td>形式化验证</td>
+<td>布尔值</td>
+</tr>
+<tr>
+<td>格式要求</td>
+<td>正则匹配（如含 <code>&lt;think&gt;</code> 标签）</td>
+<td>0/1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>优势</strong>：奖励信号客观、可扩展、无法被"欺骗"（模型无法对数学验证器进行 Reward Hacking）。</p>
+<p><strong>局限</strong>：只适用于有客观答案的任务，开放性创意写作等无法使用。</p>
+<hr>
+<h2 id="grpo-vs-ppo-vs-reinforce">三、GRPO vs PPO vs REINFORCE++ 对比</h2>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>Critic 网络</th>
+<th>基线估计</th>
+<th>通信开销</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PPO</td>
+<td>需要（额外显存）</td>
+<td>价值函数 V(s)</td>
+<td>高（4模型）</td>
+<td>通用对话对齐</td>
+</tr>
+<tr>
+<td><strong>GRPO</strong></td>
+<td>不需要</td>
+<td>组内奖励均值</td>
+<td>低（2模型）</td>
+<td>数学/代码推理</td>
+</tr>
+<tr>
+<td>REINFORCE++</td>
+<td>不需要</td>
+<td>Running mean baseline</td>
+<td>极低</td>
+<td>简单推理任务</td>
+</tr>
+</tbody>
+</table>
+<h3 id="grpo">GRPO 核心公式</h3>
+<pre><code class="language-python"># 对同一问题采样 G 条输出
+outputs = [model.generate(question) for _ in range(G)]  # G=8~16
+rewards = [verify(output, ground_truth) for output in outputs]
+
+# 组内归一化（去掉绝对奖励，只看相对优劣）
+advantages = (rewards - mean(rewards)) / (std(rewards) + eps)
+
+# 策略梯度更新
+loss = -sum(
+    min(ratio * advantage, clip(ratio, 1-ε, 1+ε) * advantage)
+    for ratio, advantage in zip(ratios, advantages)
+)
+</code></pre>
+<hr>
+<h2 id="dapo-2025">四、DAPO（字节跳动 × 清华，2025）</h2>
+<p><strong>DAPO</strong>（Decoupled Clip and Dynamic Sampling Policy Optimization）针对 GRPO 训练不稳定问题提出了系统性改进。</p>
+<p><strong>论文</strong>：<a href="https://arxiv.org/abs/2503.14476">arXiv:2503.14476</a></p>
+<h3 id="grpo_1">GRPO 的已知问题</h3>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>熵坍塌</strong></td>
+<td>训练后期模型输出多样性急剧下降，陷入重复模式</td>
+</tr>
+<tr>
+<td><strong>Token 截断偏差</strong></td>
+<td>长推理链被 max_length 截断，截断样本的梯度信号有偏</td>
+</tr>
+<tr>
+<td><strong>组内同质化</strong></td>
+<td>所有采样结果都正确或都错误时，优势函数为 0，无梯度</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dapo">DAPO 的四项改进</h3>
+<p><strong>① Clip-Higher（非对称 Clip）</strong></p>
+<p>GRPO 对正/负优势使用相同 clip 范围 [1-ε, 1+ε]。DAPO 对正优势放宽上界（允许更大的策略更新），对负优势保持收紧：</p>
+<pre><code class="language-python"># GRPO：对称 clip
+ratio_clipped = clip(ratio, 1-ε, 1+ε)
+
+# DAPO：Clip-Higher，正优势上界更大
+if advantage &gt; 0:
+    ratio_clipped = clip(ratio, 1-ε, 1+ε_high)  # ε_high &gt; ε
+else:
+    ratio_clipped = clip(ratio, 1-ε, 1+ε)
+</code></pre>
+<p><strong>② Token 级别 Policy Gradient Loss</strong></p>
+<p>GRPO 在 sequence 级别计算 loss，被截断的序列贡献了错误梯度。DAPO 改为 token 级别，对截断 token 单独处理。</p>
+<p><strong>③ 动态采样过滤</strong></p>
+<p>当组内所有样本奖励相同（全对/全错），直接跳过该组，不产生零梯度噪声。</p>
+<p><strong>④ 熵奖励</strong></p>
+<p>在主奖励中加入熵正则化项，防止熵坍塌：<code>total_reward = task_reward + β * entropy</code></p>
+<hr>
+<h2 id="dr-grpo2025">五、Dr. GRPO（2025）</h2>
+<p><strong>Dr. GRPO</strong> 发现 GRPO 中存在两个系统性偏差：</p>
+<ol>
+<li><strong>长度偏差（Length Bias）</strong>：更长的输出在 token 级别平均后会得到更低的梯度权重，导致模型倾向于生成短回答。</li>
+<li><strong>难度偏差（Difficulty Bias）</strong>：不同难度的问题组内奖励方差不同，方差大的问题主导梯度更新。</li>
+</ol>
+<p><strong>修正方法</strong>：对每个样本的 loss 按序列长度归一化，同时对不同难度问题的梯度进行标准化。</p>
+<p><strong>论文</strong>：<a href="https://arxiv.org/abs/2503.20783">arXiv:2503.20783</a></p>
+<hr>
+<h2 id="constitutional-ai-rlaif">六、Constitutional AI / RLAIF</h2>
+<p><strong>Constitutional AI（CAI）</strong> 是 Anthropic 提出的减少人工标注依赖的对齐方法。</p>
+<h3 id="_4">核心流程</h3>
+<pre><code>阶段1：SL-CAI（监督学习）
+  原始回复 → AI 批评（基于宪法原则）→ AI 修正 → 修正后数据训练
+
+阶段2：RL-CAI（强化学习）
+  生成回复对 → AI 评判哪个更好（RLAIF）→ 训练偏好模型 → PPO/DPO
+</code></pre>
+<h3 id="_5">宪法原则示例</h3>
+<pre><code>宪法（Constitution）—— 一组 AI 行为准则：
+- &quot;选择不包含有害、不道德、种族主义或性别歧视内容的回复&quot;
+- &quot;选择最支持和重视非暴力的回复&quot;
+- &quot;选择对人类最有益的回复&quot;
+...
+</code></pre>
+<p><strong>RLAIF vs RLHF</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RLHF</th>
+<th>RLAIF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标注者</td>
+<td>人类标注员</td>
+<td>AI 模型</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>高（人工费用）</td>
+<td>低（API 调用）</td>
+</tr>
+<tr>
+<td>可扩展性</td>
+<td>差（人力瓶颈）</td>
+<td>好</td>
+</tr>
+<tr>
+<td>偏差来源</td>
+<td>人类主观偏好</td>
+<td>AI 训练偏差</td>
+</tr>
+<tr>
+<td>质量</td>
+<td>高（对复杂任务）</td>
+<td>接近，部分任务更一致</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="rlhf">七、开源 RLHF 训练框架</h2>
+<h3 id="openrlhf">OpenRLHF</h3>
+<p><strong>GitHub</strong>：<a href="https://github.com/OpenRLHF/OpenRLHF">github.com/OpenRLHF/OpenRLHF</a></p>
+<p>基于 Ray 分布式框架，支持 PPO/GRPO/DPO/RLVR，70B 模型训练首选：</p>
+<pre><code class="language-bash"># 启动 PPO 训练
+ray start --head
+python examples/train_ppo.py \
+  --pretrain Qwen/Qwen3-8B \
+  --reward_pretrain OpenRLHF/Llama-3-8b-rm-700k \
+  --save_path ./checkpoint \
+  --micro_train_batch_size 4 \
+  --train_batch_size 128
+</code></pre>
+<h3 id="verlhybridflow">veRL（HybridFlow，字节跳动）</h3>
+<p><strong>GitHub</strong>：<a href="https://github.com/verl-project/verl">github.com/verl-project/verl</a></p>
+<p>将数据流（DataFlow）和控制流（ControlFlow）分离，支持灵活的混合并行策略（不同阶段用不同并行方式），大规模 RLHF 训练效率优于 OpenRLHF。</p>
+<h3 id="trlhuggingface">TRL（HuggingFace）</h3>
+<p><strong>GitHub</strong>：<a href="https://github.com/huggingface/trl">github.com/huggingface/trl</a></p>
+<p>最易上手，与 HuggingFace 生态无缝集成，适合中小模型和快速实验：</p>
+<pre><code class="language-python">from trl import GRPOTrainer, GRPOConfig
+
+trainer = GRPOTrainer(
+    model=model,
+    reward_funcs=[math_reward_fn],  # 可验证奖励函数
+    args=GRPOConfig(
+        num_generations=8,           # G=8
+        max_completion_length=2048,
+        learning_rate=1e-6,
+    ),
+    train_dataset=dataset,
+)
+trainer.train()
+</code></pre>
+<h3 id="_6">三框架选型</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐框架</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>快速实验 / 中小模型（&lt;13B）</td>
+<td>TRL</td>
+</tr>
+<tr>
+<td>大模型（&gt;30B）/ 生产训练</td>
+<td>OpenRLHF</td>
+</tr>
+<tr>
+<td>超大规模（70B+）/ 极致效率</td>
+<td>veRL</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="weak-to-strong-generalizationopenai2024">八、Weak-to-Strong Generalization（OpenAI，2024）</h2>
+<p><strong>核心问题</strong>：当 AI 能力超越人类时，人类如何监督对齐超人类模型？</p>
+<p><strong>实验设置</strong>：用弱模型（GPT-2）训练的标签去微调强模型（GPT-4 规模），观察是否能激发强模型的"潜力"。</p>
+<p><strong>发现</strong>：强模型在弱监督下仍能表现出远超弱监督者能力的泛化，说明正确的训练框架可以让弱监督者引导更强的模型。</p>
+<p><strong>影响</strong>：为可扩展监督（Scalable Oversight）提供了实证基础——Debate、Amplification 等方法的理论支撑。</p>
+<hr>
+<h2 id="alignment-tax">九、对齐税（Alignment Tax）</h2>
+<p><strong>定义</strong>：经过 RLHF/SFT 对齐训练后，模型在某些能力上出现性能下降，这种"对齐的代价"称为对齐税。</p>
+<p><strong>表现</strong>：
+- 数学/代码能力略有下降（过于保守的拒绝）
+- 创意写作受限
+- 某些专业知识问答能力下降（过度安全过滤）</p>
+<p><strong>缓解方法</strong>：
+- 混合 SFT 数据（能力数据 + 对齐数据，防止遗忘）
+- DPO 代替 PPO（离线训练，对能力损伤更小）
+- RLVR 只在推理能力上施加梯度（不影响其他能力）</p>
+<hr>
+<h2 id="_7">面试延伸</h2>
+<p><strong>Q：为什么 RLVR 在数学/代码任务上比 DPO 效果更好？</strong></p>
+<blockquote>
+<p>DPO 是离线的静态偏好优化，训练数据固定，无法动态探索新的正确推理路径。RLVR 是在线学习，模型每次采样新推理链并验证，可以发现训练数据中不存在的新正确解法。对于数学推理，这种"试错-验证-强化"的循环可以持续提升模型的推理上限，而 DPO 受限于离线数据质量的上限。</p>
+</blockquote>
+<p><strong>Q：GRPO 的"组内均值基线"和 PPO 的"Critic 基线"相比，各有什么问题？</strong></p>
+<blockquote>
+<p>PPO 的 Critic 需要额外训练一个价值函数网络，显存翻倍，且 Critic 本身可能估计不准（尤其是 OOD 情况）。GRPO 的组内均值简单无偏，但有以下问题：① 当组内全对/全错时方差为 0，无梯度（DAPO 的动态采样解决）；② 方差估计依赖采样数 G，G 太小时噪声大；③ 引入了 Dr. GRPO 发现的长度偏差和难度偏差。两者都是在"无需参考模型"这一目标下的工程权衡。</p>
+</blockquote>
+<p><strong>Q：Constitutional AI 的"宪法"由谁制定？会有偏见吗？</strong></p>
+<blockquote>
+<p>宪法由 Anthropic 的研究团队制定，不可避免地包含制定者的价值观和文化背景偏见。这是 CAI 的核心争议之一——"谁来定义 AI 应该遵循什么原则？"。Anthropic 的做法是尽量使原则普适化（无害、诚实、有益），并公开宪法供社区审查。更根本的问题（谁有权定义 AI 价值观）是 AI 对齐领域尚未解决的哲学难题。</p>
+</blockquote>
+<hr>
+<h2 id="_8">原始论文与资源</h2>
+<table>
+<thead>
+<tr>
+<th>资源</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DeepSeek-R1 / GRPO</td>
+<td><a href="https://arxiv.org/abs/2501.12948">arXiv:2501.12948</a></td>
+</tr>
+<tr>
+<td>DAPO（字节/清华，2025）</td>
+<td><a href="https://arxiv.org/abs/2503.14476">arXiv:2503.14476</a></td>
+</tr>
+<tr>
+<td>Dr. GRPO（2025）</td>
+<td><a href="https://arxiv.org/abs/2503.20783">arXiv:2503.20783</a></td>
+</tr>
+<tr>
+<td>Constitutional AI（Anthropic，2022）</td>
+<td><a href="https://arxiv.org/abs/2212.08073">arXiv:2212.08073</a></td>
+</tr>
+<tr>
+<td>Clipping Bottleneck: Stabilizing RLVR（2026）</td>
+<td><a href="https://arxiv.org/abs/2605.22703">arXiv:2605.22703</a></td>
+</tr>
+<tr>
+<td>F-GRPO: Don't Let Your Policy Learn the Obvious（2026）</td>
+<td><a href="https://arxiv.org/abs/2602.06717">arXiv:2602.06717</a></td>
+</tr>
+<tr>
+<td>Prune as You Generate: Online Rollout Pruning for RLVR（2026）</td>
+<td><a href="https://arxiv.org/abs/2603.24840">arXiv:2603.24840</a></td>
+</tr>
+<tr>
+<td>Weak-to-Strong Generalization（OpenAI，2024）</td>
+<td><a href="https://arxiv.org/abs/2312.09390">arXiv:2312.09390</a></td>
+</tr>
+<tr>
+<td>OpenRLHF GitHub</td>
+<td><a href="https://github.com/OpenRLHF/OpenRLHF">github.com/OpenRLHF/OpenRLHF</a></td>
+</tr>
+<tr>
+<td>veRL GitHub</td>
+<td><a href="https://github.com/verl-project/verl">github.com/verl-project/verl</a></td>
+</tr>
+<tr>
+<td>TRL GitHub</td>
+<td><a href="https://github.com/huggingface/trl">github.com/huggingface/trl</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_9">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📄 Paper</td>
+<td><a href="https://arxiv.org/abs/2402.03300">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a></td>
+<td>GRPO 相关训练方法来源之一，适合追公式与动机</td>
+</tr>
+<tr>
+<td>📄 Paper</td>
+<td><a href="https://arxiv.org/abs/2503.14476">DAPO: An Open-Source LLM Reinforcement Learning System at Scale</a></td>
+<td>DAPO 方法与工程细节原始论文</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1wFNCehERn/">图解DeepSeek的GRPO原理 + debug形式阅读GRPO源码</a></td>
+<td>3万播放，源码级讲解GRPO实现细节</td>
+</tr>
+<tr>
+<td>📖 GitHub</td>
+<td><a href="https://github.com/volcengine/verl">verl</a></td>
+<td>大规模 RLHF/GRPO/DAPO 训练框架项目页</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1gmXFYxEKT/">字节跳动与清华发布强化学习新算法DAPO，性能超越DeepSeek-R1</a></td>
+<td>3.1万播放，DAPO论文详细解读</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

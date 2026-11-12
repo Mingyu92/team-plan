@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WorkBuddy 与 Marvis:腾讯的两条 Agent 产品线</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/chatbot-assistant/workbuddy-vs-marvis.md</span></div>
+<main>
+<h1 id="workbuddy-marvis-agent">WorkBuddy 与 Marvis:腾讯的两条 Agent 产品线</h1>
+<p><strong>分类</strong>:对话助手
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_1">一、产品背景</h2>
+<p>2026 年上半年,腾讯几乎同时把两条「能替你干活」的 Agent 产品推到台前:<strong>WorkBuddy</strong>(2026 年 3 月 9 日公测,腾讯云 CodeBuddy 团队)与 <strong>Marvis / 马维斯</strong>(2026 年 5 月 20 日正式上线,应用宝团队)。二者都不是又一个对话框聊天机器人,而是把自然语言指令落到「规划—调用工具—交付结果」的执行链路上;但落点完全不同。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>WorkBuddy</th>
+<th>Marvis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>出品团队</td>
+<td>腾讯云 CodeBuddy</td>
+<td>腾讯应用宝</td>
+</tr>
+<tr>
+<td>上线时间</td>
+<td>2026-03-09 公测</td>
+<td>2026-05-20 全量(Win/Mac/Android;iOS 当时预计 6 月中)</td>
+</tr>
+<tr>
+<td>核心定位</td>
+<td>免部署的 AI <strong>办公工作台</strong>(桌面 + IM/小程序)</td>
+<td><strong>操作系统层级</strong>个人 AI 助手</td>
+</tr>
+<tr>
+<td>对标心智</td>
+<td>OpenClaw 形态的大众化/安全版;对标 Claude Cowork 一类「替你办完办公任务」</td>
+<td>「贾维斯」式系统中枢:文件、应用、系统设置、跨端远控</td>
+</tr>
+<tr>
+<td>目标用户</td>
+<td>个体创业者、小微团队、HR/运营/行政等非技术岗;企业版面向组织</td>
+<td>普通 PC/手机用户 + 职场人群,强调本地隐私与跨端操控</td>
+</tr>
+</tbody>
+</table>
+<p>两条线并存,说明腾讯内部并不把「Agent」收敛成单一超级入口,而是按<strong>工作台交付</strong>与<strong>系统层接管</strong>拆开:前者卖「场景封装 + 安全可控的办公自动化」,后者卖「把整台电脑变成可对话对象」。对 PM 更有价值的,不是争论谁更像「真正的 Agent」,而是看同一家公司如何用不同权限边界、分发渠道与商业化节奏回答同一命题——「用户说一句话之后,产品到底替他做了什么、做到哪一步必须停」。</p>
+<p><strong>关于规模数字(存疑)</strong>:易观分析《中国办公智能体平台市场研究报告 2026》等二级渠道称,WorkBuddy 在桌面端办公智能体中渗透率约 15%、PC 端月访问量约 885 万等。这些数字<strong>未经本文独立交叉核验</strong>,口径(访问量 vs 活跃账户、调研样本 N=500 等)也不透明,下文<strong>不作为确定事实</strong>;腾讯财报侧曾有「以日活跃账户数计为国内最受欢迎的效率 AI 智能体服务」一类表述,亦宜作公司/财报口径理解,而非第三方审计结论。</p>
+<h2 id="_2">二、核心功能拆解</h2>
+<h3 id="workbuddy">WorkBuddy:办公工作台——「一人指挥,专家团交付」</h3>
+<p>据官网 <a href="https://www.codebuddy.cn/work/">codebuddy.cn/work</a>,WorkBuddy 把自己定义为全能 AI 工作台:<strong>免部署安装即用、多专家/多模型协同、覆盖桌面与主流 IM/小程序</strong>。产品叙事的核心不是「聊得更聪明」,而是「给一句话,自主规划并交付完整结果」。</p>
+<p>典型能力封装(官方场景):</p>
+<table>
+<thead>
+<tr>
+<th>场景包</th>
+<th>面向谁</th>
+<th>交付物形态</th>
+<th>AI 起作用的环节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OPC「一人公司」</td>
+<td>个体创业者、小微负责人</td>
+<td>多角色并行:需求→设计→代码→质检,或内容生产全链路</td>
+<td>任务拆解、多专家并行、端到端交付</td>
+</tr>
+<tr>
+<td>外部信息调研与内容生成</td>
+<td>需竞品分析、汇报材料的人</td>
+<td>调研报告、PPT</td>
+<td>联网搜集、结构化写作、版式生成</td>
+</tr>
+<tr>
+<td>业务数据洞察</td>
+<td>运营/客成/管理</td>
+<td>情感归类、问题提炼、策略建议</td>
+<td>表格/日志理解、规律总结、方案生成</td>
+</tr>
+</tbody>
+</table>
+<p>公开报道补充了几个产品设计上的关键取舍:</p>
+<ul>
+<li><strong>安全半自动,而非无限自主</strong>:负责人公开表示,WorkBuddy 有意把自动化压在「半自动」区间——重复任务可自动跑,对外发布、高风险操作需人工确认;与追求高度自主的 OpenClaw 路线刻意错位。</li>
+<li><strong>沙箱与授权目录</strong>:任务规划与文件操作强调本地优先,Agent 权限限制在用户授权的工作目录;避开「本地环境与远端透传直连」一类易引发数据泄露担忧的架构。</li>
+<li><strong>生态扩展</strong>:支持 MCP、自定义 Skills,并宣称与 OpenClaw <strong>技能生态兼容</strong>(团队强调产品为自研 Agent 框架,并非套用 OpenClaw 源码)。</li>
+<li><strong>企业向延伸</strong>:2026 年 6 月前后有企业版、微信支付 AI 专属卡接入等报道——把「能干活」继续接到支付与组织管控上(具体企业条款以官方当时页面为准)。</li>
+</ul>
+<p>主流程(办公任务):用户下达意图 → 工作台规划并调度专家/技能 → 在授权目录与沙箱内读写文件、检索、生成交付物 → 高风险步骤弹出确认 → 输出报告/PPT/代码等可验收结果。人类角色是「指挥 + 关键节点放行」,而不是逐步手把手点菜单。</p>
+<h3 id="marvis-os-agent">Marvis:系统级 OS Agent——「把电脑变成可对话对象」</h3>
+<p>据官网 <a href="https://marvis.qq.com/">marvis.qq.com</a> 与 2026 年 5 月一线报道,Marvis 由<strong>应用宝团队</strong>打造,定位明确写在简介里:<strong>操作系统层级的个人 AI 助手</strong>——自然语言操控电脑,支持多 Agent 协作、移动端远控 PC、智能文件处理、定时任务等。</p>
+<p>能力与交互要点:</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+<th>AI / 系统介入点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主从 Agent 协作</td>
+<td>公开描述为约「1 主 + 5 副」:File / Computer / App / Browser / Search</td>
+<td>主 Agent 理解与调度,专项 Agent 执行</td>
+</tr>
+<tr>
+<td>效率模式 / 隐私(本地)模式</td>
+<td>效率:端云协同;隐私/本地:端侧模型,文件 0 上传,可断网</td>
+<td>模式切换本身是产品核心开关</td>
+</tr>
+<tr>
+<td>跨端远控</td>
+<td>手机连接电脑,查看执行画面并可接管</td>
+<td>远程画面 + 任务会话连续性</td>
+</tr>
+<tr>
+<td>文件与系统</td>
+<td>AI 图库/文档库、内容搜索、一句话改系统设置</td>
+<td>本地多模态理解 + OS 权限</td>
+</tr>
+<tr>
+<td>安全兜底</td>
+<td>L2 级:删文件、改系统核心配置等须出计划并 Hard Confirm;支付等更高敏操作须用户本人完成;主动不碰微信/支付宝等资金隐私应用(报道口径)</td>
+<td>权限分级 + 强制确认</td>
+</tr>
+</tbody>
+</table>
+<p>主流程(系统任务):用户一句话目标 → 主 Agent 拆步骤并调度专项 Agent → 读写本地文件/开应用/改设置/浏览检索 → 触及敏感操作则停下来给计划确认 → 用户可在手机端旁观或接管。与 WorkBuddy 相比,Marvis 更深度依赖<strong>系统权限</strong>(文件读写、系统设置、应用操控),因此「能不能干」和「敢不敢让你干」是同一设计问题。</p>
+<h3 id="vs-os-agent">对照:办公工作台 vs 系统级 OS Agent</h3>
+<table>
+<thead>
+<tr>
+<th>对照轴</th>
+<th>WorkBuddy</th>
+<th>Marvis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>默认战场</td>
+<td>办公产出物(报告、PPT、数据洞察、开发交付)</td>
+<td>设备与文件生命周期(整理、设置、远控、跨 App)</td>
+</tr>
+<tr>
+<td>权限模型</td>
+<td>授权工作目录 + 沙箱;偏「半自动」</td>
+<td>OS/应用级权限;L2 Hard Confirm + 支付红线</td>
+</tr>
+<tr>
+<td>隐私卖点</td>
+<td>本地优先、企业审计/受控技能包</td>
+<td><strong>隐私模式纯本地推理</strong>作为一等公民开关</td>
+</tr>
+<tr>
+<td>分发基因</td>
+<td>腾讯云/CodeBuddy 开发者与效率产品线</td>
+<td>应用宝「自下而上」:文件解析等底层工具 → Agent 框架</td>
+</tr>
+<tr>
+<td>模型叙事</td>
+<td>多专家、多模型协同(与混元等腾讯云能力同源报道较多)</td>
+<td>云端效率模式可用混元/DeepSeek 等;本地隐私模式报道多用端侧 Qwen 等(以当时产品设置为准)</td>
+</tr>
+<tr>
+<td>商业化信号</td>
+<td>企业版、支付闭环、场景包;偏 B 与生产力变现</td>
+<td>上线初期免邀请码 + 每日高额免费 Token;团队称长期完全免费不现实,或配额 + 自带 API Key</td>
+</tr>
+</tbody>
+</table>
+<p>一句话总结差异:<strong>WorkBuddy 卖的是「办完一件办公事」;Marvis 卖的是「管住一台电脑」</strong>。前者用场景包降低非技术用户的启动成本,后者用 OS 中间层换取更广的动作空间,也换来更重的安全与隐私设计负担。</p>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下基于官网描述与公开报道的<strong>推测</strong>,腾讯未完整公开两套产品的内部架构,请勿当作确定性技术结论。</p>
+</blockquote>
+<ul>
+<li><strong>WorkBuddy(推测)</strong>:复用 CodeBuddy 的 Agent 基建(规划、工具调用、技能/MCP),在桌面侧以沙箱隔离执行环境运行;多「专家」更可能是<strong>角色化系统提示 + 工具集分工 + 并行子 Agent</strong>,而非真的 100 个独立微调模型常驻。与 OpenClaw 的「技能兼容」更像协议/包格式层兼容,而非同一运行时。</li>
+<li><strong>Marvis(推测)</strong>:典型「编排器 + 专项工具 Agent」结构;效率模式走端云协同(本地索引/预处理 + 云端复杂规划),隐私模式把推理压到端侧 NPU/CPU。跨端远控需要稳定的任务状态同步与画面流,<strong>推测</strong>存在独立的设备连接与会话层,而不仅是聊天记录同步。</li>
+<li><strong>共同的产品级技术命题(推测)</strong>:两者都要解决 Agent 产品的 Token 成本远高于聊天助手——公开报道中 Marvis 团队已明确提到这一点;因此免费配额、自带 Key、企业席位,都会成为后续必答题,而不是上线彩蛋。</li>
+</ul>
+<h2 id="_4">四、商业模式</h2>
+<p>截至 2026 年 7 月,两边都还处在「先抢心智与日活、再收紧计费」的阶段,公开标准价目表不如海外 Copilot/Claude 清晰,宜分信号看:</p>
+<p><strong>WorkBuddy</strong></p>
+<ul>
+<li><strong>个人/小微</strong>:免部署下载即用,靠场景包拉新;具体免费额度与付费墙以官网当时为准。</li>
+<li><strong>企业版</strong>:报道指向组织管控、审计、受控技能、与腾讯云账号体系打通——更接近「卖安全可控的办公 Agent 能力」,而非单纯卖聊天次数。</li>
+<li><strong>生态位</strong>:挂在 CodeBuddy 家族下,便于跟研发工作台、云资源、支付能力交叉销售。</li>
+</ul>
+<p><strong>Marvis</strong></p>
+<ul>
+<li><strong>获客</strong>:免邀请码、三端同步、每日高额免费 Token(报道口径,具体数字以官方活动为准)——用「系统级助手」心智换装机与权限授权。</li>
+<li><strong>长期</strong>:团队公开表示 Agent Token 消耗高、完全免费不现实,<strong>可能</strong>走向基础配额 + 用户自带 API Key;与硬件厂商(报道提及英特尔端侧优化、微软 WinML 等)的合作更像分发/性能联盟,而非已成型的分成模型。</li>
+</ul>
+<p>对 PM 的含义:WorkBuddy 的变现叙事更接近 <strong>B 端效率软件</strong>(场景价值 → 席位/企业版);Marvis 更接近 <strong>平台级入口</strong>(先占 OS 权限与跨端关系,商业化后置)。两条线同时推,也会带来内部定位摩擦——用户心智上「腾讯到底要我装哪个 Agent」需要持续用场景边界说清楚。</p>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>同一公司可以故意做两条 Agent 产品线,前提是权限边界与交付物定义清楚。</strong> WorkBuddy 用「授权目录 + 半自动确认」换企业可接受的安全叙事;Marvis 用「OS 权限 + Hard Confirm + 支付红线」换系统级能力。模糊成「全能助手」反而两边都弱。</li>
+<li><strong>大众化 Agent 的第一道门槛往往不是模型智商,而是部署与恐惧。</strong> OpenClaw 教育了市场「AI 能操控电脑」,也教育了市场「乱装很危险」;WorkBuddy 的免部署与沙箱,本质上是在卖恐惧的对冲方案。</li>
+<li><strong>隐私模式做成一等公民开关,是 OS Agent 的差异化筹码。</strong> Marvis 把「文件 0 上传 / 可断网」做成效率模式的并列选项,比事后写隐私政策更有产品辨识度——尤其在国内对本地 Agent 数据外泄敏感的舆论环境下。</li>
+<li><strong>规模数字要降级使用。</strong> 渗透率、月访问量、留存等若只来自单一调研或转载,适合写「据某某报告/公司口径」,不适合写成行业共识;案例写作更应抓住可复核的产品机制(确认流、模式切换、场景包)。</li>
+</ol>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="../../01-ai-basics/llm/agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li><a href="../../01-ai-basics/llm/mcp.html">MCP:给 Agent 接上外部世界的「USB-C」</a></li>
+<li><a href="../../04-interview/basics/agent-vs-chatbot.html">什么是 Agent?它和 Chatbot 的区别是什么?</a></li>
+<li><a href="chatgpt.html">ChatGPT 案例拆解</a></li>
+<li><a href="../vertical/ai-customer-service.html">智能客服:最成熟的 LLM 落地场景拆解</a></li>
+</ul>
+<h2 id="_6">参考资料</h2>
+<ul>
+<li><a href="https://www.codebuddy.cn/work/">WorkBuddy 官网</a> — 腾讯云 CodeBuddy,2026-07 访问</li>
+<li><a href="https://marvis.qq.com/">Marvis 官网</a> — 腾讯 Marvis,2026-07 访问</li>
+<li><a href="https://sj.qq.com/appdetail/com.tencent.android.marvis">应用宝 Marvis 详情页</a> — 应用宝,标注 2026.5.20 上架相关信息,2026-07 访问</li>
+<li><a href="https://news.qq.com/rain/a/20260521A08GNS00">腾讯上线操作系统层级 AI 助手马维斯</a> — 腾讯新闻转载报道(应用宝团队、效率/隐私模式、L2 安全),2026-07 访问</li>
+<li><a href="https://36kr.com/p/3824538733908096">腾讯 Marvis:你的电脑里,终于住进了「贾维斯」</a> — 36氪,2026-07 访问</li>
+<li><a href="https://news.qq.com/rain/a/20260313A08LD600">对话腾讯 WorkBuddy 负责人</a> — 腾讯新闻转载(对标 Cowork、与 OpenClaw 关系),2026-07 访问</li>
+<li><a href="https://www.21jingji.com/article/20260315/herald/6682249657a70924ba83ada4ed30fbd1.html">对话腾讯版「龙虾」负责人:它不是 OpenClaw</a> — 21经济网,2026-07 访问</li>
+<li>易观「渗透率 15% / 月访问量 885 万」等 —— 见腾讯云开发者社区等转载解读;<strong>本文标存疑,未作独立核验</strong>,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

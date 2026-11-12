@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>09_KV_Cache</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 03_推理与优化/09_KV_Cache.md</span></div>
+<main>
+<p>﻿# KV Cache 原理与优化</p>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>KV Cache 是什么？解决了什么问题？</li>
+<li>KV Cache 的显存占用如何计算？</li>
+<li>PagedAttention 的思路？</li>
+<li>GQA / MQA 为什么能减少 KV Cache？</li>
+<li>Prefill 和 Decode 的区别？</li>
+</ul>
+<hr>
+<h2 id="prefill-decode-kv-cache">外部图解：Prefill / Decode 与 KV Cache</h2>
+<p><img alt="Imagination Tech：LLM Prefill / Decode 与 KV Cache 示意" src="https://blog.imaginationtech.com/hs-fs/hubfs/LLM%202.png?height=807&amp;name=LLM+2.png&amp;width=1538"></p>
+<blockquote>
+<p>图源：<a href="https://blog.imaginationtech.com/llm-performance-and-acceleration-introducing-llm-performance">Imagination Tech - LLM Acceleration on PowerVR</a>。这张图把 prefill、decode 和 KV Cache 的关系画得很直观：prefill 建缓存，decode 复用缓存逐 token 生成。</p>
+</blockquote>
+<hr>
+<h2 id="kv-cache">一、为什么需要 KV Cache？</h2>
+<p><strong>细化理解：</strong> 自回归生成中，每一步新增 token 都要看历史上下文。如果不缓存，生成第 n 个 token 时需要反复重算前面 n-1 个 token 的 attention 投影，成本会随输出长度快速累积。KV Cache 缓存历史 Key/Value，使每一步只计算新增 token 的投影并读取历史缓存，是 LLM 在线推理的基础优化。</p>
+<h3 id="_2">自回归生成的问题</h3>
+<p>LLM 逐 token 生成时，每生成一个新 token，传统做法需要对<strong>所有历史 token</strong> 重新计算 Attention。这意味着：</p>
+<ul>
+<li>生成第 1 个 token：算 1 个 token 的 Attention</li>
+<li>生成第 2 个 token：算 2 个 token 的 Attention</li>
+<li>生成第 n 个 token：算 n 个 token 的 Attention</li>
+</ul>
+<p>总计算量 = 1 + 2 + 3 + ... + n = O(n²)，非常浪费。</p>
+<h3 id="kv-cache_1">KV Cache 的核心思想</h3>
+<p>Attention 计算中，已生成 token 的 Key 和 Value 在后续步骤中<strong>不会改变</strong>（因果掩码保证当前 token 看不到未来）：</p>
+<pre><code>Step 1: 生成 &quot;我&quot; → 计算 K₁,V₁ 并缓存
+Step 2: 生成 &quot;爱&quot; → 重用 K₁,V₁，只算 Q₂,K₂,V₂ → 缓存 K₂,V₂
+Step 3: 生成 &quot;你&quot; → 重用 K₁,V₁,K₂,V₂，只算 Q₃,K₃,V₃ → 缓存 K₃,V₃
+...
+
+每步只计算 1 个新 token 的 Q,K,V，将新 K,V 追加到缓存中。
+</code></pre>
+<p><strong>效果</strong>：每步计算量从 O(n²·d) 降至 O(n·d)，推理速度大幅提升。</p>
+<pre><code>        ┌─────────────────────────────────────┐
+        │          KV Cache 示意图              │
+        │                                      │
+        │  时间步 →                            │
+        │                                      │
+        │  t=1: [K₁V₁]                        │
+        │  t=2: [K₁V₁][K₂V₂]                  │
+        │  t=3: [K₁V₁][K₂V₂][K₃V₃]            │
+        │  t=4: [K₁V₁][K₂V₂][K₃V₃][K₄V₄]      │
+        │                                      │
+        │  每步新计算的 Q_t 与所有历史 K 做点积    │
+        │  Q₄ · [K₁ K₂ K₃ K₄] → softmax → × V  │
+        └─────────────────────────────────────┘
+</code></pre>
+<h3 id="k-v-q">为什么只缓存 K 和 V，而不缓存 Q？</h3>
+<p>Q（Query）只用于当前 token 查询历史信息，后续 token 不需要之前 token 的 Q。而 K（Key）和 V（Value）需要被未来的 token 查询和聚合。</p>
+<hr>
+<h2 id="kv-cache_2">二、KV Cache 显存计算</h2>
+<p><strong>工程细节：</strong> KV Cache 大小近似正比于 batch size、序列长度、层数、KV head 数、head 维度和数据类型字节数。长上下文、多并发和多轮对话会让缓存迅速超过权重显存。GQA/MQA、KV 量化、PagedAttention 和请求调度，本质上都在缓解 KV Cache 带来的显存与带宽压力。</p>
+<h3 id="_3">公式</h3>
+<pre><code>KV Cache 大小 = 2 × n_layers × n_kv_heads × d_head × seq_len × batch_size × dtype_bytes
+</code></pre>
+<p>其中 <code>2</code> 代表 K 和 V 各一份。</p>
+<h3 id="_4">逐层推导</h3>
+<p>以 <strong>LLaMA-2 7B</strong>（FP16，batch=1，seq_len=4096）为例：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>n_layers</td>
+<td>32</td>
+<td>Transformer 层数</td>
+</tr>
+<tr>
+<td>n_kv_heads</td>
+<td>32（MHA 模式）</td>
+<td>KV 头数，GQA 下更少</td>
+</tr>
+<tr>
+<td>d_head</td>
+<td>128</td>
+<td>每头维度</td>
+</tr>
+<tr>
+<td>seq_len</td>
+<td>4096</td>
+<td>序列长度</td>
+</tr>
+<tr>
+<td>dtype_bytes</td>
+<td>2</td>
+<td>FP16 = 2 bytes</td>
+</tr>
+</tbody>
+</table>
+<pre><code>KV Cache = 2 × 32 × 32 × 128 × 4096 × 1 × 2 bytes
+         = 2 × 32 × 32 × 128 × 4096 × 2
+         = 2,147,483,648 bytes ≈ 2 GB
+</code></pre>
+<h3 id="kv-cache_3">不同模型的 KV Cache 对比</h3>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>参数量</th>
+<th>KV 头数</th>
+<th>seq_len=4096 FP16</th>
+<th>seq_len=128K FP16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LLaMA-2 7B (MHA)</td>
+<td>7B</td>
+<td>32</td>
+<td>~2 GB</td>
+<td>~64 GB</td>
+</tr>
+<tr>
+<td>LLaMA-2 70B (GQA)</td>
+<td>70B</td>
+<td>8</td>
+<td>~1 GB</td>
+<td>~33 GB</td>
+</tr>
+<tr>
+<td>Mistral 7B (GQA)</td>
+<td>7B</td>
+<td>8</td>
+<td>~0.5 GB</td>
+<td>~16 GB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键发现</strong>：长上下文场景下，KV Cache 显存可远超模型权重本身（70B 模型权重 ~140GB，128K 序列单个 batch 的 KV Cache 就 33GB）。</p>
+<h3 id="gqa-kv-cache">GQA 如何减少 KV Cache</h3>
+<pre><code>MHA（Multi-Head Attention）:
+  Q₁ Q₂ Q₃ Q₄ → 各自对应独立的 K₁/V₁, K₂/V₂, K₃/V₃, K₄/V₄
+  KV 份数 = 头数 h
+
+GQA（Grouped-Query Attention, G=4）:
+  Q₁ Q₂ → 共享 K₁/V₁
+  Q₃ Q₄ → 共享 K₂/V₂
+  KV 份数 = h/G
+
+MQA（Multi-Query Attention）:
+  Q₁ Q₂ Q₃ Q₄ → 全部共享同一组 K/V
+  KV 份数 = 1
+</code></pre>
+<p><strong>GQA 节省比例 = h / G</strong>。例如 LLaMA-2 70B 用 GQA with 8 KV heads（共 64 个 Q heads），KV Cache 减少 8 倍。</p>
+<hr>
+<h2 id="prefill-decode">三、Prefill 与 Decode 阶段</h2>
+<h3 id="_5">两个阶段对比</h3>
+<pre><code>┌──────────────────────────────────────────────────────┐
+│                   推理两个阶段                         │
+├──────────────────────┬───────────────────────────────┤
+│   Prefill (预填充)     │   Decode (解码)               │
+├──────────────────────┼───────────────────────────────┤
+│ 输入：整个 prompt      │ 输入：上一时刻生成的 1 个 token │
+│ 计算：并行处理所有 token │ 计算：只算当前 token + KV Cache │
+│ 瓶颈：Compute-Bound   │ 瓶颈：Memory-Bound            │
+│ GPU 算力受限           │ 显存带宽受限                   │
+│ 产出：初始 KV Cache    │ 产出：逐 token 追加到 KV Cache │
+└──────────────────────┴───────────────────────────────┘
+</code></pre>
+<h3 id="decode-memory-bound">为什么 Decode 是 Memory-Bound？</h3>
+<p>每次 Decode 步只处理 <strong>1 个 token</strong>，计算量极小（约 2 × 参数量 FLOPs），但需要：</p>
+<ol>
+<li>从显存加载<strong>全部模型权重</strong>（7B 模型 = 14GB FP16）</li>
+<li>从显存加载<strong>全部 KV Cache</strong></li>
+<li>每次只做极少的矩阵乘法</li>
+</ol>
+<p><strong>类比</strong>：从仓库（显存）运一卡车货物（权重），只为了加工一个小零件（1 token）。大部分时间在运输，不在加工。</p>
+<h3 id="prefilldecodedisaggregated-pd">分离式 Prefill/Decode（Disaggregated P/D）</h3>
+<pre><code>        ┌─────────────┐    KV Cache     ┌─────────────┐
+用户 ──→│ Prefill 集群 │ ──────────────→ │ Decode 集群  │──→ 输出
+        │ 高算力 GPU   │    (网络传输)    │ 大显存 GPU   │
+        └─────────────┘                  └─────────────┘
+
+优势：
+- Prefill 用 H100（高算力），Decode 用大显存卡
+- 两个阶段独立扩缩容
+- 整体吞吐提升 40%+
+</code></pre>
+<hr>
+<h2 id="pagedattention">四、PagedAttention 详解</h2>
+<h3 id="kv-cache_4">传统 KV Cache 的问题</h3>
+<pre><code>传统方案：为每个请求预分配连续的最大长度空间
+
+请求 A（max_len=2048）: [████████░░░░░░░░░░░░]  浪费 50%
+请求 B（max_len=4096）: [███░░░░░░░░░░░░░░░░░]  浪费 85%
+请求 C（max_len=1024）: [████████████████████]  浪费 0%
+
+内部碎片 + 外部碎片 → 总利用率 &lt; 40%
+</code></pre>
+<h3 id="pagedattention_1">PagedAttention 方案</h3>
+<p>将 KV Cache 切成固定大小的 <strong>Block</strong>（如 16 token/block），通过 <strong>Block Table</strong> 映射：</p>
+<pre><code>物理 Block 池:
+┌────┬────┬────┬────┬────┬────┬────┬────┐
+│ B0 │ B1 │ B2 │ B3 │ B4 │ B5 │ B6 │ B7 │  ← 按需分配
+└────┴────┴────┴────┴────┴────┴────┴────┘
+  ↓    ↓    ↓    ↓         ↓    ↓
+ 请求A  请求A  请求B  请求B   请求C  请求A (追加)
+
+请求 A 的 Block Table: [B0, B1, B7]      ← 不连续物理块，逻辑连续
+请求 B 的 Block Table: [B2, B3]
+请求 C 的 Block Table: [B5]
+</code></pre>
+<p><strong>Copy-on-Write 实现 Prefix Sharing</strong>：</p>
+<pre><code>请求 A: system_prompt = &quot;你是一个...&quot;  → Block [B0, B1]
+请求 B: system_prompt = &quot;你是一个...&quot;  → 共享 Block [B0, B1]（只读，不复制）
+
+只有当某个请求修改了共享 Block 中的内容时，才触发复制。
+对于推理场景（KV Cache 只追加不修改），大量请求可共享相同 system prompt 的 KV Cache。
+</code></pre>
+<h3 id="pagedattention_2">PagedAttention 的效果</h3>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>传统方案</th>
+<th>PagedAttention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>显存利用率</td>
+<td>&lt; 40%</td>
+<td>&gt; 90%</td>
+</tr>
+<tr>
+<td>内存碎片</td>
+<td>严重</td>
+<td>几乎无</td>
+</tr>
+<tr>
+<td>Prefix Sharing</td>
+<td>不支持</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>基线</td>
+<td>2-4x 提升</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="kv-cache_5">五、其他 KV Cache 优化技术</h2>
+<h3 id="1-kv-cache-kvquant-kivi">1. KV Cache 量化（KVQuant / KIVI）</h3>
+<pre><code>不量化权重，只量化 KV Cache：
+- K 和 V 以 FP16 计算，存储时压缩为 INT8/INT4
+- 读取时解压回 FP16 参与 Attention 计算
+- 关键：K 的分布通常不均匀（有 outlier 通道），需要 per-channel 量化
+- 可节省 50-75% 的 KV Cache 显存
+</code></pre>
+<h3 id="2-sliding-window-attentionmistral">2. Sliding Window Attention（Mistral 风格）</h3>
+<pre><code>只保留最近 W 个 token 的 KV Cache，丢弃更早的：
+
+[丢弃] [丢弃] [保留 W=4096]
+
+优点：KV Cache 大小恒定 O(W)，不随序列增长
+缺点：丢失长距离依赖（对某些任务不适用）
+</code></pre>
+<h3 id="3-streamingllmattention-sink">3. StreamingLLM（Attention Sink）</h3>
+<pre><code>发现：前几个 token（&quot;attention sink&quot;）对模型稳定性至关重要
+
+StreamingLLM 策略：
+[保留前 4 个 token] + [滑动窗口最近 W 个 token]
+
+即使超过窗口长度，保留开头几个 token 就能维持模型性能
+</code></pre>
+<h3 id="4-prefix-caching">4. Prefix Caching</h3>
+<pre><code>多个请求共享相同的 system prompt 时：
+
+请求 1 system: &quot;你是一个专业的代码助手...&quot; → 计算一次 KV
+请求 2 system: &quot;你是一个专业的代码助手...&quot; → 复用！跳过计算
+请求 3 system: &quot;你是一个专业的代码助手...&quot; → 复用！跳过计算
+
+vLLM 和 SGLang 均原生支持。适合聊天应用（system prompt 固定）。
+</code></pre>
+<h3 id="5-multi-query-grouped-query-attention">5. Multi-Query / Grouped-Query Attention</h3>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>KV 份数</th>
+<th>KV Cache</th>
+<th>质量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MHA</td>
+<td>h</td>
+<td>最大</td>
+<td>最好</td>
+</tr>
+<tr>
+<td>GQA</td>
+<td>h/G</td>
+<td>中等</td>
+<td>极轻微损失</td>
+</tr>
+<tr>
+<td>MQA</td>
+<td>1</td>
+<td>最小</td>
+<td>有轻微损失</td>
+</tr>
+</tbody>
+</table>
+<p><strong>当前主流</strong>：GQA（LLaMA 2/3、Mistral、Qwen 均采用），在质量和效率间取得最佳平衡。</p>
+<hr>
+<h2 id="_6">六、面试延伸</h2>
+<p><strong>Q：KV Cache 在推理时占多少显存？如何估算？</strong></p>
+<blockquote>
+<p>公式：<code>2 × n_layers × n_kv_heads × d_head × seq_len × batch_size × dtype_bytes</code></p>
+<p>以 LLaMA-2 13B（40层, 40头, d_head=128, FP16, batch=8, seq_len=2048）为例：
+<code>2 × 40 × 40 × 128 × 2048 × 8 × 2 ≈ 13.4 GB</code></p>
+<p>13B 模型权重约 26GB，KV Cache 占了 13.4GB，总计约 40GB，需要 A100（40GB/80GB）才能跑 batch=8。</p>
+</blockquote>
+<p><strong>Q：Prefill 和 Decode 的瓶颈不同，实际如何优化？</strong></p>
+<blockquote>
+<p>Prefill（compute-bound）：增大 batch 提高 GPU 算力利用率；用 FP8 加速矩阵运算；Chunked Prefill 将长 prompt 分块与 decode 交错执行。</p>
+<p>Decode（memory-bound）：减少需要从显存读的数据量——GQA 减少 KV 头数、KV Cache INT8 量化压缩存储、PagedAttention 减少浪费。</p>
+<p>最新方向：Disaggregated Prefill/Decode，将两个阶段部署在不同硬件上独立优化。</p>
+</blockquote>
+<p><strong>Q：GQA 为什么几乎不损失精度？</strong></p>
+<blockquote>
+<p>不同 Q 头关注不同的语义模式（句法、语义、位置等），但它们查询的 K/V 空间高度重叠。实验表明共享 K/V 对多数任务影响极小（&lt; 0.5%），而 KV Cache 节省显著。GQA 在 MHA 和 MQA 之间取得了实用平衡。</p>
+</blockquote>
+<p><strong>Q：PagedAttention 的 Block Size 如何选择？</strong></p>
+<blockquote>
+<p>Block size 越大，Block Table 越小，管理开销低，但内存碎片增多。Block size 越小，内存利用率越高，但 Block Table 变大。vLLM 默认 block_size=16（tokens），经过实验验证是较好的平衡点。对于超长序列（128K+），可适当增大到 32-64。</p>
+</blockquote>
+<hr>
+<h2 id="flashattention-kv-cache">补充：FlashAttention 与 KV Cache 的关系</h2>
+<p>FlashAttention 本身是 Attention 计算的 IO 优化（减少 HBM 读写），但它和 KV Cache 有协同效应：</p>
+<ul>
+<li><strong>FlashAttention</strong>：让每次 Attention 计算更快、更省显存</li>
+<li><strong>PagedAttention / KV Cache</strong>：让多次 Attention 计算复用中间结果</li>
+</ul>
+<p>两者结合（vLLM 的做法）能获得最大的推理加速：计算快 + 少重复计算 + 显存高效管理。</p>
+<hr>
+<h2 id="_7">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Efficient Memory Management for LLM Serving with PagedAttention (Kwon et al., SOSP 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.06180">arxiv.org/abs/2309.06180</a></td>
+</tr>
+<tr>
+<td>GQA: Training Generalized Multi-Query Transformer Models (Ainslie et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2305.13245">arxiv.org/abs/2305.13245</a></td>
+</tr>
+<tr>
+<td>FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., NeurIPS 2022)</td>
+<td><a href="https://arxiv.org/abs/2205.14135">arxiv.org/abs/2205.14135</a></td>
+</tr>
+<tr>
+<td>StreamingLLM: Efficient Streaming Language Models with Attention Sink (Xiao et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.17453">arxiv.org/abs/2309.17453</a></td>
+</tr>
+<tr>
+<td>KVQuant: Towards 10 Million Context Length (Hooper et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2401.18079">arxiv.org/abs/2401.18079</a></td>
+</tr>
+<tr>
+<td>Mooncake: KVCache-centric Disaggregated Architecture (Qin et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2407.00079">arxiv.org/abs/2407.00079</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_8">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1GWjjzfE1b/">vLLM PagedAttention 论文精读</a></td>
+<td>近2小时完整解读 PagedAttention 论文</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1kx4y1x7bu/">怎么加快大模型推理？10分钟学懂vLLM内部原理</a></td>
+<td>12.4万播放，最受欢迎的 vLLM+PagedAttention 讲解</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

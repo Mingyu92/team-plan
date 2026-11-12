@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>上下文工程与长上下文应用</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 06_工程实践/04_上下文工程与长上下文应用.md</span></div>
+<main>
+<h1 id="_1">上下文工程与长上下文应用</h1>
+<h2 id="_2">面试高频考点</h2>
+<ul>
+<li>Context Engineering 和 Prompt Engineering 有什么区别？</li>
+<li>长上下文模型能不能替代 RAG？</li>
+<li>上下文窗口很长时，为什么模型仍会漏信息？</li>
+<li>如何做上下文压缩、排序和预算控制？</li>
+<li>多轮对话如何管理历史？</li>
+</ul>
+<hr>
+<h2 id="lost-in-the-middle">外部图解：Lost in the Middle</h2>
+<p><img alt="Lost in the Middle：答案位置在上下文中间时准确率下降" src="https://ar5iv.labs.arxiv.org/html/2307.03172/assets/x1.png"></p>
+<blockquote>
+<p>图源：<a href="https://arxiv.org/abs/2307.03172">Lost in the Middle</a>。这张图说明长上下文不是越长越稳：关键信息放在中间时，模型可能更容易忽略。</p>
+</blockquote>
+<hr>
+<h2 id="_3">一句话理解</h2>
+<p>Prompt Engineering 关注“怎么写指令”，Context Engineering 关注“给模型看什么、按什么顺序看、看多少”。</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;用户问题&quot;] --&gt; B[&quot;任务识别&quot;]
+    B --&gt; C[&quot;检索证据&quot;]
+    B --&gt; D[&quot;历史摘要&quot;]
+    B --&gt; E[&quot;工具结果&quot;]
+    C --&gt; F[&quot;上下文排序与压缩&quot;]
+    D --&gt; F
+    E --&gt; F
+    F --&gt; G[&quot;Prompt 组装&quot;]
+    G --&gt; H[&quot;LLM 输出&quot;]
+</code></pre>
+<hr>
+<h2 id="_4">为什么需要上下文工程</h2>
+<p>模型上下文窗口有限，即使是 128K、1M token，也不能随便塞。</p>
+<p>原因：</p>
+<ul>
+<li>token 成本高</li>
+<li>首 token 延迟上升</li>
+<li>无关内容会干扰注意力</li>
+<li>模型可能忽略中间位置的信息</li>
+<li>权限和安全风险变大</li>
+</ul>
+<p>所以核心不是“塞更多”，而是“塞对、排好、压紧”。</p>
+<hr>
+<h2 id="_5">上下文由哪些部分组成</h2>
+<p><strong>细化理解：</strong> 上下文通常包含系统指令、开发者约束、用户问题、历史对话、检索证据、工具返回、示例和输出格式要求。不同部分的优先级和可信度不同：系统指令约束行为，检索证据提供事实，工具返回提供环境状态，用户输入可能包含恶意指令。上下文工程就是在有限 token budget 内组织这些信息的顺序、边界和可信度。</p>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>System 指令</td>
+<td>角色、安全边界、输出格式</td>
+</tr>
+<tr>
+<td>用户输入</td>
+<td>当前问题</td>
+</tr>
+<tr>
+<td>历史对话</td>
+<td>多轮上下文、用户偏好</td>
+</tr>
+<tr>
+<td>检索证据</td>
+<td>RAG chunks、引用文档</td>
+</tr>
+<tr>
+<td>工具结果</td>
+<td>API 返回、数据库查询、日志</td>
+</tr>
+<tr>
+<td>示例</td>
+<td>few-shot examples</td>
+</tr>
+<tr>
+<td>输出约束</td>
+<td>JSON schema、表格格式</td>
+</tr>
+</tbody>
+</table>
+<p>上下文工程就是管理这些内容的优先级和预算。</p>
+<hr>
+<h2 id="vs-rag">长上下文 vs RAG</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>长上下文</th>
+<th>RAG</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>优点</td>
+<td>可以一次读大量材料</td>
+<td>可更新、可权限过滤、成本可控</td>
+</tr>
+<tr>
+<td>缺点</td>
+<td>成本高、延迟高、容易噪声干扰</td>
+<td>检索失败会漏证据</td>
+</tr>
+<tr>
+<td>适合</td>
+<td>单份长文档深读</td>
+<td>多源知识库、企业文档、实时知识</td>
+</tr>
+</tbody>
+</table>
+<p>务实结论：</p>
+<blockquote>
+<p>长上下文适合深读少量材料，RAG 适合从大量材料里找证据。生产里经常两者结合。</p>
+</blockquote>
+<hr>
+<h2 id="_6">上下文排序</h2>
+<p>常见排序策略：</p>
+<ol>
+<li>系统指令放最前</li>
+<li>当前用户问题靠近生成位置</li>
+<li>高相关证据靠前或靠近问题</li>
+<li>历史对话只保留必要部分</li>
+<li>工具结果按任务阶段插入</li>
+</ol>
+<p>有些模型对开头和结尾更敏感，所以重要证据不要随便埋在中间。</p>
+<hr>
+<h2 id="_7">上下文压缩</h2>
+<p>压缩方法：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>摘要压缩</td>
+<td>把长历史总结成短摘要</td>
+</tr>
+<tr>
+<td>证据抽取</td>
+<td>只保留和问题相关句子</td>
+</tr>
+<tr>
+<td>Map-Reduce</td>
+<td>多段分别总结再合并</td>
+</tr>
+<tr>
+<td>Rerank 截断</td>
+<td>排序后只保留 Top-K</td>
+</tr>
+<tr>
+<td>结构化压缩</td>
+<td>表格、JSON、字段化结果</td>
+</tr>
+</tbody>
+</table>
+<p>压缩风险：</p>
+<ul>
+<li>丢关键条件</li>
+<li>摘要引入幻觉</li>
+<li>去掉引用来源</li>
+</ul>
+<p>所以高风险业务里，压缩后最好保留原始引用。</p>
+<hr>
+<h2 id="_8">多轮对话记忆</h2>
+<p>多轮对话不能无限拼历史。</p>
+<p>常见做法：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>适合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sliding Window</td>
+<td>短对话</td>
+</tr>
+<tr>
+<td>Summary Memory</td>
+<td>长对话摘要</td>
+</tr>
+<tr>
+<td>Entity Memory</td>
+<td>记住用户、项目、偏好</td>
+</tr>
+<tr>
+<td>Retrieval Memory</td>
+<td>历史对话向量化检索</td>
+</tr>
+<tr>
+<td>State Machine</td>
+<td>任务型对话</td>
+</tr>
+</tbody>
+</table>
+<p>面试里可以说：</p>
+<blockquote>
+<p>聊天历史不是越多越好，要把历史转成可控状态。</p>
+</blockquote>
+<hr>
+<h2 id="token-budget">Token Budget</h2>
+<p><strong>工程细节：</strong> Token budget 要同时给输入证据、历史记忆、工具结果和输出预留空间。常见策略是固定系统指令、压缩历史、证据按相关性排序、长文档只取关键片段、输出前预留最大回答长度。预算不足时应该优先保留任务目标、硬约束和关键证据，而不是简单截断末尾。</p>
+<p>一个典型预算：</p>
+<pre><code class="language-text">system prompt: 800 tokens
+user query: 300 tokens
+history summary: 1000 tokens
+retrieved evidence: 6000 tokens
+tool results: 2000 tokens
+output budget: 2000 tokens
+</code></pre>
+<p>如果超预算，优先裁：</p>
+<ol>
+<li>低相关证据</li>
+<li>旧历史</li>
+<li>重复内容</li>
+<li>冗长示例</li>
+</ol>
+<p>不要裁安全规则、当前问题和关键证据。</p>
+<hr>
+<h2 id="_9">常见误区</h2>
+<h3 id="1">误区 1：上下文越长越好</h3>
+<p>长上下文会增加成本、延迟和噪声，不等于质量更好。</p>
+<h3 id="2rag">误区 2：RAG 已经召回了就随便拼</h3>
+<p>上下文顺序、长度和噪声都会影响生成。</p>
+<h3 id="3">误区 3：摘要一定安全</h3>
+<p>摘要可能丢条件或引入幻觉，关键证据要保留引用。</p>
+<h3 id="4">误区 4：多轮对话只要保存全部历史</h3>
+<p>真实产品里需要状态管理、摘要和检索记忆。</p>
+<hr>
+<h2 id="_10">面试延伸</h2>
+<p><strong>Q：长上下文能替代 RAG 吗？</strong></p>
+<blockquote>
+<p>不能完全替代。长上下文适合少量长材料深读，RAG 适合多源、频繁更新、需要权限过滤和引用追溯的知识库。生产里常常先 RAG 找证据，再用长上下文模型综合。</p>
+</blockquote>
+<p><strong>Q：如何处理超长对话历史？</strong></p>
+<blockquote>
+<p>我会保留最近窗口，压缩旧历史为摘要，把稳定事实存成结构化状态，必要时把历史向量化做检索记忆。</p>
+</blockquote>
+<p><strong>Q：如何避免上下文噪声影响回答？</strong></p>
+<blockquote>
+<p>用 rerank、去重、证据抽取和 token budget 控制，只保留能支持答案的片段，并让模型在证据不足时拒答。</p>
+</blockquote>
+<hr>
+<h2 id="_11">上下文编排模板</h2>
+<p>生产系统里不要把所有内容随便拼到 prompt。推荐用固定结构：</p>
+<pre><code class="language-text">System: 角色、安全边界、回答原则
+Developer: 输出格式、引用规则、工具使用约束
+Task: 当前用户问题
+State: 用户身份、租户、权限、当前工单状态
+Evidence: RAG 证据，带 chunk_id 和来源
+Tool Results: 工具返回，只读结果优先
+History Summary: 历史摘要，不放完整流水账
+Output Contract: JSON schema / Markdown 模板 / 禁止项
+</code></pre>
+<p>这个结构的好处：</p>
+<ul>
+<li>指令和数据分层，降低 prompt injection 影响。</li>
+<li>证据带来源，方便引用校验。</li>
+<li>历史被压缩成状态，避免 token 被旧对话吃掉。</li>
+<li>输出格式固定，便于后处理和自动评估。</li>
+</ul>
+<hr>
+<h2 id="_12">长上下文排障清单</h2>
+<p>当长上下文模型回答变差时，不要只怪模型。按这个顺序排：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>可能原因</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>明明有证据但答错</td>
+<td>Lost in the Middle</td>
+<td>把关键证据放开头或结尾，或重复关键事实</td>
+</tr>
+<tr>
+<td>回答越来越泛</td>
+<td>上下文噪声过多</td>
+<td>rerank、去重、证据抽取</td>
+</tr>
+<tr>
+<td>忘记早期约束</td>
+<td>多轮历史太长</td>
+<td>摘要成状态，关键约束置顶</td>
+</tr>
+<tr>
+<td>引用不准确</td>
+<td>证据和引用没有绑定</td>
+<td>chunk_id 进入 prompt，输出校验引用</td>
+</tr>
+<tr>
+<td>延迟和成本爆炸</td>
+<td>输入 token 过多</td>
+<td>token budget、prompt caching、分层模型</td>
+</tr>
+</tbody>
+</table>
+<p>面试可以补一句：</p>
+<blockquote>
+<p>长上下文不是把 RAG 废掉，而是让 RAG 找到更少、更准的材料后，给模型更大的综合空间。</p>
+</blockquote>
+<hr>
+<h2 id="_13">上下文质量指标</h2>
+<p>除了最终答案对不对，还应该评估上下文本身：</p>
+<ul>
+<li><strong>Context Recall</strong>：正确证据是否被放进上下文。</li>
+<li><strong>Context Precision</strong>：放进去的证据有多少真的有用。</li>
+<li><strong>Context Utilization</strong>：模型是否引用并使用了关键证据。</li>
+<li><strong>Citation Accuracy</strong>：引用来源是否真实支持答案。</li>
+<li><strong>Token Waste Ratio</strong>：无关上下文占比。</li>
+<li><strong>Instruction Conflict Rate</strong>：检索内容中是否存在和系统指令冲突的文本。</li>
+</ul>
+<p>这些指标能把“模型幻觉”拆成更可定位的问题：是没检索到、放错了、放太多了，还是模型没用好。</p>
+<hr>
+<h2 id="_14">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lost in the Middle: How Language Models Use Long Contexts (Liu et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2307.03172">arxiv.org/abs/2307.03172</a></td>
+</tr>
+<tr>
+<td>LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens (Ding et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2402.13753">arxiv.org/abs/2402.13753</a></td>
+</tr>
+<tr>
+<td>YaRN: Efficient Context Window Extension of Large Language Models (Peng et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.00071">arxiv.org/abs/2309.00071</a></td>
+</tr>
+<tr>
+<td>Retrieval-Augmented Generation (Lewis et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2005.11401">arxiv.org/abs/2005.11401</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_15">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 Anthropic Docs</td>
+<td><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview">Prompt engineering overview</a></td>
+<td>包含清晰指令、上下文组织和长输入建议</td>
+</tr>
+<tr>
+<td>📖 OpenAI Cookbook</td>
+<td><a href="https://cookbook.openai.com/examples/gpt4-1_prompting_guide">Prompt engineering guide</a></td>
+<td>Prompt 和上下文组织实践</td>
+</tr>
+<tr>
+<td>📖 LangChain Docs</td>
+<td><a href="https://python.langchain.com/docs/concepts/memory/">Memory</a></td>
+<td>多轮对话记忆和状态管理入口</td>
+</tr>
+<tr>
+<td>📖 LlamaIndex Docs</td>
+<td><a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">Context augmentation</a></td>
+<td>RAG 和上下文增强实践</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

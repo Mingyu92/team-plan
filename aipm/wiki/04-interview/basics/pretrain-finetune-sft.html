@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>预训练、微调、SFT 的区别与应用场景</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/pretrain-finetune-sft.md</span></div>
+<main>
+<h1 id="sft">预训练、微调、SFT 的区别与应用场景</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:极高,大厂常见题、理想面经、抖音校招均有出现</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否讲清三者在训练链路中的位置(底座 → 通用对齐 → 领域定制)</li>
+<li>是否理解"预训练学知识,微调学行为"的核心差异</li>
+<li>能否结合业务场景说明选型,而非只列概念</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话对比</strong>:预训练是"读书学通用知识",微调是"上岗培训学特定技能",SFT 是微调中最常见的"照例题学"方式。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>做什么</th>
+<th>数据</th>
+<th>产出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>预训练</td>
+<td>海量文本上学习语言规律和世界知识</td>
+<td>互联网级语料(无标注)</td>
+<td>基座模型,具备通用语言能力</td>
+</tr>
+<tr>
+<td>微调(Fine-tuning)</td>
+<td>在基座上用特定数据继续训练</td>
+<td>领域数据(有标注)</td>
+<td>适配特定任务/领域的模型</td>
+</tr>
+<tr>
+<td>SFT(监督微调)</td>
+<td>微调的一种,用"输入-标准输出"对训练</td>
+<td>高质量的 QA 对、对话样本</td>
+<td>学会特定回答方式和格式</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键区分</strong>:
+- 预训练决定模型的"知识上限"和"语言能力",通常由模型厂商完成,产品团队不涉及
+- 微调/SFT 决定模型的"行为模式"——怎么说、什么格式、什么风格
+- SFT 是微调的主流实现方式,面试中说"微调"时大概率指的就是 SFT</p>
+<p><strong>应用场景</strong>:
+- 预训练:构建基座,产品侧一般选型而非自研
+- SFT:客服话术统一、医疗报告格式固定、代码补全风格对齐
+- 与 RAG 的关系:知识类问题优先 RAG,SFT 解决"怎么说"而非"知道什么"</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"预训练和微调,哪个对模型能力影响更大?"
+  → 预训练决定底座能力上限;微调是在上限内调整行为。类比:预训练是学历,微调是岗前培训。</li>
+<li><strong>追问 2</strong>:"SFT 和 RLHF 有什么区别?"
+  → SFT 用标准答案教模型"怎么答";RLHF 用人类偏好反馈教模型"哪个答得更好",通常 SFT 在前、RLHF 在后。</li>
+<li><strong>追问 3</strong>:"什么情况下你会建议团队不做微调?"
+  → 通用能力已够用、数据量不足、迭代周期要求高时,优先 Prompt + RAG,微调是较重手段。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+</ul>
+</main>
+</body>
+</html>

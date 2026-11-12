@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>如何设计 Skill 来降低 token 消耗?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/skill-token-efficiency.md</span></div>
+<main>
+<h1 id="skill-token">如何设计 Skill 来降低 token 消耗?</h1>
+<p><strong>难度</strong>:⭐⭐ 常规
+<strong>出现频率</strong>:中高,成本敏感团队与 Coding Agent 岗常见</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>是否理解 Skill「渐进披露」本身就是省 token 的主杠杆</li>
+<li>能否从 description、正文、附件分层给出可执行设计准则</li>
+<li>是否会把「省 token」和「效果变差」放在一起权衡</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>:省 token 的核心不是少写字,而是<strong>少加载</strong>——让无关 Skill 永远只占一行描述,相关 Skill 也只打开当前步骤需要的章节。</p>
+<h3 id="_3">设计杠杆(从便宜到贵)</h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>做法</th>
+<th>省在哪里</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发现层</td>
+<td>description 短、触发词靠前、写清「何时不用」</td>
+<td>启动时只加载清单,列表再长也相对可控</td>
+</tr>
+<tr>
+<td>激活层</td>
+<td><code>SKILL.md</code> 正文只放主路径;细节放 <code>references/</code></td>
+<td>匹配后不必一次读完百科</td>
+</tr>
+<tr>
+<td>执行层</td>
+<td>确定性步骤用脚本,少让模型「用生成模拟计算」</td>
+<td>少产出中间废话 token</td>
+</tr>
+<tr>
+<td>编排层</td>
+<td>路由/分类器决定启用哪个 Skill,禁止默认全开</td>
+<td>避免多本手册同时进窗</td>
+</tr>
+<tr>
+<td>运行层</td>
+<td>限制并发 Skill 数、对长 reference 做摘要后再喂</td>
+<td>防止单次任务上下文爆炸</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pm">PM 可写进规范的几条硬规则</h3>
+<ol>
+<li><strong>description 是第一成本阀</strong>:写糊了会误触发,等于把整本手册白烧进上下文。</li>
+<li><strong>正文控制篇幅</strong>:主路径 + 禁区 + 2–3 个例子通常够用;表格优于长散文。</li>
+<li><strong>大资料外置</strong>:政策全文、API 手册放 reference,并在正文写「需要时再打开某某文件」。</li>
+<li><strong>能脚本就脚本</strong>:排序、校验、填模板别让模型逐步「演」。</li>
+<li><strong>度量</strong>:看「平均每次任务加载了几个 Skill / 多少 token」,而不只看模型单价。</li>
+</ol>
+<p>权衡:过度压缩会导致触发不准或步骤缺失。正确姿势是<strong>先保证触发与主路径正确,再砍冗余</strong>,并用评测集锁住效果。</p>
+<h2 id="_4">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"Skill 很多时,description 列表本身也很贵怎么办?"
+  → 分层目录/检索式发现,或对 description 再做压缩/分桶;产品上限制「默认可见 Skill 集合」。</li>
+<li><strong>追问 2</strong>:"为了省 token,把安全红线也做成按需 Skill,行不行?"
+  → 不行。安全与合规红线应放 Rules/全局约束,不能赌「这次没触发」。</li>
+<li><strong>追问 3</strong>:"和提示词缓存(前缀缓存)什么关系?"
+  → 稳定前缀(系统提示、常用 Skill 描述)更容易命中缓存;频繁改 description 会破坏缓存命中。省 token = 少加载 + 提高可缓存前缀稳定性。</li>
+</ul>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li><a href="skill-vs-rules.html">Skill 和 Rules 到底有什么区别?</a></li>
+<li><a href="token-cost-and-experience.html">什么是 token?它如何影响产品的成本和体验?</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/llm-cost-101.html">AI 产品成本测算入门</a></li>
+</ul>
+</main>
+</body>
+</html>

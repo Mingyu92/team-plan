@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>精确率和召回率的区别?举一个产品中需要权衡的例子</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/precision-vs-recall.md</span></div>
+<main>
+<h1 id="_1">精确率和召回率的区别?举一个产品中需要权衡的例子</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:中,商汤面经(误检率/漏检率)、仓库规划题</p>
+<h2 id="_2">考察点</h2>
+<ul>
+<li>能否用通俗语言解释精确率和召回率</li>
+<li>是否理解两者的此消彼长关系</li>
+<li>能否结合 AI 产品场景举例说明权衡决策</li>
+</ul>
+<h2 id="_3">参考答案</h2>
+<p><strong>一句话对比</strong>:精确率关注"找出来的对不对",召回率关注"该找的有没有找全"。</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>公式直觉</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>精确率(Precision)</td>
+<td>模型说是的正例中,真正是正例的比例</td>
+<td>"报出来的有多少是对的?"</td>
+</tr>
+<tr>
+<td>召回率(Recall)</td>
+<td>所有真正的正例中,被模型找出来的比例</td>
+<td>"该找的有没有漏掉?"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>经典类比——捕鱼</strong>:
+- 精确率高 = 网到的都是目标鱼,但可能漏了很多(网眼太大)
+- 召回率高 = 目标鱼基本都网到了,但网里也混了不少杂鱼</p>
+<p><strong>产品权衡案例——AI 内容审核</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>精确率</th>
+<th>召回率</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>严格审核(宁可错杀)</td>
+<td>低</td>
+<td>高</td>
+<td>误伤正常内容,用户体验差</td>
+</tr>
+<tr>
+<td>宽松审核(宁可放过)</td>
+<td>高</td>
+<td>低</td>
+<td>违规内容流出,合规风险</td>
+</tr>
+</tbody>
+</table>
+<p><strong>决策框架</strong>:
+1. 先问"漏掉的代价"和"误报的代价"哪个更大
+2. 漏掉代价大(如安全、合规) → 优先拉高召回率,人工复核兜底
+3. 误报代价大(如推荐、搜索) → 优先拉高精确率,宁缺毋滥</p>
+<p><strong>AI 产品中的其他场景</strong>:
+- RAG 检索:召回率低 → 该引用的文档没引用到;精确率低 → 引用了不相关的文档
+- AI 客服:召回率低 → 该自动回答的没答;精确率低 → 答错了反而增加投诉</p>
+<h2 id="_4">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"精确率和准确率是一回事吗?"
+  → 不是。准确率是整体正确比例;精确率和召回率是针对"正例"的两个不同维度,尤其在正负样本不均衡时,准确率会误导。</li>
+<li><strong>追问 2</strong>:"F1 分数是什么?"
+  → 精确率和召回率的调和平均,用于需要一个综合指标时的平衡考量;F1 高说明两者都还不错。</li>
+<li><strong>追问 3</strong>:"RAG 系统中怎么平衡检索的精确率和召回率?"
+  → 先拉高召回(多检索一些候选),再用 Rerank 提升精确率(把最相关的排前面);是经典的"宽进严出"策略。</li>
+</ul>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/machine-learning/precision-vs-recall.html">精确率 vs 召回率:PM 必须会做的权衡</a>(知识文章)</li>
+<li><a href="rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transformer 架构详解</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 01_基础架构/03_Transformer架构.md</span></div>
+<main>
+<h1 id="transformer">Transformer 架构详解</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>Transformer 整体结构是什么？</li>
+<li>Self-Attention 的计算过程和复杂度是什么？</li>
+<li>为什么 attention 要除以 <code>sqrt(d_k)</code>？</li>
+<li>Encoder-only、Decoder-only、Encoder-Decoder 三类架构怎么区分？</li>
+<li>残差连接、Pre-Norm、RMSNorm、SwiGLU 各自起什么作用？</li>
+</ul>
+<hr>
+<h2 id="transformer_1">Transformer 在做什么</h2>
+<p>一句话理解：</p>
+<blockquote>
+<p>Transformer 用 attention 让每个 token 动态读取其他 token 的信息，再用 FFN 做非线性变换。</p>
+</blockquote>
+<p><img alt="Attention Is All You Need 原始架构图（官方论文图）" src="https://upload.wikimedia.org/wikipedia/commons/4/49/Attention_Is_All_You_Need_-_Encoder-decoder_Architecture.png"></p>
+<blockquote>
+<p>图源：<code>Attention Is All You Need</code> 论文图，Wikimedia Commons 转载页已标注来自原论文并附带授权说明。</p>
+</blockquote>
+<hr>
+<h2 id="_2">整体结构</h2>
+<h3 id="transformerencoder-decoder">原始 Transformer（Encoder-Decoder）</h3>
+<p>适合机器翻译等 seq2seq 任务：</p>
+<ul>
+<li>Encoder 编码输入</li>
+<li>Decoder 基于 encoder 表示生成输出</li>
+</ul>
+<h3 id="llmdecoder-only">现代 LLM：Decoder-only</h3>
+<p>主流大模型基本都是 decoder-only：</p>
+<ul>
+<li>输入 token</li>
+<li>多层 causal self-attention</li>
+<li>多层 FFN</li>
+<li>预测下一个 token</li>
+</ul>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;Token + Position&quot;] --&gt; B[&quot;Transformer Block 1&quot;]
+    B --&gt; C[&quot;Transformer Block 2&quot;]
+    C --&gt; D[&quot;...&quot;]
+    D --&gt; E[&quot;Transformer Block L&quot;]
+    E --&gt; F[&quot;LM Head&quot;]
+    F --&gt; G[&quot;Next Token&quot;]
+</code></pre>
+<hr>
+<h2 id="transformer-block">Transformer Block 长什么样</h2>
+<p>现代 decoder-only 里，每层大致是：</p>
+<ol>
+<li>Norm</li>
+<li>Self-Attention</li>
+<li>Residual</li>
+<li>Norm</li>
+<li>FFN</li>
+<li>Residual</li>
+</ol>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;输入 x&quot;] --&gt; B[&quot;RMSNorm&quot;]
+    B --&gt; C[&quot;Causal Self-Attention&quot;]
+    C --&gt; D[&quot;残差相加&quot;]
+    D --&gt; E[&quot;RMSNorm&quot;]
+    E --&gt; F[&quot;FFN / SwiGLU&quot;]
+    F --&gt; G[&quot;残差相加&quot;]
+</code></pre>
+<hr>
+<h2 id="self-attention">Self-Attention 计算过程</h2>
+<p><strong>细化理解：</strong> Self-Attention 不是简单“看全文”，而是每个位置用 Query 去和所有可见位置的 Key 计算相关性，再按权重汇总 Value。Q/K/V 都来自当前 hidden states 的线性变换，因此同一个 token 在不同层、不同上下文里会产生不同的注意力行为。这个机制让模型能动态选择证据，但也带来二次复杂度和长上下文成本。</p>
+<p>给定输入 <code>X</code>：</p>
+<pre><code class="language-text">Q = XW_Q
+K = XW_K
+V = XW_V
+
+Attention(Q, K, V) = softmax(QK^T / sqrt(d_k)) V
+</code></pre>
+<h3 id="_3">直觉解释</h3>
+<ul>
+<li><code>Q</code>：我当前想找什么</li>
+<li><code>K</code>：每个位置提供什么索引线索</li>
+<li><code>V</code>：每个位置真正提供什么信息</li>
+</ul>
+<h3 id="_4">为什么强</h3>
+<p>因为每个 token 都能按内容动态决定该看谁，而不是像 RNN 那样只按固定顺序传递。</p>
+<hr>
+<h2 id="sqrtd_k">为什么要除以 <code>sqrt(d_k)</code></h2>
+<p>如果不缩放，<code>QK^T</code> 的值会随着维度增大而变大，softmax 更容易饱和。</p>
+<p>结果是：</p>
+<ul>
+<li>概率分布过尖</li>
+<li>梯度变差</li>
+<li>训练不稳定</li>
+</ul>
+<p>除以 <code>sqrt(d_k)</code> 本质上是在控制分数尺度，让 softmax 工作在更合理的区域。</p>
+<hr>
+<h2 id="multi-head-attention">Multi-Head Attention</h2>
+<p>不是只做一次 attention，而是拆成多个头并行做。</p>
+<h3 id="_5">为什么要多头</h3>
+<ul>
+<li>不同头可以关注不同关系</li>
+<li>有的头看邻近词</li>
+<li>有的头看长距离依赖</li>
+<li>有的头看语法，有的头看语义</li>
+</ul>
+<h3 id="_6">关键点</h3>
+<p>多头 attention 的价值不是简单多算几遍，而是提供多个表示子空间。</p>
+<hr>
+<h2 id="causal-mask">Causal Mask</h2>
+<p>Decoder-only 模型必须保证当前位置看不到未来 token。</p>
+<p>否则训练时就会偷看答案，推理时行为和训练时不一致。</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;当前位置 token&quot;] --&gt; B[&quot;可看历史 token&quot;]
+    A -.x.-&gt; C[&quot;不可看未来 token&quot;]
+</code></pre>
+<hr>
+<h2 id="ffn-swiglu">FFN / SwiGLU</h2>
+<p><strong>细化理解：</strong> FFN 是 Transformer 中参数量很大的部分，常常比 attention 更“吃参数”。Attention 负责跨 token 交换信息，FFN 则在每个 token 位置上做特征变换和知识存储；SwiGLU 通过门控结构提高表达能力，在 LLaMA 等现代 LLM 中很常见。回答架构题时不要把 Transformer 简化成只有 attention。</p>
+<p>Attention 负责“聚合信息”，FFN 负责“重组和变换特征”。</p>
+<p>现代大模型常用 <strong>SwiGLU</strong>，相对 ReLU/GELU 更强。</p>
+<h3 id="swiglu">为什么 SwiGLU 常见</h3>
+<ul>
+<li>门控能力更强</li>
+<li>表达力更好</li>
+<li>实证上通常优于简单激活函数</li>
+</ul>
+<p>可以把它理解成：FFN 不只是做线性变换，而是在学哪些信息该放大、哪些该抑制。</p>
+<hr>
+<h2 id="_7">残差连接与归一化</h2>
+<h3 id="_8">残差连接</h3>
+<p>作用：</p>
+<ul>
+<li>让梯度更容易传播</li>
+<li>支持更深网络堆叠</li>
+<li>防止每层都把已有表示完全冲掉</li>
+</ul>
+<h3 id="pre-norm-vs-post-norm">Pre-Norm vs Post-Norm</h3>
+<p>现代大模型多数用 Pre-Norm：</p>
+<ul>
+<li>更稳定</li>
+<li>深层训练更友好</li>
+</ul>
+<h3 id="rmsnorm">RMSNorm</h3>
+<p>相比 LayerNorm：</p>
+<ul>
+<li>计算更简洁</li>
+<li>工程上更高效</li>
+<li>在现代 LLM 中很常见</li>
+</ul>
+<hr>
+<h2 id="_9">三类架构对比</h2>
+<table>
+<thead>
+<tr>
+<th>架构</th>
+<th>代表</th>
+<th>擅长</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encoder-only</td>
+<td>BERT</td>
+<td>理解类任务</td>
+</tr>
+<tr>
+<td>Decoder-only</td>
+<td>GPT / LLaMA / Qwen</td>
+<td>生成、对话、统一建模</td>
+</tr>
+<tr>
+<td>Encoder-Decoder</td>
+<td>T5 / BART</td>
+<td>传统 seq2seq</td>
+</tr>
+</tbody>
+</table>
+<h3 id="decoder-only">为什么 Decoder-only 成为主流</h3>
+<ol>
+<li>next-token prediction 目标统一</li>
+<li>更适合生成任务</li>
+<li>scaling 更自然</li>
+<li>few-shot / in-context learning 表现强</li>
+</ol>
+<hr>
+<h2 id="transformer_2">Transformer 的主要成本</h2>
+<p><strong>工程细节：</strong> 训练时成本主要来自长序列 attention、FFN 矩阵乘和激活保存；推理时 prefill 更像训练中的并行前向，decode 则因为一次只生成一个 token，容易被显存带宽、KV Cache 读取和调度开销限制。FlashAttention、GQA/MQA、张量并行和 continuous batching 解决的是不同层面的瓶颈，不能混为一个“加速技巧”。</p>
+<h3 id="_10">训练时</h3>
+<ul>
+<li>attention 的 <code>O(n^2)</code> 序列交互</li>
+<li>大矩阵乘法</li>
+<li>激活内存</li>
+</ul>
+<h3 id="_11">推理时</h3>
+<ul>
+<li>长上下文 KV Cache</li>
+<li>逐 token decode 的串行性</li>
+</ul>
+<p>所以后面很多优化技术，其实都在围绕 Transformer 的这些天然成本做文章。</p>
+<hr>
+<h2 id="_12">一分钟回答模板</h2>
+<p>如果面试官让你快速解释 Transformer，可以按这个顺序讲：</p>
+<ol>
+<li>输入 token 先变成 embedding，并注入位置信息</li>
+<li>attention 负责让每个 token 动态读取别的 token</li>
+<li>FFN 负责在每个位置上做更强的非线性特征变换</li>
+<li>残差和归一化保证深层堆叠还能稳定训练</li>
+</ol>
+<p>这样回答比只背 <code>QKV</code> 公式更完整。</p>
+<hr>
+<h2 id="_13">常见误区</h2>
+<h3 id="1transformer-attention">误区 1：Transformer 只有 attention 重要</h3>
+<p>不对。FFN、残差、归一化、位置编码都同样关键。</p>
+<h3 id="2-attention">误区 2：多头 attention 只是参数变多</h3>
+<p>核心不是参数更多，而是提供多种关注模式和子空间表达。</p>
+<h3 id="3decoder-only-encoder-only">误区 3：Decoder-only 比 Encoder-only 更高级</h3>
+<p>不是。它只是更适合统一生成式建模，不代表在所有理解任务上天然更优。</p>
+<h3 id="4attention-transformer">误区 4：attention 复杂度高就说明 Transformer 一定慢</h3>
+<p>要看场景。训练、prefill、decode 的瓶颈并不完全相同，而且工程优化空间很大。</p>
+<hr>
+<h2 id="_14">面试延伸</h2>
+<p><strong>Q：为什么现代 LLM 几乎都用 Decoder-only？</strong></p>
+<blockquote>
+<p>因为它能把很多任务统一为 next-token prediction，天然支持生成和 in-context learning，训练目标简单且 scaling 友好。</p>
+</blockquote>
+<p><strong>Q：为什么 attention 需要 Q/K/V 三套投影？</strong></p>
+<blockquote>
+<p>因为“怎么匹配”和“取什么内容”是两件事。Q/K 用于决定相关性，V 用于真正提供被聚合的信息。</p>
+</blockquote>
+<p><strong>Q：KV Cache 为什么成立？</strong></p>
+<blockquote>
+<p>因为自回归生成时，历史 token 的 K/V 不再变化，后续只需为新 token 计算增量部分并复用历史 K/V。</p>
+</blockquote>
+<hr>
+<h2 id="_15">学完可以做什么</h2>
+<ol>
+<li>自己画一张 decoder-only Transformer block 结构图。</li>
+<li>手推一次 <code>QK^T -&gt; softmax -&gt; V</code> 的 attention 流程。</li>
+<li>对比理解 <code>Encoder-only / Decoder-only / Encoder-Decoder</code> 三类架构的适用任务。</li>
+</ol>
+<hr>
+<h2 id="_16">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attention Is All You Need (Vaswani et al., 2017)</td>
+<td><a href="https://arxiv.org/abs/1706.03762">arxiv.org/abs/1706.03762</a></td>
+</tr>
+<tr>
+<td>RMSNorm (Zhang &amp; Sennrich, 2019)</td>
+<td><a href="https://arxiv.org/abs/1910.07467">arxiv.org/abs/1910.07467</a></td>
+</tr>
+<tr>
+<td>GLU Variants Improve Transformer (Shazeer, 2020)</td>
+<td><a href="https://arxiv.org/abs/2002.05202">arxiv.org/abs/2002.05202</a></td>
+</tr>
+<tr>
+<td>FlashAttention (Dao et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2205.14135">arxiv.org/abs/2205.14135</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_17">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 YouTube</td>
+<td><a href="https://www.youtube.com/watch?v=wjZofJX0v4M">But what is a GPT? Visual intro to Transformers</a></td>
+<td>3Blue1Brown，适合建立直觉</td>
+</tr>
+<tr>
+<td>📺 YouTube</td>
+<td><a href="https://www.youtube.com/watch?v=eMlx5fFNoYc">Attention in transformers, visually explained</a></td>
+<td>专讲 attention</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1pu411o7BE">跟李沐学 AI - Attention Is All You Need 论文精读</a></td>
+<td>学术视角扎实</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

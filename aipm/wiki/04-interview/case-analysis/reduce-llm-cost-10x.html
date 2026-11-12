@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>某功能接入大模型后成本涨了 10 倍,如何降本?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/case-analysis/reduce-llm-cost-10x.md</span></div>
+<main>
+<h1 id="10">某功能接入大模型后成本涨了 10 倍,如何降本?</h1>
+<p><strong>难度</strong>:⭐⭐⭐ 进阶
+<strong>出现频率</strong>:高,考察实战思维和成本意识</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否系统性拆解 LLM 成本构成,而不是只说"换个小模型"</li>
+<li>是否理解降本手段的<strong>优先级和 trade-off</strong>(效果 vs 成本 vs 延迟 vs 体验)</li>
+<li>能否给出分阶段落地方案,并说明如何验证降本不显著伤害核心业务指标</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话核心</strong>:先<strong>定位成本暴涨的根因</strong>,再按"无损降本 → 低损降本 → 结构性优化"三层递进,绝不一上来就砍模型能力。</p>
+<h3 id="_3">第一步:成本诊断(先算账再动手)</h3>
+<pre><code>总成本 = 请求量 × 单次请求成本
+单次请求成本 = f(模型单价, 输入token, 输出token, 是否走RAG/Agent多步调用)
+</code></pre>
+<p><strong>先回答三个问题</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>诊断问题</th>
+<th>常见发现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>量涨了还是单价涨了?</td>
+<td>功能上线后 DAU 渗透率高,请求量 ×8;或 Agent 多轮调用导致单次请求 token 暴增</td>
+</tr>
+<tr>
+<td>哪类请求最贵?</td>
+<td>长尾 20% 的复杂请求占了 80% 的成本</td>
+</tr>
+<tr>
+<td>效果冗余在哪?</td>
+<td>简单分类/提取任务用了旗舰模型,大材小用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>产出</strong>:一张成本分布图——按功能、按用户层级、按请求复杂度拆分,确定优化靶点。</p>
+<h3 id="_4">第二步:三层降本策略</h3>
+<h4 id="_5">第一层:无损降本(优先做,效果基本不变)</h4>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>原理</th>
+<th>预期降幅</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompt 压缩</td>
+<td>精简系统 Prompt,压缩历史上下文(滑动窗口/摘要)</td>
+<td>20-40%</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>相同/相似 query 命中缓存,跳过模型调用</td>
+<td>20-50%(视重复率)</td>
+</tr>
+<tr>
+<td>批处理</td>
+<td>非实时任务合并请求,降低 API 开销</td>
+<td>10-20%</td>
+</tr>
+<tr>
+<td>输出长度限制</td>
+<td>max_tokens 约束,避免冗长回复</td>
+<td>10-30%</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ab">第二层:低损降本(需 A/B 验证)</h4>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>原理</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型分级路由</td>
+<td>简单 query → 小模型,复杂 query → 大模型</td>
+<td>路由误判导致效果下降</td>
+</tr>
+<tr>
+<td>级联调用</td>
+<td>先用便宜模型,置信度低再升级</td>
+<td>延迟略增</td>
+</tr>
+<tr>
+<td>减少 Agent 步数</td>
+<td>合并工具调用,减少多轮推理</td>
+<td>复杂任务成功率可能降</td>
+</tr>
+<tr>
+<td>蒸馏/微调小模型</td>
+<td>用大模型生成数据,训练专用小模型</td>
+<td>前期投入大,长期划算</td>
+</tr>
+</tbody>
+</table>
+<p><strong>模型路由示意</strong>:</p>
+<pre><code>用户请求 → 意图分类(极小模型,几乎零成本)
+  ├── 简单(70%) → 小模型处理
+  ├── 中等(25%) → 中模型处理
+  └── 复杂(5%)  → 大模型处理
+</code></pre>
+<h4 id="_6">第三层:结构性优化(产品 + 商业层面)</h4>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能分层</td>
+<td>免费用户限次/限模型,付费用户全功能</td>
+</tr>
+<tr>
+<td>异步化</td>
+<td>非实时场景改为后台处理,可用更便宜算力</td>
+</tr>
+<tr>
+<td>自部署开源模型</td>
+<td>日请求量足够大时,自部署 DeepSeek/Llama 等可能低于 API</td>
+</tr>
+<tr>
+<td>重新评估功能必要性</td>
+<td>是否所有场景都需要 LLM?规则 + 模板能解决的不要上模型</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_7">第三步:落地节奏</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间</th>
+<th>动作</th>
+<th>验证</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 1 周</td>
+<td>诊断</td>
+<td>成本归因,确定 Top 3 优化点</td>
+<td>成本分布报告</td>
+</tr>
+<tr>
+<td>第 2-3 周</td>
+<td>快赢</td>
+<td>Prompt 压缩 + 缓存 + 输出限制</td>
+<td>成本降 30-50%,核心指标不降</td>
+</tr>
+<tr>
+<td>第 4-6 周</td>
+<td>路由</td>
+<td>上线模型分级,灰度验证</td>
+<td>A/B:效果损失 &lt; 2%,成本再降 30%</td>
+</tr>
+<tr>
+<td>第 2-3 月</td>
+<td>结构</td>
+<td>评估自部署/蒸馏,功能分层</td>
+<td>总成本降 70-90%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_8">第四步:向老板汇报的框架</h3>
+<blockquote>
+<p>"成本涨 10 倍的原因主要是 [请求量涨 X 倍 + 单次成本涨 Y 倍]。我计划分三步:
+1. 两周内通过 Prompt 优化和缓存降 40%,不影响用户体验;
+2. 一个月内上线模型路由,再降 30%,核心指标波动控制在 2% 以内;
+3. 季度内评估自部署,目标总成本回到涨前水平的 1.5 倍以内(功能多了,完全回到原水平不现实)。"</p>
+</blockquote>
+<h2 id="_9">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"模型路由如果误判了,把复杂问题发给小模型,用户体验崩了怎么办?"
+  → 设 fallback 机制:小模型置信度低或用户点"不满意"时自动升级;监控路由准确率,持续优化分类器。</li>
+<li><strong>追问 2</strong>:"业务方说不能降效果,只要降本,你怎么办?"
+  → 用数据说话:列出每个优化手段的效果损失预估(通常无损手段就能降 40-50%);若仍不够,讨论功能分层或商业定价,把成本转嫁给愿意付费的用户。</li>
+<li><strong>追问 3</strong>:"缓存会不会导致回答过时?"
+  → 区分场景:FAQ、政策解读等稳定内容适合缓存;实时信息(股价、天气)不缓存或短 TTL;产品侧标注"回答时间"增加信任。</li>
+</ul>
+<h2 id="_10">相关阅读</h2>
+<ul>
+<li><a href="estimate-daily-active-chat-cost.html">估算日活 100 万的 AI 对话产品每月模型调用成本</a></li>
+<li><a href="ai-business-model-and-pricing.html">DeepSeek 开始峰谷定价,你怎么看 AI 产品的商业模式?</a></li>
+<li><a href="../basics/rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+</ul>
+</main>
+</body>
+</html>

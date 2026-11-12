@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>生成式 AI 产品上线前，PM 的合规清单有哪些？</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/genai-compliance-for-pm.md</span></div>
+<main>
+<h1 id="ai-pm">生成式 AI 产品上线前，PM 的合规清单有哪些？</h1>
+<p><strong>难度</strong>:⭐⭐⭐ 进阶
+<strong>出现频率</strong>:中高，合规岗交叉面、大厂/出海 AI 产品常见</p>
+<blockquote>
+<p><strong>重要声明</strong>：下文是面试答题框架与产品协作清单，<strong>不构成法律意见</strong>。法规与配套标准更新频繁，具体适用性、备案判定、版权归属等必须以主管部门最新原文与<strong>你方法务/合规</strong>意见为准；不确定处应标「需法务」，禁止产品自行拍板写进对外承诺。</p>
+</blockquote>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否按「适用性 → 内容与标识 → 备案评估 → 个保与训练数据 → 上线验收与运营」给出可执行框架，而不是背几条口号</li>
+<li>是否分清「事实义务 / 产品建议 / 必须升级法务」三类，知道哪些不能由 PM 口头保证</li>
+<li>能否主动链到训练数据红线、出海对照等相邻问题，并声明不以第三方读物代替法规原文</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>：上线前合规不是「过一次审就完」，而是先判定自己是不是生成式 AI <strong>服务提供者</strong>，再按清单把内容安全、标识、备案/安全评估、个保与投诉通道、对外承诺做成可验收项；细节勾选以正课清单为准，法律结论一律交法务。</p>
+<p><strong>答题框架（六块，面试口述用）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>板块</th>
+<th>PM 要能说清的要点</th>
+<th>细节去哪看</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 适用性</td>
+<td>是否向境内公众提供文本/图片/音频/视频等生成服务；调海外 API 不自动免责</td>
+<td><a href="../../02-pm-skills/data-annotation/genai-compliance-checklist-cn.html">生成式 AI 合规设计清单</a>「监管地图 / 立项」</td>
+</tr>
+<tr>
+<td>2. 内容安全</td>
+<td>禁止类内容映射成拦截类别、人工复核、应急下线；发现违法内容有处置与报告路径</td>
+<td>同上「内容安全 / 上线前验收」</td>
+</tr>
+<tr>
+<td>3. 标识</td>
+<td>显式/隐式标识（尤其图视频等）；下载导出仍带标识；协议里说明标识方法</td>
+<td>同上「标识、备案与安全评估」</td>
+</tr>
+<tr>
+<td>4. 备案与评估</td>
+<td>是否落入「舆论属性 / 社会动员能力」→ 安全评估 + 算法备案等；<strong>判定需法务/合规，业务不能凭感觉跳过</strong></td>
+<td>同上第 17 条相关清单</td>
+</tr>
+<tr>
+<td>5. 个保与训练数据</td>
+<td>最小必要、敏感信息单独同意、查阅/删除通道；用户数据能否训练、告知/退出/出境</td>
+<td><a href="../../02-pm-skills/data-annotation/data-compliance.html">数据合规红线</a></td>
+</tr>
+<tr>
+<td>6. 协议、投诉与承诺</td>
+<td>服务协议、投诉举报入口、滥用处置；营销文案不写「绝对不训练 / 绝对安全」等与真实路径不符的话</td>
+<td>合规清单「上线前验收 / 上线后运营」</td>
+</tr>
+</tbody>
+</table>
+<p><strong>口述时加三条「加分边界」</strong>：</p>
+<ol>
+<li><strong>事实 vs 建议 vs 需法务</strong>：能复述公开法规要求的，标事实；产品流程动作标建议；版权归属、备案是否适用、无显式标识特例等标<strong>需法务</strong>。</li>
+<li><strong>中国包 ≠ 出海包</strong>：做完中国内容审核 ≠ 满足 GDPR / EU AI Act；反过来也一样。按市场拆合规包，对照摘要见正课中欧美表——<strong>每格以官方出处为准，不背第三方摘要当法条</strong>。</li>
+<li><strong>资料层级</strong>：答题与过审材料应锚定官方法规/政府公报；选题读物（如行业问答 PDF）只启发结构，<strong>禁止把 PDF 条款当法规原文</strong>。</li>
+</ol>
+<p><strong>结合场景举例（一句话即可）</strong>：面向中国用户的写作/绘图 Bot → 默认按提供者准备协议、内容策略、标识与投诉入口；若用海外模型 API，额外开「出境 + 供应商条款」闸门（见 data-compliance）；若产品有强传播属性，上线前必须拉合规确认是否要安全评估与算法备案。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li>
+<p><strong>追问 1</strong>：「调用海外大模型 API，算不算数据出境？我们还要不要当提供者？」
+  → 面向境内用户提供服务时，产品方通常仍要按提供者准备合规材料；把中国用户数据传到境外部署的 API，需评估出境路径（评估/标准合同/认证等门槛）。细节与厂商「默认是否训练」政策见 <a href="../../02-pm-skills/data-annotation/data-compliance.html">data-compliance.md</a>，适用性<strong>需法务</strong>。</p>
+</li>
+<li>
+<p><strong>追问 2</strong>：「生成内容的版权归用户还是平台？能不能保证商用绝不侵权？」
+  → 面试正确答法：服务规范要求尊重知识产权，但「纯 AI / 人机协作」权属与侵权分配<strong>司法与登记实践仍在发展，需法务</strong>；产品侧做预期管理、高风险商用人工复核、协议里 notice-and-takedown，<strong>禁止</strong>口头保证「绝对不侵权」或「法院已认定版权归本公司」。展开见正课「生成内容版权」节。</p>
+</li>
+<li>
+<p><strong>追问 3</strong>：「中欧美合规差在哪？我们做一套审核全球通用行不行？」
+  → 不行。中国侧重生成服务专项义务（内容、标识、备案评估等）+ 个保；欧盟是 AI Act 风险分级 + GDPR；美国无同构联邦「生成式 AI 法」，多为行业法/州隐私/执法与自愿框架。用对照表说话，每格引用官方出处，细节链正课，落地顾问意见为准。</p>
+</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/data-annotation/genai-compliance-checklist-cn.html">生成式 AI 合规设计清单（中国为主，出海对照）</a>（上线总清单；本题细节以此为准）</li>
+<li><a href="../../02-pm-skills/data-annotation/data-compliance.html">数据合规红线：用户数据能不能用来训练</a></li>
+<li><a href="../../02-pm-skills/ai-product-operations/guardrails-and-agent-security.html">AI 安全与 Agent 权限：把「能做什么」变成可治理的边界</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架：效果、成本、延迟、合规四要素</a></li>
+<li><a href="data-flywheel.html">什么是数据飞轮?对 AI 产品为什么重要?</a></li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Interview Hub</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">en / genai-interview-prep-index.md</span></div>
+<main>
+<h1 id="ai-interview-hub">AI Interview Hub</h1>
+<p><img alt="AI Interview Hub: role-based prep, worked system design, and shared AI depth" src="img/ai_interview_hub.png"></p>
+<p>The most complete, role-specific map of how AI interviews actually work in 2026, and everything you need to walk in ready.</p>
+<p>This hub is reverse-engineered from <strong>500+ real job descriptions</strong> and <strong>direct conversations with people who hire at FAANG+, Bay Area startups and frontier model companies</strong>. It is not generic advice scraped off the internet. Every role, every round, and every question bank here reflects what these loops are really testing, and how they have shifted as the job changed.</p>
+<p>Generative-AI interviews stopped testing one generic skill set. What an AI Engineer is grilled on looks nothing like what a Product Manager, a Forward-Deployed Engineer, or a Strategist faces. So this hub is organized by the job you are actually interviewing for: pick your role, work its folder end to end, and pull from a shared library of worked system-design cases, concept deep-dives, and free courses.</p>
+<p>Built by <strong><a href="https://www.linkedin.com/in/areganti/">Aishwarya Naresh Reganti</a></strong>, CEO of LevelUp Labs, and <strong><a href="https://www.linkedin.com/in/sai-kiriti-badam/">Kiriti Badam</a></strong>, Applied AI at OpenAI Codex.</p>
+<p><strong>What is inside</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4 role tracks</strong></td>
+<td>AI Engineer · AI Product Manager · Forward-Deployed Engineer · AI Strategist</td>
+</tr>
+<tr>
+<td><strong>24 role guides</strong></td>
+<td>each role has an overview, a rounds breakdown, a question bank, resources, courses, and a prep plan</td>
+</tr>
+<tr>
+<td><strong>10 system-design case studies</strong></td>
+<td>worked interviews on one 5-layer spine, each with an engineer writeup, a PM writeup, and runnable code</td>
+</tr>
+<tr>
+<td><strong>9 topic deep-dives</strong></td>
+<td>foundations, prompting, RAG, agents, evaluation, fine-tuning, production, safety, multimodal</td>
+</tr>
+<tr>
+<td><strong>1,000+ question bank</strong></td>
+<td>the role-agnostic warm-up covering what comes up in nearly every AI interview</td>
+</tr>
+<tr>
+<td><strong>Free courses</strong></td>
+<td>the full catalog, grouped by topic, starting with LevelUp's own material</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="how-to-use-this-hub">How to use this hub</h2>
+<ol>
+<li><strong>Pick your role</strong> below and open its folder.</li>
+<li><strong>Study its interview loop.</strong> Every role has a different set of rounds. Know exactly what each one tests before you prep for it.</li>
+<li><strong>Work the folder end to end:</strong> overview, then rounds, then drill the question bank, then go deep with resources and courses, then follow the prep plan to interview day.</li>
+<li><strong>Pull from the shared library.</strong> The system-design case studies, topic deep-dives, and courses below serve every role. Use them where you are thin.</li>
+</ol>
+<pre><code class="language-text">Pick your role  -&gt;  Learn its rounds  -&gt;  Drill the question bank  -&gt;  Go deep (resources + courses + system design)  -&gt;  Prep plan  -&gt;  Interview day
+</code></pre>
+<hr>
+<h2 id="which-role-are-you">Which role are you?</h2>
+<ul>
+<li><strong><a href="roles/ai-engineer/index.html">AI Engineer</a></strong> builds LLM-powered product features that ship and hold up in production. Prompting, context engineering, RAG, agents, evals, and reliability. Hired by product and platform teams that put models in front of users.</li>
+<li><strong><a href="roles/ai-product-manager/index.html">AI Product Manager</a></strong> owns products whose core behavior comes from a model. Capability judgment, probabilistic UX, evaluation strategy, and cost, latency, and risk tradeoffs.</li>
+<li><strong><a href="roles/forward-deployed-engineer/index.html">Forward-Deployed Engineer</a></strong> is a customer-facing engineer who embeds with a client, learns their domain, and ships working AI systems fast, from a vague business problem to a running product people trust. The OpenAI, Anthropic, and Palantir-style role.</li>
+<li><strong><a href="roles/ai-strategist/index.html">AI Strategist</a></strong> advises an organization on where AI creates value, how to sequence adoption, whether to build or buy, and how to manage cost, return, risk, and governance.</li>
+</ul>
+<p>A quick comparison:</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>You mainly</th>
+<th>Signature round</th>
+<th>Heaviest topics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="roles/ai-engineer/index.html">AI Engineer</a></td>
+<td>build LLM features that ship</td>
+<td>take-home + system design</td>
+<td>RAG, agents, evaluation, system design</td>
+</tr>
+<tr>
+<td><a href="roles/ai-product-manager/index.html">AI Product Manager</a></td>
+<td>decide what to build and why</td>
+<td>product sense (design a feature)</td>
+<td>capability judgment, metrics, tradeoffs</td>
+</tr>
+<tr>
+<td><a href="roles/forward-deployed-engineer/index.html">Forward-Deployed Engineer</a></td>
+<td>build and deploy at the customer</td>
+<td>ambiguous-case decomposition</td>
+<td>full-stack build, communication, ambiguity</td>
+</tr>
+<tr>
+<td><a href="roles/ai-strategist/index.html">AI Strategist</a></td>
+<td>advise on where AI creates value</td>
+<td>the strategy case</td>
+<td>landscape fluency, ROI, governance</td>
+</tr>
+</tbody>
+</table>
+<p>Every role folder has the same six parts, so once you know one you know them all: <strong>Overview · Rounds · Question bank · Resources · Courses · Prep plan.</strong></p>
+<hr>
+<h2 id="the-roles-and-the-exact-rounds-each-one-faces">The roles, and the exact rounds each one faces</h2>
+<h3 id="ai-engineer">⚙️ AI Engineer</h3>
+<p>Builds LLM features that ship and survive production. The loop leans on a take-home and a live system-design round.</p>
+<table>
+<thead>
+<tr>
+<th>Round</th>
+<th>What it tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Recruiter screen</td>
+<td>Fit, level, motivation, and whether you can tell your project story in plain language. A buzzword answer here can end the loop.</td>
+</tr>
+<tr>
+<td>2. Technical / coding</td>
+<td>Practical Python plus hands-on LLM coding: call a model API, validate structured output, wire a small retrieval or tool-use loop, reason about correctness, cost, and latency. Not LeetCode.</td>
+</tr>
+<tr>
+<td>3. Take-home</td>
+<td>A realistic build that mirrors the actual job. The single most predictive round for this role.</td>
+</tr>
+<tr>
+<td>4. LLM / ML system design</td>
+<td>Architect an LLM system out loud and defend the tradeoffs: retrieval versus fine-tuning, agency versus control, evals as release infrastructure, the cost-latency-quality triangle.</td>
+</tr>
+<tr>
+<td>5. Behavioral</td>
+<td>Ownership, ambiguity, handling a production incident, working with PMs and researchers, and the messiness unique to LLM products (a model that regresses after a provider update, a hallucination that reached a user).</td>
+</tr>
+<tr>
+<td>6. Hiring manager</td>
+<td>Judgment, ownership, team fit, a first-90-days probe, and your questions, which are scored.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Go deeper:</strong> <a href="roles/ai-engineer/index.html">Overview</a> · <a href="roles/ai-engineer/rounds.html">Rounds</a> · <a href="roles/ai-engineer/questions.html">Question bank</a> · <a href="roles/ai-engineer/resources.html">Resources</a> · <a href="roles/ai-engineer/courses.html">Courses</a> · <a href="roles/ai-engineer/prep-plan.html">Prep plan</a></p>
+<h3 id="ai-product-manager">📋 AI Product Manager</h3>
+<p>Owns products whose core behavior comes from a model. The analytical and metrics round is the one that most predicts the hire.</p>
+<table>
+<thead>
+<tr>
+<th>Round</th>
+<th>What it tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Recruiter screen</td>
+<td>Whether you are genuinely an AI PM (not a PM who read a few blog posts), your motivation, and one AI product you truly owned.</td>
+</tr>
+<tr>
+<td>2. AI product sense</td>
+<td>The instinct to ask whether AI belongs in the problem at all, then product design under probabilistic behavior: users, the model's role, the UX around wrongness, and metrics.</td>
+</tr>
+<tr>
+<td>3. Analytical / metrics</td>
+<td>Define and defend an evaluation strategy: offline eval sets and regression suites versus online signals, north-star versus guardrails, unit economics, and the discipline to catch a model silently getting worse.</td>
+</tr>
+<tr>
+<td>4. AI technical literacy</td>
+<td>Whether technical people can trust you: RAG versus fine-tuning versus prompting, when an agent is warranted, context engineering, MCP, model selection, explained simply.</td>
+</tr>
+<tr>
+<td>5. Behavioral / leadership</td>
+<td>Judgment under ambiguity and influence without authority, with an AI twist: have you killed an AI feature, or handled a model that degraded in production.</td>
+</tr>
+<tr>
+<td>6. Cross-functional / execution</td>
+<td>Build versus buy, roadmap prioritization under a scarce data-science budget, PRDs for probabilistic features, and launch-readiness gates.</td>
+</tr>
+<tr>
+<td>7. Live prototype (rising in 2026)</td>
+<td>Guide an AI builder tool and critically evaluate its output. Less about the code than the judgment. Meta hands candidates an internal tool; others use Cursor or v0.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Go deeper:</strong> <a href="roles/ai-product-manager/index.html">Overview</a> · <a href="roles/ai-product-manager/rounds.html">Rounds</a> · <a href="roles/ai-product-manager/questions.html">Question bank</a> · <a href="roles/ai-product-manager/resources.html">Resources</a> · <a href="roles/ai-product-manager/courses.html">Courses</a> · <a href="roles/ai-product-manager/prep-plan.html">Prep plan</a></p>
+<h3 id="forward-deployed-engineer">🚀 Forward-Deployed Engineer</h3>
+<p>Embeds with a customer and ships working AI fast under ambiguity. The ambiguous-case decomposition round is the signature filter.</p>
+<table>
+<thead>
+<tr>
+<th>Round</th>
+<th>What it tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Recruiter screen</td>
+<td>Motivation, role fit, communication, and whether you understand what an FDE actually does.</td>
+</tr>
+<tr>
+<td>2. Hiring-manager screen</td>
+<td>Depth of your past work, ownership, and whether you led or followed.</td>
+</tr>
+<tr>
+<td>3. Coding</td>
+<td>Parsing and transforming messy real-world data, integrating flaky external systems, clean tested code, narrated. Deliberately not algorithm trivia.</td>
+</tr>
+<tr>
+<td>4. System design / architecture</td>
+<td>Real-world deployment: data flow and trust boundaries, identity and access, observability, failure modes and rollback, and where RAG, agents, and evaluation fit.</td>
+</tr>
+<tr>
+<td>5. Ambiguous case / decomposition (signature)</td>
+<td>Take a vague business problem, clarify the real goal, surface assumptions, decompose it, sequence by risk and value, and propose a thin end-to-end first slice. Highest-weight round (about 30%), lowest pass rate (about 40%). Palantir made it famous.</td>
+</tr>
+<tr>
+<td>6. Customer simulation</td>
+<td>Deliver bad news, push back on a bad request without losing the customer, and explain technical limits to non-technical people.</td>
+</tr>
+<tr>
+<td>7. Behavioral / values</td>
+<td>Ownership, ambiguity tolerance, cross-functional collaboration, and, at the labs, mission alignment.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Go deeper:</strong> <a href="roles/forward-deployed-engineer/index.html">Overview</a> · <a href="roles/forward-deployed-engineer/rounds.html">Rounds</a> · <a href="roles/forward-deployed-engineer/questions.html">Question bank</a> · <a href="roles/forward-deployed-engineer/resources.html">Resources</a> · <a href="roles/forward-deployed-engineer/courses.html">Courses</a> · <a href="roles/forward-deployed-engineer/prep-plan.html">Prep plan</a></p>
+<h3 id="ai-strategist">🧭 AI Strategist</h3>
+<p>Advises where AI creates value and how to sequence adoption. The case round is the heart of the loop.</p>
+<table>
+<thead>
+<tr>
+<th>Round</th>
+<th>What it tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Recruiter / hiring-manager screen</td>
+<td>Whether you can talk about AI in business terms without hand-waving or drowning the room in jargon, plus your track record with AI initiatives.</td>
+</tr>
+<tr>
+<td>2. AI landscape and tech fluency</td>
+<td>Whether your fluency is real and current: build-vs-buy-vs-fine-tune-vs-RAG calls, why evals matter, agents and their failure surface, cost, latency, reasoning models, MCP. This round protects the firm from strategists who sign off on bad technical plans.</td>
+</tr>
+<tr>
+<td>3. Case round (the heart)</td>
+<td>The whole job in 60 minutes: structured thinking, ROI, prioritization, build versus buy, risk, and adoption. An AI-implementation case now shows up in roughly 1 in 3 first-round MBB interviews.</td>
+</tr>
+<tr>
+<td>4. Technical decomposition / light system design</td>
+<td>Lay out a thin, buildable, governed path to production for one real workflow. The biggest filter in forward-deployed loops.</td>
+</tr>
+<tr>
+<td>5. Stakeholder communication / customer simulation</td>
+<td>Carry a recommendation into a room that pushes back: executive presence, translating tradeoffs, delivering bad news, holding a line. Communication signals can carry close to half the decision for this role.</td>
+</tr>
+<tr>
+<td>6. Behavioral</td>
+<td>Leadership, influence without authority, resilience through a stalled initiative, and ethics.</td>
+</tr>
+<tr>
+<td>7. Take-home variant</td>
+<td>A mini AI strategy or opportunity assessment for a described company, delivered as a short deck or memo.</td>
+</tr>
+<tr>
+<td>8. Your questions and debrief</td>
+<td>Strong candidates use their own questions to demonstrate the role.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Go deeper:</strong> <a href="roles/ai-strategist/index.html">Overview</a> · <a href="roles/ai-strategist/rounds.html">Rounds</a> · <a href="roles/ai-strategist/questions.html">Question bank</a> · <a href="roles/ai-strategist/resources.html">Resources</a> · <a href="roles/ai-strategist/courses.html">Courses</a> · <a href="roles/ai-strategist/prep-plan.html">Prep plan</a></p>
+<hr>
+<h2 id="system-design-case-studies">System design case studies</h2>
+<p>The signature round for AI Engineers and Forward-Deployed Engineers, and a strong asset for PMs and Strategists. These are <strong>10 worked AI system-design interviews</strong>, each written as a real question, a full answer, then the follow-ups. Every case ships <strong>runnable, provider-agnostic code</strong> and comes in <strong>two versions</strong>: an <strong>engineer</strong> writeup (the harness, tools, evals, code) and a <strong>PM</strong> writeup (capability judgment, metrics, rollout) of the same scenario.</p>
+<p>Start at the <strong><a href="system-design/index.html">system-design overview</a></strong>.</p>
+<p><strong>The spine every case shares.</strong> Rather than a new framework per problem, all 10 cases compose the same 5 layers, so once you internalize it you can design anything:</p>
+<ol>
+<li><strong>The model</strong> (the one non-deterministic component).</li>
+<li><strong>The wrapping layer</strong> (the architecture: knowledge, tools, and memory).</li>
+<li><strong>Evals and guardrails</strong> (evaluation moved from a final gate to the center of the design).</li>
+<li><strong>Production and ops</strong> (serving, observability, cost, latency, rollback).</li>
+<li><strong>Optimization</strong> (routing, caching, and where multi-agent belongs).</li>
+</ol>
+<h3 id="the-10-cases-by-type">The 10 cases, by type</h3>
+<p><strong>Retrieval and knowledge assistants</strong>
+- <strong><a href="system-design/customer-support-agent/index.html">Customer-support agent</a></strong> answers from a help center and takes safe actions, escalating refunds and high-impact steps to a human. [<a href="system-design/customer-support-agent/pm.html">PM version</a>] [<a href="system-design/customer-support-agent/code/">code</a>]
+- <strong><a href="system-design/enterprise-research-assistant/index.html">Enterprise research assistant</a></strong> answers employee questions with citations across wiki, docs, tickets, code, and chat, scoped to what each user is allowed to see. [<a href="system-design/enterprise-research-assistant/pm.html">PM version</a>] [<a href="system-design/enterprise-research-assistant/code/">code</a>]</p>
+<p><strong>Structured data and analytics</strong>
+- <strong><a href="system-design/text-to-sql-analytics/index.html">Text-to-SQL analytics</a></strong> turns a business question into correct, verified SQL over a warehouse, and abstains when it cannot validate the result. [<a href="system-design/text-to-sql-analytics/pm.html">PM version</a>] [<a href="system-design/text-to-sql-analytics/code/">code</a>]</p>
+<p><strong>Decisioning and document extraction</strong>
+- <strong><a href="system-design/financial-ops-decisioning/index.html">Financial-ops decisioning</a></strong> extracts facts from invoices and expenses, applies policy in deterministic code, and decides approve, deny, or route, with an immutable audit trail. [<a href="system-design/financial-ops-decisioning/pm.html">PM version</a>] [<a href="system-design/financial-ops-decisioning/code/">code</a>]
+- <strong><a href="system-design/document-decisioning/index.html">Document decisioning</a></strong> reads underwriting-style documents, extracts fields with confidence, and decides approve, decline, or refer. [<a href="system-design/document-decisioning/pm.html">PM version</a>] [<a href="system-design/document-decisioning/code/">code</a>]</p>
+<p><strong>Detection and compliance</strong>
+- <strong><a href="system-design/security-compliance-agent/index.html">Security and compliance agent</a></strong> screens every event as allow, flag, or block against written policy, sending the uncertain middle to an analyst. [<a href="system-design/security-compliance-agent/pm.html">PM version</a>] [<a href="system-design/security-compliance-agent/code/">code</a>]</p>
+<p><strong>Autonomous and real-time agents</strong>
+- <strong><a href="system-design/coding-agent/index.html">Coding agent</a></strong> turns a task plus a repo plus tests into a reviewed pull request, working in a sandbox with a human on the merge. [<a href="system-design/coding-agent/pm.html">PM version</a>] [<a href="system-design/coding-agent/code/">code</a>]
+- <strong><a href="system-design/voice-support-agent/index.html">Voice-support agent</a></strong> contains routine calls in spoken conversation with low latency and barge-in, handing off cleanly to a person. [<a href="system-design/voice-support-agent/pm.html">PM version</a>] [<a href="system-design/voice-support-agent/code/">code</a>]
+- <strong><a href="system-design/sdr-sales-agent/index.html">SDR sales agent</a></strong> enriches and qualifies inbound leads and drafts a compliant first-touch email for a human to approve and send. [<a href="system-design/sdr-sales-agent/pm.html">PM version</a>] [<a href="system-design/sdr-sales-agent/code/">code</a>]</p>
+<p><strong>Regulated and high-stakes domains</strong>
+- <strong><a href="system-design/clinical-scribe/index.html">Clinical scribe</a></strong> turns a visit transcript into a structured SOAP-note draft that a clinician reviews and signs. Nothing auto-files. [<a href="system-design/clinical-scribe/pm.html">PM version</a>] [<a href="system-design/clinical-scribe/code/">code</a>]</p>
+<h3 id="the-design-topics-these-cases-teach">The design topics these cases teach</h3>
+<p>Across the 10 cases, the collection covers the topics a system-design interviewer actually probes:</p>
+<ul>
+<li><strong>Retrieval and grounding:</strong> hybrid search, reranking, a relevance floor, and grounding every claim (customer-support, enterprise research, voice, text-to-SQL).</li>
+<li><strong>Permission-scoped retrieval and the lethal trifecta:</strong> keeping untrusted content, private data, and the ability to act from meeting in one path (enterprise research, security).</li>
+<li><strong>Tool use and bounded agent loops:</strong> typed tools, least privilege, and a step-capped ReAct loop (every agentic case).</li>
+<li><strong>Structured extraction with confidence:</strong> typed fields, a confidence signal, and routing shaky reads to a human (financial-ops, document decisioning, clinical, text-to-SQL).</li>
+<li><strong>Evals as release infrastructure, guardrails, and the discovery loop:</strong> offline gates, online signals, and naming the failure your metrics missed (every case).</li>
+<li><strong>Deterministic policy versus model judgment:</strong> encoding the knowable rules in code and reserving the model for the fuzzy calls (financial-ops, document decisioning, security).</li>
+<li><strong>Human-in-the-loop and escalation gates:</strong> refunds, sign-offs, and merges that never happen without a person (every case).</li>
+<li><strong>Real-time and latency:</strong> streaming ASR and TTS, endpointing, and barge-in under a one-second budget (voice).</li>
+<li><strong>Audit trails and compliance:</strong> immutable, defensible records on every decision (financial-ops, document decisioning, security, clinical).</li>
+<li><strong>Multi-agent as an optimization, not a default:</strong> an orchestrator with specialists only where parallelism and task value justify the cost (enterprise research, coding, and others).</li>
+</ul>
+<hr>
+<h2 id="shared-library-for-every-role">Shared library for every role</h2>
+<h3 id="topic-deep-dives">Topic deep-dives</h3>
+<p>Concept-by-concept reference pages. Every loop expects fluency in these. Read them to fill gaps or refresh before a technical screen.</p>
+<ul>
+<li><strong><a href="../topics/foundations.html">Foundations</a>:</strong> how LLMs work: tokens, embeddings, transformers, and the vocabulary the rest depends on.</li>
+<li><strong><a href="../topics/prompting.html">Prompting</a>:</strong> prompt and context engineering, the primary lever in modern LLM products.</li>
+<li><strong><a href="../topics/rag.html">RAG</a>:</strong> retrieval-augmented generation, chunking, indexing, and grounding answers in your own data.</li>
+<li><strong><a href="../topics/agents.html">Agents</a>:</strong> tool use, planning, memory, and multi-step autonomous systems.</li>
+<li><strong><a href="../topics/evaluation.html">Evaluation</a>:</strong> building eval sets, LLM-as-judge, regression suites, and catching silent degradation.</li>
+<li><strong><a href="../topics/fine-tuning.html">Fine-tuning</a>:</strong> when to fine-tune versus prompt, and the methods for adapting a base model.</li>
+<li><strong><a href="../topics/production.html">Production</a>:</strong> serving, latency, cost, monitoring, and everything between a demo and a live system.</li>
+<li><strong><a href="../topics/safety-security.html">Safety and security</a>:</strong> prompt injection, guardrails, privacy, and responsible AI.</li>
+<li><strong><a href="../topics/multimodal.html">Multimodal</a>:</strong> models that work across text, images, audio, and video.</li>
+</ul>
+<h3 id="courses">Courses</h3>
+<ul>
+<li><strong><a href="../courses.html">All free courses, by topic</a>:</strong> the full catalog in this guide, grouped by topic, starting with LevelUp's own material. Each role folder also points to the best courses for that specific loop.</li>
+<li><strong>Learn live with us.</strong> Beyond the free material, we teach cohort-based courses on Maven, and more than 3,000 builders have learned with us so far. The two most relevant to this hub: <strong><a href="https://maven.com/aishwarya-kiriti/genai-system-design">AI System Design</a></strong> and <strong><a href="https://maven.com/aishwarya-kiriti/evals-problem-first">Advanced AI Evals</a></strong>. See <a href="https://maven.com/aishwarya-kiriti">all our live courses</a>.</li>
+</ul>
+<h3 id="60-genai-questions-fundamentals-warm-up">60 GenAI questions (fundamentals warm-up)</h3>
+<ul>
+<li><strong><a href="60_gen_ai_questions.html">60 GenAI Interview Questions</a>:</strong> a broad, role-agnostic bank (1,000+ lines) covering the concepts that surface in almost any AI interview. A good gut-check before a screen. It is a warm-up, not the main event: the depth lives in your role folder and the system-design cases.</li>
+</ul>
+<hr>
+<h2 id="full-index">Full index</h2>
+<p>Everything in this section, one click away.</p>
+<ul>
+<li><strong>Roles:</strong> <a href="roles/ai-engineer/index.html">AI Engineer</a> · <a href="roles/ai-product-manager/index.html">AI Product Manager</a> · <a href="roles/forward-deployed-engineer/index.html">Forward-Deployed Engineer</a> · <a href="roles/ai-strategist/index.html">AI Strategist</a></li>
+<li>Each with: Overview (README) · Rounds · Question bank (questions) · Resources · Courses · Prep plan</li>
+<li><strong>System design:</strong> <a href="system-design/index.html">overview</a> · <a href="system-design/customer-support-agent/index.html">customer-support</a> · <a href="system-design/enterprise-research-assistant/index.html">enterprise research</a> · <a href="system-design/text-to-sql-analytics/index.html">text-to-SQL</a> · <a href="system-design/financial-ops-decisioning/index.html">financial-ops</a> · <a href="system-design/security-compliance-agent/index.html">security and compliance</a> · <a href="system-design/coding-agent/index.html">coding agent</a> · <a href="system-design/document-decisioning/index.html">document decisioning</a> · <a href="system-design/voice-support-agent/index.html">voice support</a> · <a href="system-design/sdr-sales-agent/index.html">SDR sales</a> · <a href="system-design/clinical-scribe/index.html">clinical scribe</a> (each has a PM version and a code folder)</li>
+<li><strong>Topics:</strong> <a href="../topics/foundations.html">foundations</a> · <a href="../topics/prompting.html">prompting</a> · <a href="../topics/rag.html">RAG</a> · <a href="../topics/agents.html">agents</a> · <a href="../topics/evaluation.html">evaluation</a> · <a href="../topics/fine-tuning.html">fine-tuning</a> · <a href="../topics/production.html">production</a> · <a href="../topics/safety-security.html">safety and security</a> · <a href="../topics/multimodal.html">multimodal</a></li>
+<li><strong>More:</strong> <a href="60_gen_ai_questions.html">60 GenAI questions</a> · <a href="../courses.html">all free courses</a></li>
+</ul>
+</main>
+</body>
+</html>

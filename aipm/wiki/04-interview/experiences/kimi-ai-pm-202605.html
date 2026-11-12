@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kimi AI 产品经理面经复盘（2026 年 05 月）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/experiences/kimi-ai-pm-202605.md</span></div>
+<main>
+<h1 id="kimi-ai-2026-05">Kimi AI 产品经理面经复盘（2026 年 05 月）</h1>
+<p><strong>出处</strong>：小红书 @黑洞甜甜圈（AI版），《Kimi AI产品经理面经复盘（卷王笔记）》，2026-05-21。 <a href="https://www.xiaohongshu.com/search_result/6a0e9b10000000003700ce69?xsec_token=ABtTM2PZS20io4FTSDSg0ph5b7JVCOR-7Fw-XMAOfyj2g=&amp;xsec_source=">原文链接</a></p>
+<p><strong>来源性质</strong>：社区公开面经笔记摘要，本文仅整理 OpenCLI 抓取到的原文明确内容，未对经历进行独立核验。当前摘要只包含编号为 09、10 的两道题，前序题目、背景、流程和结果均未披露。</p>
+<p><strong>背景</strong>：原文未披露
+<strong>渠道</strong>：原文未披露
+<strong>结果</strong>：原文未披露</p>
+<h2 id="_1">流程概览</h2>
+<p>原文摘要未披露面试轮次和流程，只展示了两道偏产品设计与业务判断的题目。</p>
+<h2 id="_2">各轮详情</h2>
+<h3 id="_3">面试题摘录</h3>
+<h4 id="09-agent-benchmark">09. 面向专业用户的 Agent 该如何设计 Benchmark？</h4>
+<p>原文观点包括：</p>
+<ul>
+<li>专业 Agent 的 Benchmark 不应只测模型能力，还要测业务可用性和安全底线。</li>
+<li>以法律尽调 Agent 为例，测试集应来自真实业务中的脏数据和失败案例，而不只是干净的公开题库。</li>
+<li>可以加入长合同、补充协议、财务材料、冲突条款、隐藏责任和误导性描述，测试 Agent 是否能在长文本中发现风险。</li>
+<li>专业场景的指标应允许非对称取舍：高风险召回率应优先于漂亮的精准率，漏掉致命问题的代价更高。</li>
+<li>每个结论都应能溯源到原文页码和段落，引用幻觉应视为严重问题。</li>
+<li>评测可以由专家先定义评分细则和样本，再结合领域裁判模型批量评测，同时保留专家抽检、红蓝对抗和随真实业务滚动更新的测试集。</li>
+</ul>
+<p><strong>整理后的回答框架</strong>：业务目标与风险 → 真实数据构造 → 指标设计 → 证据溯源 → 裁判机制 → 线上反馈闭环。</p>
+<h4 id="10-kimi">10. 如果负责 Kimi 的下一增长曲线，会选哪个方向？</h4>
+<p>原文选择面向 Prosumer 的状态化工作空间，而不是继续竞争泛 C 端问答流量，主要理由包括：</p>
+<ul>
+<li>Kimi 的长文本能力可以带来初始关注，但纯 Chat 的迁移成本低，用户可以轻易切换到其他模型。</li>
+<li>目标用户可以是律师、研究员、投资分析师、内容创作者和代码极客等高信息密度、重任务、愿意为效率付费的人群。</li>
+<li>产品形态应从一次性对话变为持久项目空间，沉淀财报、合同、论文、批注和历史结论。</li>
+<li>Kimi 可以基于这些沉淀生成看板、数据库和分析草稿，并逐渐理解用户的关注维度、表达风格和资料结构。</li>
+<li>长期壁垒不是某次回答更好，而是用户离开后需要重新培养一个懂自己的数字分身。</li>
+</ul>
+<p><strong>整理后的回答框架</strong>：现有优势 → 用户分层 → 产品形态变化 → 用户资产沉淀 → 使用惯性与商业化 → 竞争壁垒。</p>
+<h2 id="_4">总结与建议</h2>
+<ul>
+<li>这篇面经适合用于准备 Agent 评测、专业场景产品设计和 AI 产品增长曲线题。</li>
+<li>专业 Agent 的评测不能只看平均准确率，应同时考虑高风险召回、证据溯源、安全边界和真实业务数据。</li>
+<li>AI 产品增长题要避免只讲“增加用户”，还要分析用户资产、迁移成本、使用惯性和付费价值。</li>
+<li>当前资料只包含两道题，不能据此还原 Kimi 的完整面试题库。</li>
+</ul>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="../basics/model-evaluation-system.html">如何构建大模型效果评测体系？</a></li>
+<li><a href="../basics/agent-vs-chatbot.html">什么是 Agent？它和 Chatbot 的区别是什么？</a></li>
+<li><a href="../basics/data-flywheel.html">Data Flywheel：数据飞轮</a></li>
+</ul>
+</main>
+</body>
+</html>

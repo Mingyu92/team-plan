@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>可灵与即梦:视频生成两条商业化路径</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/aigc/kling-vs-jimeng.md</span></div>
+<main>
+<h1 id="_1">可灵与即梦:视频生成两条商业化路径</h1>
+<p><strong>分类</strong>:AIGC
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_2">一、产品背景</h2>
+<p>本仓库已有 <a href="ai-video-generation.html">Sora 与 Veo</a> 的对照:一条是消费级独立 App 高成本失败,一条是能力嵌入 Google 生态分发。本文换一个问题——<strong>在中国市场,视频生成怎样才能「卖得出去」?</strong> 选取两个可公开对照的样本:</p>
+<ul>
+<li><strong>可灵 AI</strong>(快手):以专业创作者与企业客户为主的视频生成产品,上市公司口径披露了可核实的收入运行率。</li>
+<li><strong>即梦</strong>(字节跳动,海外品牌 Dreamina):Seedance 等视频模型的重要 C 端入口之一,与剪映、火山引擎 API/年框销售共享同一条模型供应链。</li>
+</ul>
+<p>二者都不是「再讲一遍扩散模型有多贵」,而是回答:<strong>爆款模型能力落进什么产品容器、向谁收费、算力紧张时优先保谁。</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>可灵 AI</th>
+<th>即梦(+ Seedance 供给)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>母公司</td>
+<td>快手</td>
+<td>字节跳动</td>
+</tr>
+<tr>
+<td>主叙事</td>
+<td>专业创意工具 + 企业合作</td>
+<td>C 端创作入口 + 集团模型分发</td>
+</tr>
+<tr>
+<td>收入锚点</td>
+<td>快手 IR 披露 ARR</td>
+<td>会员/积分 + 火山 MaaS/年框(媒体口径需分层)</td>
+</tr>
+<tr>
+<td>与已有案例关系</td>
+<td>对照 Sora「卖不动」</td>
+<td>对照 Veo「嵌生态」,但更强调算力分配冲突</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">二、核心功能拆解</h2>
+<h3 id="_4">可灵:把「能生成」做成专业工作台</h3>
+<p>按快手 2026 年 1 月公告口径,可灵面向营销、电商、影视、短剧、动画、游戏等专业场景,并在 2025 年 12 月「全能灵感周」集中发布可灵视频 O1、图片 O1、视频 2.6(音画同出)、数字人 2.0 等。对 PM 有价值的不是发布会清单,而是功能组合背后的付费理由:</p>
+<table>
+<thead>
+<tr>
+<th>能力类型</th>
+<th>产品含义</th>
+<th>为何更容易收费</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文/图生视频</td>
+<td>基础生成</td>
+<td>入门体验,个人会员常见入口</td>
+</tr>
+<tr>
+<td>多模态编辑 / 视频参考 / 主体库</td>
+<td>一致性、可改、可复用</td>
+<td>专业流程刚需,拉开与「玩具生成」差距</td>
+</tr>
+<tr>
+<td>音画同出、数字人</td>
+<td>成片环节减少</td>
+<td>直接对应短视频/广告交付成本</td>
+</tr>
+<tr>
+<td>企业侧合作与 API</td>
+<td>批量、稳定供给</td>
+<td>按量/合同收费,毛利叙事更清晰</td>
+</tr>
+</tbody>
+</table>
+<p>主流程(专业向):需求与分镜 → 生成多版本 → 主体/风格一致性约束下迭代 → 导出进剪辑或投放链路。AI 覆盖「生成—一致性保持—部分后期」,人类仍负责创意决策与成片规范。</p>
+<h3 id="c">即梦:爆款模型的 C 端水龙头</h3>
+<p>即梦承载图像与视频等多模态创作;2026 年初前后 Seedance 2.0 能力接入即梦、豆包等字节系入口后,C 端出现明显的排队与积分压力(多家媒体与从业者报道)。对 PM 而言,即梦拆解的重点是<strong>供给分配</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>发生了什么</th>
+<th>产品决策含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型爆火</td>
+<td>Seedance 需求超过预期算力</td>
+<td>不能同时「人人无限玩」与「企业稳定出片」</td>
+</tr>
+<tr>
+<td>C 端会员/积分</td>
+<td>订阅与积分消耗限制生成</td>
+<td>用价格与配额过滤轻度用户</td>
+</tr>
+<tr>
+<td>优惠收缩</td>
+<td>新会员优惠取消、积分按全价计等报道</td>
+<td>从拉新补贴切到可持续供给</td>
+</tr>
+<tr>
+<td>集团内争抢</td>
+<td>剪映与即梦争同一模型能力(媒体报道)</td>
+<td>同一模型多入口时,要显式定优先级</td>
+</tr>
+<tr>
+<td>B 端年框</td>
+<td>媒体称高门槛年框保「满血」供给</td>
+<td>算力优先卖给付得起确定性的客户</td>
+</tr>
+</tbody>
+</table>
+<p>主流程(C 端向):灵感/素材 → 消耗积分生成 → 排队或会员加速 → 导出到剪映等后续工具。AI 负责生成,产品层用积分与队列做「看不见的调度器」。</p>
+<h2 id="_5">三、技术方案推测</h2>
+<blockquote>
+<p>以下为基于公开信息的合理推测,非两家完整架构披露。</p>
+</blockquote>
+<ul>
+<li><strong>可灵(推测)</strong>:自研视频生成大模型产品线,强调多模态条件(文本/图像/视频参考)与主体一致性;工程上需支持高并发推理与企业级 SLA。具体参数量与训练数据未在 IR 新闻稿中展开。</li>
+<li><strong>即梦 / Seedance(推测)</strong>:Seedance 为字节侧视频生成模型品牌,经火山引擎等渠道向 ToB 输出,同时注入即梦等 C 端 App。爆火后的排队本质是<strong>推理算力调度问题</strong>:白名单/年框用户与普通会员不在同一优先级队列。</li>
+<li><strong>共同约束</strong>:视频生成单位成本远高于文本(见 Sora/Veo 文原理部分),因此两家都不可能长期靠「无限免费生成」支撑;差别在于可灵更早把专业付费讲清楚,即梦则同时承受 C 端增长与集团内多入口分食。</li>
+</ul>
+<h2 id="_6">四、商业模式</h2>
+<h3 id="_7">可灵:可核实的收入锚点</h3>
+<p>快手科技 2026 年 1 月 13 日公告(港交所新闻稿口径):</p>
+<ul>
+<li>2025 年 12 月<strong>当月收入突破 2,000 万美元</strong>,对应 <strong>ARR 2.4 亿美元</strong>(备注:ARR = 当月营业收入 × 12)。</li>
+<li>正式上线后约第 19 个月宣布该里程碑;此前 2025 年 3 月曾披露 ARR 破 1 亿美元。</li>
+<li>截至 2025 年 12 月:全球创作者超 <strong>6,000 万</strong>,累计生成视频超 <strong>6 亿</strong>个,累计合作企业超 <strong>3 万</strong>家。</li>
+</ul>
+<p>这组数字的价值在于:<strong>上市公司 IR 口径 + 明确 ARR 定义</strong>,比自媒体「近 5 亿 ARR」之类传闻更适合写进知识库。后一类更高数字若出现在媒体/电话会转述中,应标注来源层级,本文不以之为事实主轴。</p>
+<p>收入结构上,可合理理解为<strong>个人/创作者订阅或套餐 + 企业合作/API</strong> 双轮;IR 未拆分二者占比,写案例时不要编造比例。</p>
+<h3 id="seedance">即梦 / Seedance:来源要分层</h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>内容</th>
+<th>写法建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>可观察产品行为</td>
+<td>会员、积分、排队、优惠调整</td>
+<td>可作为体验与策略分析主轴</td>
+</tr>
+<tr>
+<td>媒体报道</td>
+<td>Seedance「单月营收超 10 亿」、ARR 传闻等</td>
+<td>必须写「据报道」;火山引擎管理层曾公开否认偏高收入传闻</td>
+</tr>
+<tr>
+<td>集团战略</td>
+<td>火山 MaaS 目标上调、短剧/广告场景吃模型</td>
+<td>用「方向判断」而非精确营收</td>
+</tr>
+</tbody>
+</table>
+<p>对 PM 更重要的结论不是「到底赚了多少」,而是:<strong>当模型成为稀缺算力商品时,C 端 App 会从增长工具变成配额阀门</strong>——提价、取消优惠、保障老客/年框,都是同一决策树的叶子节点。</p>
+<h3 id="sora-veo">与 Sora / Veo 的三角对照</h3>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>代表</th>
+<th>结局/状态(截至 2026-07)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>独立消费爆款</td>
+<td>Sora App</td>
+<td>关停(见专文)</td>
+</tr>
+<tr>
+<td>生态嵌入</td>
+<td>Veo</td>
+<td>多入口分发,成本摊入订阅/云</td>
+</tr>
+<tr>
+<td>专业付费跑通</td>
+<td>可灵</td>
+<td>IR 披露 ARR 爬坡</td>
+</tr>
+<tr>
+<td>爆款模型多入口分配</td>
+<td>即梦 + 剪映 + 年框</td>
+<td>增长与供给冲突显性化</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>先问「向谁承诺稳定性」,再问「MAU 能做多大」。</strong> 可灵用企业与专业创作者叙事支撑付费;即梦在 Seedance 爆火后被迫用积分与队列做优先级——说明视频赛道的产品成功标准,往往是「付费客户能否稳定出片」,而不是「多少人点过生成」。</li>
+<li><strong>同一模型多入口时,要显式设计冲突解决规则。</strong> 剪映与即梦争抢 Seedance 的报道,本质是组织与产品边界问题:模型团队、C 端 App、剪辑工具、云销售若KPI 不一致,用户侧就会表现为排队与体验抖动。</li>
+<li><strong>收入数字要按来源降级使用。</strong> 写案例、面试拆解时,优先用 IR/官方定义清晰的 ARR;媒体夸张数字最多作「市场热度旁证」,并准备一句「火山/官方未确认」。</li>
+</ol>
+<h2 id="_8">相关阅读</h2>
+<ul>
+<li><a href="ai-video-generation.html">AI 视频生成案例拆解:Sora 与 Veo 的两条路线</a></li>
+<li><a href="midjourney.html">Midjourney 案例拆解:文生图的用户分层与 GPU 定价</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/llm-cost-101.html">AI 产品成本测算入门:token、并发与人力</a></li>
+<li><a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">DeepSeek 开始峰谷定价,你怎么看 AI 产品的商业模式?</a></li>
+</ul>
+<h2 id="_9">参考资料</h2>
+<ul>
+<li><a href="https://ir.kuaishou.com/zh-hans/news-releases/news-release-details/kelingainianhuashouruyunxingluzai2025nian12yueda24yimeijin">可灵AI年化收入运行率在2025年12月达2.4亿美元</a> — 快手科技 IR,2026-01-13,2026-07 访问</li>
+<li><a href="https://www.36kr.com/p/3873701357736969">别再管豆包收费了,Seedance正在疯狂吸金</a> — 36氪(含火山否认偏高收入传闻),2026-07 访问</li>
+<li><a href="https://36kr.com/p/3836973710423429">火山引擎提升MaaS营收目标…Seedance 2.0单月营收已超10亿元</a> — 36氪独家报道(<strong>媒体口径,非上市公司 IR</strong>),2026-07 访问</li>
+<li><a href="https://www.pingwest.com/w/311515">字节发布Seedance 2.0,豆包、即梦官宣接入</a> — 品玩,2026-07 访问</li>
+<li><a href="https://www.pingwest.com/a/311519">OpenAI 和 Google 缺了个剪映</a> — 品玩(剪映作为 Seedance 产品容器),2026-07 访问</li>
+<li><a href="ai-video-generation.html">AI 视频生成案例拆解(本仓库)</a> — Sora/Veo 成本与关停对照</li>
+</ul>
+</main>
+</body>
+</html>

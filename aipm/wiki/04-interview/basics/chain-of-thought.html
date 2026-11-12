@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>什么是 CoT(思维链)?有什么优势?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/chain-of-thought.md</span></div>
+<main>
+<h1 id="cot">什么是 CoT(思维链)?有什么优势?</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:高,大厂常见题出现</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否准确描述 CoT 的核心思想(让模型"一步步想"而非直接给答案)</li>
+<li>是否理解 CoT 提升推理能力的原理</li>
+<li>能否结合产品场景说明何时使用 CoT</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话定义</strong>:CoT(Chain of Thought,思维链)是一种 Prompt 技术,引导模型在给出最终答案前,先输出中间推理步骤。</p>
+<p><strong>对比示例</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>提问</th>
+<th>模型行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直接提问</td>
+<td>"小明有 3 个苹果,又买了 5 个,吃了 2 个,还剩几个?"</td>
+<td>可能直接答"6"(可能对可能错)</td>
+</tr>
+<tr>
+<td>CoT 提问</td>
+<td>"请一步步思考:小明有 3 个苹果..."</td>
+<td>先写"3+5=8, 8-2=6",再答"6"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心优势</strong>:
+1. <strong>提升复杂推理准确率</strong>:数学计算、逻辑判断、多步推理类任务效果显著
+2. <strong>可解释性</strong>:用户能看到推理过程,便于发现和纠正错误
+3. <strong>零成本增强</strong>:不需要额外训练,只改 Prompt 即可
+4. <strong>错误可定位</strong>:哪一步推理错了一目了然</p>
+<p><strong>适用场景</strong>:
+- 多步数学/逻辑题
+- 需要分析决策的场景(如"为什么推荐这个产品")
+- 复杂业务规则判断(如合规审查)</p>
+<p><strong>不适用场景</strong>:
+- 简单事实查询(多此一举,浪费 token)
+- 创意生成(推理步骤反而限制创造力)
+- 对延迟敏感的场景(CoT 增加输出长度)</p>
+<p><strong>产品用法</strong>:在 Prompt 中加入"请一步步分析"或提供 few-shot 示例(含推理过程的问答对),是成本最低的推理增强手段。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"CoT 和 RAG 能一起用吗?"
+  → 可以且常见:RAG 提供知识,CoT 提供推理框架。如"根据以下资料,一步步分析该政策对用户的影响"。</li>
+<li><strong>追问 2</strong>:"CoT 增加了 token 消耗,怎么权衡?"
+  → 仅在复杂推理场景启用;简单问题走直接回答;可用"问题分类器"自动判断是否触发 CoT。</li>
+<li><strong>追问 3</strong>:"Self-Consistency 和 CoT 是什么关系?"
+  → Self-Consistency 是 CoT 的增强:多次采样不同推理路径,取多数一致的答案,进一步提升准确率但成本成倍增加。</li>
+<li><strong>追问 4</strong>:"加了 CoT 之后效果反而变差,可能是什么原因?"
+  → 常见原因:简单题被逼「绕远路」引入中间错误;步骤格式与任务不匹配;输出变长导致关键约束被稀释;与已开启的推理模型「双重思考」互相干扰。应对:按任务分流、限制步数、或对简单查询关闭 CoT。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/prompt-engineering/chain-of-thought.html">思维链(CoT):让模型先想再答</a>(知识文章)</li>
+<li><a href="rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+</ul>
+</main>
+</body>
+</html>

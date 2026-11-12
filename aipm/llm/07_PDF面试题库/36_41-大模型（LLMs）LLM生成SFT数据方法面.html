@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>41-大模型（LLMs）LLM生成SFT数据方法面</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 07_PDF面试题库/36_41-大模型（LLMs）LLM生成SFT数据方法面.md</span></div>
+<main>
+<h1 id="41-llmsllmsft">41-大模型（LLMs）LLM生成SFT数据方法面</h1>
+<blockquote>
+<p>来源 PDF：<code>200页AI大模型面试高频必刷题（附详解）/41-大模型（LLMs）LLM生成SFT数据方法面.pdf</code><br>
+主题：训练 / 微调<br>
+页数：3<br>
+字符数：1000<br>
+索引片段数：3</p>
+</blockquote>
+<h2 id="_1">摘要</h2>
+<p>大模型（LLMs）LLM生成SFT数据方法面 来自： AiGC面试宝典 宁静致远 2023年12月23日 12:23 一、SFT数据集如何生成？ SFT数据集构建通常有两种方法：人工标注和使用LLM（比如GPT-4）来生成的，人工标注对于构 建垂直领域比较合适，可以减少有偏数据，但是成本略高；使用LLM生成，可以在短时间内生成大 量数据。 SFT数据集构建以及SFT微调Pipeline如下图所示： 二、Self-Instruct 篇 2.1 什么是 Self-Instruct ？ Self-Instruct（htt</p>
+<h2 id="_2">代表性原文片段</h2>
+<h3 id="1">片段 1</h3>
+<p>大模型（LLMs）LLM生成SFT数据方法面
+来自： AiGC面试宝典
+宁静致远 2023年12月23日 12:23
+一、SFT数据集如何生成？
+SFT数据集构建通常有两种方法：人工标注和使用LLM（比如GPT-4）来生成的，人工标注对于构
+建垂直领域比较合适，可以减少有偏数据，但是成本略高；使用LLM生成，可以在短时间内生成大
+量数据。
+SFT数据集构建以及SFT微调Pipeline如下图所示：
+二、Self-Instruct 篇
+2.1 什么是 Self-Instruct ？
+Self-Instruct（https://arxiv.org/abs/2212.10560）：一个通过预训练语言模型自己引导自己来提高
+的指令遵循能力的框架。
+2.2 Self-Instruct 处理思路？
+• 步骤1：作者从 175个种子任务中随机抽取 8 条自然语言指令作为示例，并提示InstructGPT生
+成更多的任务指令。
+• 步骤2：作者确定步骤1中生成的指令是否是一个分类任务。如果是，他们要求 InstructGPT 根
+据给定的指令为输出生成所有可能的选项，并随机选择特定的输出类别，提示 InstructGPT 生</p>
+<h3 id="2">片段 2</h3>
+<p>步骤1中生成的指令是否是一个分类任务。如果是，他们要求 InstructGPT 根
+据给定的指令为输出生成所有可能的选项，并随机选择特定的输出类别，提示 InstructGPT 生
+成相应的“输入”内容。对于不属于分类任务的指令，应该有无数的“输出”选项。作者提出了“输
+入优先”策略，首先提示 InstructGPT根据给定的“指令”生成“输入”，然后根据“指令”和生成的“输
+入”生成“输出”。
+• 步骤3：基于第 2 步的结果，作者使用 InstructGPT 生成相应指令任务的“输入”和“输出”，采用
+“输出优先”或“输入优先”的策略。
+• 步骤4：作者对生成的指令任务进行了后处理(例如，过滤类似指令，去除输入输出的重复数
+据)，最终得到52K条英文指令
+扫码加
+查看更多</p>
+<p>-- 1 of 3 --</p>
+<p>三、Backtranslation 篇
+3.1 什么是 Backtranslation？
+回译在传统的机器学习中是一种数据增强方法，比如从中文翻译成英文，再从英文翻译会中文，这
+样生成的中文与原来的中文在语义上是一致的，但是文本不同；然而SFT数据生成的回译</p>
+<h3 id="3">片段 3</h3>
+<p>tion？
+回译在传统的机器学习中是一种数据增强方法，比如从中文翻译成英文，再从英文翻译会中文，这
+样生成的中文与原来的中文在语义上是一致的，但是文本不同；然而SFT数据生成的回译
+（https://arxiv.org/abs/2308.06259）则是通过输出来生成指令，具体步骤如下图所示：</p>
+<p>-- 2 of 3 --</p>
+<p>知识星球</p>
+<p>-- 3 of 3 --</p>
+<h2 id="_3">使用建议</h2>
+<ul>
+<li>这些内容来自授权公开 PDF 的文本抽取结果，网页端会基于同一份静态索引做关键词检索。</li>
+<li>面试复习时建议先用网页 PDF 原文检索定位题目，再回到主 notes 学系统化答案。</li>
+<li>如果片段出现排版噪声，以原 PDF 语义为准，并优先整理成自己的回答模板。</li>
+</ul>
+</main>
+</body>
+</html>

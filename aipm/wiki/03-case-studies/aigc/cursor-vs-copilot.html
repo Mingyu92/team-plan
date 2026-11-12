@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cursor 与 GitHub Copilot:AI 代码助手的付费转化</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/aigc/cursor-vs-copilot.md</span></div>
+<main>
+<h1 id="cursor-github-copilotai">Cursor 与 GitHub Copilot:AI 代码助手的付费转化</h1>
+<p><strong>分类</strong>:AIGC
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_1">一、产品背景</h2>
+<p>AI 代码助手是生成式 AI 里付费转化相对「看得见」的品类之一:用户几乎每天写代码,助手直接嵌在编辑器或 Git 工作流里,价值感知强、替换成本也高。这篇拆解对比两条清晰可核实的产品路径——<strong>Cursor</strong>(AI 原生 IDE)与 <strong>GitHub Copilot</strong>(深度嵌入 GitHub / 多 IDE 的编程助手)——焦点放在「免费如何养习惯、付费档如何按用量与协作深度拆开」,而不是争论「谁写代码更强」。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Cursor</th>
+<th>GitHub Copilot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>产品形态</td>
+<td>独立编辑器(VS Code 分支),AI 是一等公民</td>
+<td>插件 + GitHub.com / Mobile / CLI 等多入口</td>
+</tr>
+<tr>
+<td>典型用户</td>
+<td>个人开发者、重度 Agent 用户、工程团队</td>
+<td>已在 GitHub 协作的个人与组织</td>
+</tr>
+<tr>
+<td>免费层</td>
+<td>Hobby:有限 Agent / Tab</td>
+<td>Free:每月约 2,000 次补全等有限能力</td>
+</tr>
+<tr>
+<td>个人付费主阶梯</td>
+<td>Pro → Pro+ → Ultra(用量递进)</td>
+<td>Pro → Pro+ → Max(额度/Credits 递进)</td>
+</tr>
+<tr>
+<td>组织付费</td>
+<td>Teams / Enterprise</td>
+<td>Business / Enterprise</td>
+</tr>
+</tbody>
+</table>
+<p>竞争格局里还有 Claude Code、OpenAI Codex、Google Antigravity、各类 IDE 插件等(详见仓库内 Vibe Coding 工具盘点)。Cursor 与 Copilot 适合做对标,是因为两者都已经把「个人订阅 + 团队席位 + 用量超转」跑成公开价目表,便于从官网直接核对转化漏斗设计。</p>
+<p>关于营收与大客户传闻:二级媒体不时报道 Cursor 的 ARR、融资或特定标杆客户。<strong>此类数字与名单未经官方 IR 口径持续证实的,本文不作为确定事实引用</strong>;若需提及市场热度,仅保留「据媒体报道增长很快」一类弱表述,或干脆不写——付费转化机制本身已足够支撑案例结论。</p>
+<h2 id="_2">二、核心功能拆解</h2>
+<p>两者都覆盖「补全 → 对话改代码 → Agent 多步任务」的能力谱,但默认交互重心不同。</p>
+<h3 id="cursor-agent">Cursor:以编辑器为容器的 Agent 工作台</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>作用</th>
+<th>AI 介入</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tab 补全</td>
+<td>行级/多行续写,低摩擦</td>
+<td>高,几乎每次击键都可能触发</td>
+</tr>
+<tr>
+<td>Chat / Inline Edit</td>
+<td>选中代码提问或改写</td>
+<td>高</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>跨文件规划、改代码、跑命令(视权限)</td>
+<td>高,多步工具调用</td>
+</tr>
+<tr>
+<td>Cloud Agents / 自动化</td>
+<td>云端异步任务、团队共享上下文(Teams+)</td>
+<td>高</td>
+</tr>
+<tr>
+<td>MCP / Skills / Hooks</td>
+<td>接外部工具与可复用技能</td>
+<td>中高,依赖配置</td>
+</tr>
+<tr>
+<td>Bugbot 等评审能力</td>
+<td>对变更做检查(个人档可按用量,团队档打包更完整)</td>
+<td>中高</td>
+</tr>
+</tbody>
+</table>
+<p>主流程(付费用户典型日):打开仓库 → Tab 完成样板代码 → 用 Agent 改一个跨文件需求 → 本地跑测 → 不够用的前沿模型用量走「包含额度 + 按需加购」。<strong>转化相关的产品点</strong>是:Hobby 能让人感到「真的快了一点」,但 Agent 与前沿模型很快触顶,日常全职开发几乎必然撞到 Pro 门槛。</p>
+<h3 id="github-copilot-github">GitHub Copilot:以 GitHub 工作流为容器的助手</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>作用</th>
+<th>AI 介入</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代码补全 / Next Edit</td>
+<td>多 IDE 内联建议</td>
+<td>高</td>
+</tr>
+<tr>
+<td>Chat / Agent mode</td>
+<td>编辑器内对话与代理改码</td>
+<td>高</td>
+</tr>
+<tr>
+<td>Cloud agent</td>
+<td>可委托任务并开 PR 等</td>
+<td>高</td>
+</tr>
+<tr>
+<td>Code review</td>
+<td>PR / diff 评审</td>
+<td>高</td>
+</tr>
+<tr>
+<td>Copilot CLI</td>
+<td>终端侧助手</td>
+<td>中高</td>
+</tr>
+<tr>
+<td>第三方 Agents(如 Claude Code、Codex,预览能力随档位变化)</td>
+<td>在 Copilot 体系内调用其他代理</td>
+<td>中高</td>
+</tr>
+<tr>
+<td>组织策略 / 审计 / 代码索引(Enterprise 更强)</td>
+<td>管理与定制</td>
+<td>偏产品与平台能力</td>
+</tr>
+</tbody>
+</table>
+<p>主流程(组织用户典型日):在 VS Code 里补全与 Agent 改代码 → 推送到 GitHub → Copilot 参与 PR 总结或评审 → 管理员在组织层看用量与策略。<strong>转化相关的产品点</strong>是:Free 用补全建立习惯;Pro($10)用「无限补全 + 一包 AI Credits」完成个人转化;要上组织管控、IP 与策略,则走 Business/Enterprise 席位。</p>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下为基于公开产品行为与文档的推测,两家均未完整公开模型路由与上下文工程细节。</p>
+</blockquote>
+<ul>
+<li><strong>推测(两者共性)</strong>:补全侧多为低延迟小上下文补全模型或专用头;Chat/Agent 侧路由到更大的通用/代码模型,并注入当前文件、选区、仓库检索片段、终端输出等工具结果。</li>
+<li><strong>推测(Cursor)</strong>:作为独立 IDE,更容易做「全仓库索引 + 多文件编辑事务」的统一体验;Agent 与 Cloud Agents 更像把 IDE 操作、终端、浏览器等工具封装成可编排动作。官方强调 Privacy Mode 下代码不用于训练(团队可强制开启)——这是 To-B 转化里的信任组件,而非模型本身。</li>
+<li><strong>推测(Copilot)</strong>:优势在 GitHub 图数据(Issue、PR、仓库权限模型)与 IDE 插件分发;Enterprise 的「组织代码库索引 / 定制」说明其路线是「助手 + 平台知识」,而不只是编辑器插件。2026 年起个人与组织计费都更明确地走向 <strong>GitHub AI Credits</strong> 用量池,Chat、Agent、Cloud agent、CLI、评审等会消耗 Credits——把「功能开关」和「token 成本」绑在同一计量单位上。</li>
+<li><strong>推测(转化与技术的关系)</strong>:当产品从「补全」升级到「Agent 长时间跑任务」,边际成本从「每次建议几分钱」变成「一次任务可能烧掉可观 Credits」。因此两家都在个人高档位(Cursor Ultra、Copilot Max)和企业池化用量上做文章——这是成本结构倒逼套餐结构,而不是单纯营销升级。</li>
+</ul>
+<h2 id="_4">四、商业模式</h2>
+<h3 id="cursor-2026-7-cursorcompricing">Cursor 定价(核实截至 2026 年 7 月,来源:cursor.com/pricing)</h3>
+<p>官网个人档展示为 <strong>Individual</strong>,其下再分 Pro / Pro+ / Ultra;页面默认可见年付折合价(例如 Individual 展示约 <strong>$16/月</strong> 起,对应年付)。结合官网说明与公开价目习惯,个人侧可理解为:</p>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>大致价位(2026-07)</th>
+<th>转化角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hobby</td>
+<td>免费</td>
+<td>试用:有限 Agent、有限 Tab,培养「AI 写代码」习惯</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>约 $20/月;年付折合约 $16/月</td>
+<td>个人主力转化档:扩大 Agent 限额、前沿模型、MCP/Skills/Hooks、Cloud agents 等</td>
+</tr>
+<tr>
+<td>Pro+</td>
+<td>约 $60/月档(官网推荐给日常 Agent 用户)</td>
+<td>用量升级:同一功能集,更大模型用量池</td>
+</tr>
+<tr>
+<td>Ultra</td>
+<td>约 $200/月档(官网推荐给 Agent 重度用户)</td>
+<td>顶格个人用量 + 优先体验新能力</td>
+</tr>
+<tr>
+<td>Teams</td>
+<td>约 $40/用户/月;年付折合约 $32/用户/月</td>
+<td>团队计费、共享规则/插件市场、团队隐私模式、SSO 等</td>
+</tr>
+<tr>
+<td>Enterprise</td>
+<td>定制</td>
+<td>池化用量、SCIM、审计、访问控制、优先支持</td>
+</tr>
+</tbody>
+</table>
+<p>官网 FAQ 写明:每个方案含一定模型用量,<strong>用尽后可按需(on-demand)继续用,周期末计费</strong>。因此 Cursor 的个人转化不只是「买功能」,更是「买包含用量 + 可选超转」——Pro 解决「能不能当主力编辑器」;Pro+/Ultra 解决「Agent 是否天天触顶」。</p>
+<h3 id="github-copilot-2026-7-plans-github-docs">GitHub Copilot 定价(核实截至 2026 年 7 月,来源:官网 Plans 与 GitHub Docs)</h3>
+<p><strong>个人:</strong></p>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>价格</th>
+<th>转化角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free</td>
+<td>$0</td>
+<td>每月约 2,000 次补全;有限模型与 Chat/Agent;零成本获客</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>$10/用户/月</td>
+<td>无限补全;Cloud agent、代码评审等;约 <strong>$15/月</strong> 合计 AI Credits(含 base + flex 等构成,以官网为准)</td>
+</tr>
+<tr>
+<td>Pro+</td>
+<td>$39/用户/月</td>
+<td>更高用量(官方称约 4x+ Pro)与高级模型;约 <strong>$70/月</strong> Credits</td>
+</tr>
+<tr>
+<td>Max</td>
+<td>$100/用户/月</td>
+<td>更高用量(官方称约 2.9x+ Pro+)与优先新模型;约 <strong>$200/月</strong> Credits</td>
+</tr>
+</tbody>
+</table>
+<p><strong>组织:</strong></p>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>价格</th>
+<th>转化角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business</td>
+<td>$19/用户/月</td>
+<td>组织策略与集中管理;每席约 1,900 AI Credits 并在计费实体层池化</td>
+</tr>
+<tr>
+<td>Enterprise</td>
+<td>$39/用户/月</td>
+<td>更大 Credits 池(约 3,900/席)、GitHub.com 深度整合与企业向定制能力</td>
+</tr>
+</tbody>
+</table>
+<p>超额用量方面,文档说明额外消耗按 AI Credits 计量(公开材料中有 <strong>1 credit = $0.01 USD</strong> 的换算口径,具体以当时账单文档为准);组织管理员可设预算与是否允许超转。</p>
+<h3 id="_5">两条转化漏斗对比</h3>
+<table>
+<thead>
+<tr>
+<th>设计选择</th>
+<th>Cursor</th>
+<th>Copilot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>免费层厚度</td>
+<td>功能可见但紧</td>
+<td>补全次数明确封顶(2,000),习惯易养成、天花板也清晰</td>
+</tr>
+<tr>
+<td>个人首付价格锚点</td>
+<td>Pro 约 $20(年付展示更低)</td>
+<td>Pro <strong>$10</strong>,锚点更低、更易完成「第一次付款」</td>
+</tr>
+<tr>
+<td>个人上探方式</td>
+<td>同功能、加用量(Pro+ / Ultra)</td>
+<td>同逻辑(Pro+ / Max)+ 更贵模型门槛</td>
+</tr>
+<tr>
+<td>团队溢价理由</td>
+<td>管理、共享资产、隐私与 SSO</td>
+<td>策略、池化 Credits、与 GitHub 权限/PR 一体</td>
+</tr>
+<tr>
+<td>成本传递方式</td>
+<td>包含用量 + on-demand</td>
+<td>AI Credits 包 + 超额</td>
+</tr>
+</tbody>
+</table>
+<p>Copilot 用 <strong>$10</strong> 完成大量个人付费转化,再用 Credits 包把 Agent 时代的成本涨价「藏进额度」;Cursor 用更高一点的 Pro 锚点换「整个 IDE 换栈」的承诺,再靠 Pro+/Ultra 吸收重度 Agent 用户。两者都没有把「无限免费 Agent」当作长期策略——那会与真实推理成本冲突。</p>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>代码助手的付费转化,核心不是多一个按钮,而是「免费层证明价值、付费层按用量与协作深度加价」。</strong> Free/Hobby 证明「我会变快」;个人 Pro 证明「我能天天用」;Team/Business 证明「公司能管控、能报销、能共享」。三层目标不同,套餐文案也应分开写清。</li>
+<li><strong>Agent 化之后,套餐必须从「功能开关」转向「用量池」。</strong> Cursor 的 on-demand 与 Copilot 的 AI Credits,本质都是承认:重度代理任务的成本方差极大,固定功能订阅扛不住。PM 做 AI 功能定价时,先估算 P50/P95 用户的 token 或 GPU 消耗差,再决定「包含多少 + 如何超转」。</li>
+<li><strong>分发容器决定转化叙事。</strong> Copilot 可以靠 GitHub 已有开发者关系做 $10 低锚点渗透;Cursor 必须说服用户换编辑器,因而更强调 Agent、多模型与编辑器内一站式体验,价格锚点也更高。选型或做竞品分析时,先问「用户是否已在我的容器里」,再谈功能对比。</li>
+</ol>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/vibe-coding/tool-landscape.html">Vibe Coding 工具盘点与选型</a></li>
+<li><a href="../../02-pm-skills/vibe-coding/what-is-vibe-coding.html">Vibe Coding 是什么</a></li>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 基础:从 Chatbot 到智能体</a></li>
+<li><a href="../../01-ai-basics/llm/agent-skills.html">Agent Skills:可复用的 Agent 能力包</a></li>
+<li><a href="../../01-ai-basics/llm/mcp.html">MCP:模型上下文协议</a></li>
+<li><a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">DeepSeek 开始峰谷定价,你怎么看 AI 产品的商业模式?</a></li>
+</ul>
+<h2 id="_7">参考资料</h2>
+<ul>
+<li><a href="https://cursor.com/pricing">Cursor · Pricing</a> — Cursor 官方定价页,2026-07 访问</li>
+<li><a href="https://github.com/features/copilot/plans">GitHub Copilot · Plans &amp; pricing</a> — GitHub 官方定价页(个人 Free/Pro/Pro+/Max 与 Credits 展示),2026-07 访问</li>
+<li><a href="https://docs.github.com/en/copilot/about-github-copilot/subscription-plans-for-github-copilot">Plans for GitHub Copilot</a> — GitHub Docs(个人与 Business/Enterprise 价格表),2026-07 访问</li>
+<li><a href="https://docs.github.com/en/copilot/concepts/billing/organizations-and-enterprises">About billing for GitHub Copilot in organizations and enterprises</a> — GitHub Docs(Business $19、Enterprise $39 与 Credits 池),2026-07 访问</li>
+<li><a href="https://docs.github.com/en/billing/concepts/product-billing/github-copilot-licenses">GitHub Copilot licenses</a> — GitHub Docs(席位与个人档价目),2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

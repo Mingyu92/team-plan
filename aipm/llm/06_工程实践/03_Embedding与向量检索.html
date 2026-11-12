@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Embedding 与向量检索</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 06_工程实践/03_Embedding与向量检索.md</span></div>
+<main>
+<h1 id="embedding">Embedding 与向量检索</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>Embedding 模型和生成模型有什么区别？</li>
+<li>向量检索为什么能做语义匹配？</li>
+<li>Dense Retrieval、BM25、Hybrid Search 怎么选？</li>
+<li>Cross-Encoder Rerank 为什么比单纯向量相似度更准？</li>
+<li>MTEB 这类 embedding benchmark 怎么看？</li>
+</ul>
+<hr>
+<h2 id="_2">一句话理解</h2>
+<p>Embedding 模型把文本压成一个向量，向量检索通过距离或相似度找到语义接近的文本。</p>
+<h3 id="sentence-bert">外部图解：Sentence-BERT 双塔编码</h3>
+<p><img alt="SBERT 原论文图：两个句子分别编码后做相似度/分类" src="https://ar5iv.labs.arxiv.org/html/1908.10084/assets/x1.png"></p>
+<blockquote>
+<p>图源：<a href="https://arxiv.org/abs/1908.10084">Sentence-BERT 原论文</a>。这张图适合解释 bi-encoder：query 和 document 可以分别编码成向量，因此适合大规模向量检索。</p>
+</blockquote>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;用户问题&quot;] --&gt; B[&quot;Embedding 模型&quot;]
+    C[&quot;文档 Chunk&quot;] --&gt; D[&quot;Embedding 模型&quot;]
+    B --&gt; E[&quot;Query 向量&quot;]
+    D --&gt; F[&quot;文档向量库&quot;]
+    E --&gt; G[&quot;近邻搜索&quot;]
+    F --&gt; G
+    G --&gt; H[&quot;Top-K 相关文档&quot;]
+</code></pre>
+<hr>
+<h2 id="embedding-vs">Embedding 模型 vs 生成模型</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Embedding 模型</th>
+<th>生成模型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输出</td>
+<td>向量</td>
+<td>token 序列</td>
+</tr>
+<tr>
+<td>用途</td>
+<td>检索、聚类、分类、相似度</td>
+<td>问答、写作、代码、推理</td>
+</tr>
+<tr>
+<td>训练目标</td>
+<td>对比学习、句向量学习</td>
+<td>next-token prediction</td>
+</tr>
+<tr>
+<td>关键指标</td>
+<td>Recall、NDCG、MTEB</td>
+<td>准确率、偏好、生成质量</td>
+</tr>
+</tbody>
+</table>
+<p>不要把 embedding 模型理解成“小 LLM”。它的目标不是生成，而是把文本映射到适合检索或相似度计算的空间。</p>
+<hr>
+<h2 id="dense-retrieval">Dense Retrieval</h2>
+<p><strong>细化理解：</strong> Dense Retrieval 依赖 embedding 模型把语义相近的文本映射到相近向量，因此能处理同义改写和自然语言问题。它不擅长精确符号匹配，例如订单号、错误码、函数名、法律条款编号。生产系统常把 dense 作为语义召回的一路，而不是唯一召回来源。</p>
+<p>Dense Retrieval 用向量相似度找相关文档。</p>
+<p>常见相似度：</p>
+<pre><code class="language-text">cosine_similarity(q, d) = q · d / (||q|| ||d||)
+</code></pre>
+<p>优点：</p>
+<ul>
+<li>能匹配同义改写</li>
+<li>对自然语言问题友好</li>
+<li>适合语义检索</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>对错误码、版本号、接口名不稳定</li>
+<li>向量空间可解释性弱</li>
+<li>需要 embedding 模型适配语言和领域</li>
+</ul>
+<hr>
+<h2 id="bm25">BM25</h2>
+<p>BM25 是关键词检索方法，依赖词频、逆文档频率和长度归一化。</p>
+<p>优点：</p>
+<ul>
+<li>对专有名词、错误码、API 名称很稳</li>
+<li>可解释性强</li>
+<li>不需要训练 embedding</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>同义改写能力弱</li>
+<li>用户问题表达模糊时容易漏召回</li>
+</ul>
+<hr>
+<h2 id="hybrid-search">Hybrid Search</h2>
+<p>生产 RAG 常用：</p>
+<pre><code class="language-text">Dense Retrieval + BM25 + RRF + Rerank
+</code></pre>
+<p>原因：</p>
+<ul>
+<li>Dense 补语义</li>
+<li>BM25 补精确词</li>
+<li>RRF 做稳定融合</li>
+<li>Rerank 做精排</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>错误码 / 接口名</td>
+<td>BM25 权重大</td>
+</tr>
+<tr>
+<td>FAQ 自然语言</td>
+<td>Dense 权重大</td>
+</tr>
+<tr>
+<td>企业知识库</td>
+<td>Hybrid 默认起步</td>
+</tr>
+<tr>
+<td>法律/金融精确条款</td>
+<td>BM25 + Rerank</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="rerank">Rerank 为什么重要</h2>
+<p>Embedding 检索通常是 bi-encoder：</p>
+<pre><code class="language-text">query 单独编码
+document 单独编码
+再算相似度
+</code></pre>
+<p>Cross-Encoder Rerank 则把 query 和 document 放在一起判断：</p>
+<pre><code class="language-text">[query, document] -&gt; relevance score
+</code></pre>
+<p>它更慢，但更准。</p>
+<p>生产常用流程：</p>
+<ol>
+<li>初召回 Top-50</li>
+<li>Rerank 精排</li>
+<li>取 Top-5 进入 prompt</li>
+</ol>
+<hr>
+<h2 id="ann">向量库和 ANN</h2>
+<p><strong>工程细节：</strong> 向量库解决的是大规模近邻搜索和元数据过滤，不等于 RAG 本身。ANN 索引用召回率换速度，例如 HNSW、IVF、PQ 等方法都有参数权衡；元数据过滤如果在 ANN 后做，可能导致权限过滤后结果不足，所以生产中要关注过滤前后 Top-K、召回率和延迟。</p>
+<p>文档多时，不能暴力计算所有向量相似度，需要 Approximate Nearest Neighbor。</p>
+<p>常见索引：</p>
+<table>
+<thead>
+<tr>
+<th>索引</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HNSW</td>
+<td>召回高、查询快、内存占用较高</td>
+</tr>
+<tr>
+<td>IVF</td>
+<td>先聚类再查，适合大规模</td>
+</tr>
+<tr>
+<td>PQ</td>
+<td>压缩向量，节省内存但有精度损失</td>
+</tr>
+</tbody>
+</table>
+<p>常见向量库：</p>
+<ul>
+<li>FAISS</li>
+<li>Milvus</li>
+<li>Qdrant</li>
+<li>Weaviate</li>
+<li>pgvector</li>
+<li>Elasticsearch / OpenSearch vector search</li>
+</ul>
+<hr>
+<h2 id="embedding_1">Embedding 评估</h2>
+<p>不要只看模型排行榜。</p>
+<p>要看：</p>
+<ul>
+<li>语言：中文、英文、多语言</li>
+<li>任务：检索、分类、聚类、STS</li>
+<li>领域：法律、金融、代码、客服</li>
+<li>维度：向量维度影响存储成本</li>
+<li>延迟：embedding 生成速度影响 ingestion 和 online query</li>
+</ul>
+<p>MTEB 是常用综合 benchmark，但企业项目最好自建领域评测集。</p>
+<hr>
+<h2 id="_3">常见误区</h2>
+<h3 id="1">误区 1：向量相似就等于答案正确</h3>
+<p>向量相似只说明语义接近，不保证能支持答案。</p>
+<h3 id="2embedding">误区 2：embedding 模型越大越好</h3>
+<p>还要看语言、领域、延迟、成本和向量维度。</p>
+<h3 id="3-bm25">误区 3：有向量检索就不需要 BM25</h3>
+<p>企业问题里大量关键词、编号、日志、接口名，BM25 很重要。</p>
+<h3 id="4rerank">误区 4：Rerank 可有可无</h3>
+<p>很多生产系统里，rerank 对最终答案质量的提升非常稳定。</p>
+<hr>
+<h2 id="_4">面试延伸</h2>
+<p><strong>Q：为什么 RAG 里常用 Hybrid Search？</strong></p>
+<blockquote>
+<p>因为向量检索适合语义改写，BM25 适合精确关键词。企业问题同时包含自然语言和错误码、接口名、产品名，所以混合检索更稳。</p>
+</blockquote>
+<p><strong>Q：Embedding 模型怎么选？</strong></p>
+<blockquote>
+<p>先看语言和领域，再看 MTEB/CMTEB 等 benchmark，最后一定要用自己的黄金问答集测 Recall@K 和排序质量。</p>
+</blockquote>
+<p><strong>Q：Reranker 为什么比 embedding 检索更准？</strong></p>
+<blockquote>
+<p>Reranker 直接联合建模 query 和 document 的相关性，能捕捉更细粒度的匹配关系，但代价是慢，所以通常只对初召回结果精排。</p>
+</blockquote>
+<hr>
+<h2 id="_5">生产项目怎么讲</h2>
+<p>如果把这个知识点放进“企业知识库智能问答与工单助手”，可以这样讲：</p>
+<pre><code class="language-text">用户问题 -&gt; Query Rewrite -&gt; Dense + BM25 双路召回 -&gt; RRF 融合 -&gt; Rerank 精排 -&gt; Top-N 证据进入 LLM
+</code></pre>
+<p>关键不是“用了向量库”，而是解释清楚为什么每层存在：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>解决的问题</th>
+<th>可观测指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Query Rewrite</td>
+<td>用户表达不完整、指代不清</td>
+<td>rewrite 后 Recall@K 是否提升</td>
+</tr>
+<tr>
+<td>Dense Retrieval</td>
+<td>同义改写、自然语言语义匹配</td>
+<td>Recall@K、MRR</td>
+</tr>
+<tr>
+<td>BM25</td>
+<td>错误码、接口名、版本号、日志片段</td>
+<td>keyword hit rate</td>
+</tr>
+<tr>
+<td>RRF 融合</td>
+<td>避免单一路径偏差</td>
+<td>fused recall</td>
+</tr>
+<tr>
+<td>Rerank</td>
+<td>粗召回噪声多、排序不准</td>
+<td>NDCG、Context Precision</td>
+</tr>
+<tr>
+<td>Metadata Filter</td>
+<td>权限、租户、文档类型过滤</td>
+<td>filter 后 Top-K 充足率</td>
+</tr>
+</tbody>
+</table>
+<p>面试里不要只说“我用了 Milvus/FAISS”。更好的说法是：</p>
+<blockquote>
+<p>我把检索拆成召回、融合、精排、过滤和评估五层。向量检索负责语义召回，BM25 兜住精确关键词，reranker 保证进入上下文的证据质量，最后用 Recall@K 和 Citation Accuracy 评估是否真的帮到回答。</p>
+</blockquote>
+<hr>
+<h2 id="_6">排障清单</h2>
+<p>当用户说“搜不到”“答非所问”时，按这个顺序排：</p>
+<ol>
+<li><strong>语料是否入库</strong>：文档是否解析成功、chunk 是否为空、metadata 是否正确。</li>
+<li><strong>Query 是否可检索</strong>：是否包含缩写、错别字、指代、日志片段。</li>
+<li><strong>Embedding 是否适配</strong>：中文、代码、技术文档、表格是否表现差。</li>
+<li><strong>ANN 参数是否过紧</strong>：HNSW <code>efSearch</code>、IVF <code>nprobe</code> 是否导致召回损失。</li>
+<li><strong>权限过滤是否过严</strong>：filter 后 Top-K 是否不足。</li>
+<li><strong>Rerank 是否误杀</strong>：reranker 是否偏向短文本或标题党文本。</li>
+<li><strong>上下文是否被截断</strong>：正确证据是否进入最终 prompt。</li>
+</ol>
+<p>一个实用 debug 日志：</p>
+<pre><code class="language-json">{
+  &quot;query&quot;: &quot;...&quot;,
+  &quot;rewrite_query&quot;: &quot;...&quot;,
+  &quot;dense_topk_ids&quot;: [&quot;d1&quot;, &quot;d2&quot;],
+  &quot;bm25_topk_ids&quot;: [&quot;d3&quot;, &quot;d1&quot;],
+  &quot;rrf_topk_ids&quot;: [&quot;d1&quot;, &quot;d3&quot;],
+  &quot;rerank_scores&quot;: {&quot;d1&quot;: 0.91, &quot;d3&quot;: 0.77},
+  &quot;filtered_by_acl&quot;: 2,
+  &quot;final_context_ids&quot;: [&quot;d1&quot;, &quot;d3&quot;]
+}
+</code></pre>
+<hr>
+<h2 id="_7">面试追问模板</h2>
+<p><strong>追问：向量维度越高越好吗？</strong></p>
+<blockquote>
+<p>不一定。高维可能表达力更强，但存储、索引内存、检索延迟都会增加。生产里要看领域评测收益是否覆盖成本。</p>
+</blockquote>
+<p><strong>追问：为什么有些 query 明明语义相近却召回不到？</strong></p>
+<blockquote>
+<p>可能是 embedding 模型没学到领域术语，也可能是 chunk 太大导致语义被稀释，或者 ANN 近似检索参数牺牲了召回。</p>
+</blockquote>
+<p><strong>追问：Reranker 放在哪里？</strong></p>
+<blockquote>
+<p>一般放在粗召回之后，只对 Top-50/Top-100 做精排，然后选 Top-5/Top-10 进入 prompt。它不适合直接全库扫描。</p>
+</blockquote>
+<hr>
+<h2 id="_8">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sentence-BERT (Reimers &amp; Gurevych, 2019)</td>
+<td><a href="https://arxiv.org/abs/1908.10084">arxiv.org/abs/1908.10084</a></td>
+</tr>
+<tr>
+<td>Dense Passage Retrieval (Karpukhin et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2004.04906">arxiv.org/abs/2004.04906</a></td>
+</tr>
+<tr>
+<td>ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction (Khattab &amp; Zaharia, 2020)</td>
+<td><a href="https://arxiv.org/abs/2004.12832">arxiv.org/abs/2004.12832</a></td>
+</tr>
+<tr>
+<td>MTEB: Massive Text Embedding Benchmark (Muennighoff et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2210.07316">arxiv.org/abs/2210.07316</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_9">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 Hugging Face</td>
+<td><a href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a></td>
+<td>查看 embedding 模型在不同任务上的表现</td>
+</tr>
+<tr>
+<td>📖 Sentence Transformers</td>
+<td><a href="https://www.sbert.net/">Documentation</a></td>
+<td>SBERT 和 sentence-transformers 工具链</td>
+</tr>
+<tr>
+<td>📖 FAISS</td>
+<td><a href="https://faiss.ai/">FAISS documentation</a></td>
+<td>向量索引和 ANN 检索工程入口</td>
+</tr>
+<tr>
+<td>📖 pgvector</td>
+<td><a href="https://github.com/pgvector/pgvector">pgvector GitHub</a></td>
+<td>PostgreSQL 内做向量检索的常见方案</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

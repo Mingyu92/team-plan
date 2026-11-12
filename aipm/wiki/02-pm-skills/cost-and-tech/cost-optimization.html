@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>降本手段盘点:缓存、批处理、路由与蒸馏</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/cost-and-tech/cost-optimization.md</span></div>
+<main>
+<h1 id="_1">降本手段盘点:缓存、批处理、路由与蒸馏</h1>
+<blockquote>
+<p><strong>信息状态</strong>：动态快照｜<strong>最后核验</strong>：2026-08-06</p>
+<p>价格截至 2026-07,以官方定价页为准。本文延续<a href="llm-cost-101.html">《AI 产品成本测算入门》</a>的价格表和<a href="model-selection-framework.html">《模型选型决策框架》</a>的分层策略,聚焦两件事:① 账算出来太贵之后,<strong>具体怎么降</strong>;② 降本手段本身的<strong>反模式与暗成本</strong>,避免"看着省了、实际更贵"。</p>
+</blockquote>
+<p>如果按<a href="llm-cost-101.html">成本测算入门</a>里的模板算出账单超预算,不要第一反应就是"换个便宜模型"——效果打折的代价往往比省下的钱更贵。更稳妥的顺序是:先做<strong>无损或低损</strong>的降本(缓存、批处理、上下文瘦身),再考虑<strong>有取舍</strong>的降本(小模型路由、蒸馏),这也是<a href="../../04-interview/case-analysis/reduce-llm-cost-10x.html">面试案例:成本涨 10 倍如何降本</a>里"三层递进"思路的具体展开。后半部分则补上单位经济学里常漏掉的暗成本、品类成本框架,以及 Jevons 悖论、路由失败与缓存负优化——这些往往比"再砍一刀单价"更能解释真实账单。</p>
+<h2 id="_2">一、降本手段总览</h2>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>适用场景</th>
+<th>节省幅度参考</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompt Caching(提示缓存)</td>
+<td>系统 Prompt/长文档/多轮历史有重复前缀</td>
+<td>缓存命中部分省 90%</td>
+<td>需要设计 Prompt 结构,命中率取决于流量模式</td>
+</tr>
+<tr>
+<td>Batch API(批处理)</td>
+<td>非实时、可延迟到数小时内返回的任务</td>
+<td>输入输出均省 50%</td>
+<td>不能用于实时对话,有等待时间</td>
+</tr>
+<tr>
+<td>小模型路由/分级服务</td>
+<td>请求难度分布不均,大量简单请求</td>
+<td>综合省 30%-60%</td>
+<td>路由误判风险,需要额外的分类器和监控</td>
+</tr>
+<tr>
+<td>蒸馏/微调小模型</td>
+<td>任务边界清晰、调用量大、可积累训练数据</td>
+<td>长期可省 70% 以上</td>
+<td>前期数据+训练投入大,迭代周期长</td>
+</tr>
+<tr>
+<td>上下文瘦身</td>
+<td>长对话、长文档场景,历史/检索内容冗余</td>
+<td>视压缩比例,省 20%-50%</td>
+<td>压缩不当可能丢失关键信息,需评估效果影响</td>
+</tr>
+</tbody>
+</table>
+<p>下面逐一展开每种手段的具体机制、官方折扣和落地要点。</p>
+<h2 id="prompt-caching">二、Prompt Caching(提示缓存)</h2>
+<p>三家的机制并不完全一样,做预算和落地设计时要注意区别:</p>
+<table>
+<thead>
+<tr>
+<th>厂商</th>
+<th>触发方式</th>
+<th>写入价格</th>
+<th>读取(命中)价格</th>
+<th>缓存时长</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic(Claude)</td>
+<td>显式声明 <code>cache_control</code>,或开启自动缓存管理</td>
+<td>5 分钟缓存:1.25x 标准输入价;1 小时缓存:2x 标准输入价</td>
+<td>0.1x 标准输入价(即命中省 90%)</td>
+<td>5 分钟或 1 小时(可续期)</td>
+</tr>
+<tr>
+<td>OpenAI(GPT)</td>
+<td>全自动生效,前 1024 token 完全一致即可命中,以 128 token 为粒度递增匹配</td>
+<td>无额外写入费用</td>
+<td>约为标准输入价的 10%(省 90%)</td>
+<td>官方未承诺固定时长,通常几分钟到 1 小时,取决于系统负载</td>
+</tr>
+<tr>
+<td>Google(Gemini)</td>
+<td>需通过 API 显式创建缓存并设置 TTL(隐式缓存也在演进中)</td>
+<td>一次性写入费(约 $0.50/百万 token,量级参考),另需按 TTL 计算存储费</td>
+<td>约为标准输入价的 90% 折扣(Gemini 2.5 及以上模型)</td>
+<td>默认 60 分钟,可自定义 TTL,主力模型(Flash 级)存储费约 $1/百万 token/小时</td>
+</tr>
+</tbody>
+</table>
+<p><strong>PM 需要关注的产品设计要点</strong>:</p>
+<ul>
+<li>缓存收益取决于"重复前缀"的比例。系统 Prompt、few-shot 示例、长文档背景资料这类<strong>放在 Prompt 开头且很少变化</strong>的内容,最适合缓存;用户的个性化输入应该放在末尾,不要打断可复用的前缀。</li>
+<li>Anthropic 和 Gemini 的显式缓存有"写入成本"和"存储成本",如果这段内容命中率很低(比如只读一次就过期),反而可能比不缓存更贵——这也是为什么 Gemini 文档特别强调"TTL 要匹配实际访问频率"。</li>
+<li>OpenAI 的自动缓存无需额外开发,但要求前 1024 token 完全一致,团队在设计 Prompt 模板时要注意让"公共部分"排在最前面,哪怕多花一点结构设计的功夫。</li>
+<li>缓存折扣可以和 Batch API 折扣<strong>叠加</strong>使用,两者同时用时降本效果最明显。</li>
+</ul>
+<h2 id="batch-api">三、Batch API(批处理)</h2>
+<table>
+<thead>
+<tr>
+<th>厂商</th>
+<th>官方折扣</th>
+<th>典型 SLA</th>
+<th>实际完成时间参考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic</td>
+<td>输入输出均 50% off</td>
+<td>24 小时内完成</td>
+<td>大多数批次 1-2 小时内完成</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>输入输出均 50% off(等同于 Flex 处理档位)</td>
+<td>24 小时内完成</td>
+<td>常见 1-6 小时</td>
+</tr>
+<tr>
+<td>Google(Gemini)</td>
+<td>输入输出均 50% off</td>
+<td>目标 24 小时内</td>
+<td>常见 2-6 小时</td>
+</tr>
+</tbody>
+</table>
+<p>三家官方 SLA 都是"24 小时内完成",实际情况通常更快,但<strong>不能承诺给用户"秒回"</strong>,因此只适合非实时场景,比如:</p>
+<ul>
+<li>离线批量生成(营销文案、商品描述、周期性报告)</li>
+<li>数据标注辅助 / 预标注</li>
+<li>历史数据的批量重新评估(比如模型升级后要重新跑一遍评估集)</li>
+<li>非即时的内容审核复核</li>
+</ul>
+<p><strong>落地建议</strong>:把产品功能拆成"用户等待的实时部分"和"可以异步完成的部分"。比如客服场景中,用户提问必须实时应答,但"每日生成服务质量周报""批量给历史工单打标签"完全可以走 Batch,这部分能直接省下一半成本。</p>
+<h2 id="_3">四、小模型路由/分级服务</h2>
+<p>结合<a href="model-selection-framework.html#六大小模型分层策略">模型选型决策框架</a>的分层思路,一个典型的路由架构:</p>
+<pre><code>用户请求
+   ↓
+意图/难度分类器(用极小模型或规则,成本几乎为零)
+   ├── 简单请求(约 60-70%)→ 轻量模型(Haiku / mini・nano / Flash-Lite 级)
+   ├── 中等请求(约 20-30%)→ 主力模型(Sonnet / 主力 / Flash 级)
+   └── 复杂请求(约 5-10%)→ 旗舰模型(Opus / 旗舰 / Pro 级)
+</code></pre>
+<p><strong>节省幅度测算示例</strong>(延续 llm-cost-101.md 的问答助手案例,假设全部改用 Sonnet 4.6 的成本是 $24,975/月):</p>
+<pre><code>若引入分层路由:
+- 60% 简单请求 → Haiku 4.5(单价约为 Sonnet 4.6 的 1/3)
+- 30% 中等请求 → 仍走 Sonnet 4.6
+- 10% 复杂请求 → 仍走 Sonnet 4.6(暂不升级到 Opus)
+
+粗略估算:60% 的调用成本降至原来的 1/3,其余 40% 不变
+综合成本 ≈ 24,975 × (60% × 1/3 + 40% × 1) ≈ 24,975 × 0.6 ≈ $14,985/月
+降本幅度 ≈ 40%
+</code></pre>
+<p><strong>代价与风险</strong>:路由误判是最大的风险——把复杂问题误判成简单问题、发给轻量模型,会直接导致该请求的回答质量下降。缓解方法:</p>
+<ul>
+<li>给轻量模型设置"置信度阈值",低置信度时自动升级到主力模型(级联调用)</li>
+<li>监控用户的负反馈(点踩、追问、人工转接)率,按模型层级拆分监控</li>
+<li>路由分类器本身也要定期用评估集复核准确率</li>
+</ul>
+<h2 id="_4">五、蒸馏与微调小模型</h2>
+<p>当某类任务<strong>边界清晰、调用量巨大、又能积累到高质量训练数据</strong>时,用大模型的输出去"教"一个小模型(蒸馏),或者直接微调一个小模型专门做这一类任务,是长期成本最优的方案。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>适用信号</td>
+<td>任务范围窄(比如"从客服对话中提取工单类型")、调用量足够大能摊薄训练成本、大模型效果已验证但太贵</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>用旗舰模型批量生成标注数据(结合 Batch API 降低生成成本),再人工抽检修正</td>
+</tr>
+<tr>
+<td>前期投入</td>
+<td>数据构建、训练/微调、评估体系搭建,通常需要算法团队 4-8 周的投入</td>
+</tr>
+<tr>
+<td>长期收益</td>
+<td>小模型单价通常是旗舰模型的 1/10 到 1/20,调用量越大,摊薄后越划算</td>
+</tr>
+<tr>
+<td>风险</td>
+<td>任务需求变化后,小模型需要重新训练;泛化能力弱于通用大模型,不适合开放域场景</td>
+</tr>
+</tbody>
+</table>
+<p><strong>PM 的角色</strong>:判断"这个任务值不值得蒸馏"主要看两个信号——调用量是否稳定巨大、任务边界是否足够窄。如果任务经常变化(比如运营频繁调整业务规则),蒸馏出来的小模型会很快过时,不如继续用大模型 + Prompt 迭代灵活。是否动手蒸馏、怎么蒸馏,应该交给算法工程师主导,这部分分工可参考<a href="model-selection-framework.html#九和算法工程师的分工边界">模型选型决策框架</a>。</p>
+<h2 id="_5">六、上下文瘦身</h2>
+<p>多轮对话和 RAG 场景中,输入 token 经常是成本大头,常见的瘦身手段:</p>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>做法</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>滑动窗口</td>
+<td>只保留最近 N 轮对话,更早的历史丢弃</td>
+<td>可能丢失早期的重要上下文,适合话题切换频繁的场景</td>
+</tr>
+<tr>
+<td>摘要压缩</td>
+<td>定期用小模型把历史对话总结成摘要,替代原始记录</td>
+<td>摘要本身也有成本和信息损耗,适合长对话场景</td>
+</tr>
+<tr>
+<td>RAG 精准检索</td>
+<td>只把最相关的文档片段塞进 Prompt,而不是整篇文档</td>
+<td>切片策略直接影响准确率,参考<a href="../../01-ai-basics/llm/what-is-rag.html">《什么是 RAG》</a></td>
+</tr>
+<tr>
+<td>输出长度限制</td>
+<td>设置 <code>max_tokens</code>,要求模型简洁作答</td>
+<td>避免限制过严导致回答被截断、体验变差</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">七、组合策略案例</h2>
+<p>回到 llm-cost-101.md 中"DAU 10 万问答助手"的案例(基线月成本约 $24,975),叠加多种手段后的效果参考:</p>
+<pre><code>基线(全部走 Sonnet 4.6,同步调用): $24,975/月
+
++ 小模型路由(40% 降本,见上文): → 约 $14,985/月
++ Prompt Caching(系统 Prompt + 检索背景占输入的 40%,命中率 70%,命中部分省 90%):
+    输入成本中约 40% × 70% × 90% 的部分被节省
+    → 输入成本再降约 25%,整体再降约 10-15%: → 约 $13,000/月
++ 非实时的周报/批量摘要功能改用 Batch API(设该部分占总量 15%,省 50%):
+    → 再降约 5-8%: → 约 $12,000-12,500/月
+
+综合降本幅度:约 50%,且优先动用的都是&quot;无损或低损&quot;手段
+</code></pre>
+<p><strong>关键结论</strong>:降本不是选择题(选一个手段),而是组合题——缓存、批处理、路由三种手段的适用场景基本不重叠,可以叠加使用;蒸馏和微调则是在业务稳定后的长期投入项,不必第一阶段就上。落地节奏建议参考<a href="../../04-interview/case-analysis/reduce-llm-cost-10x.html">成本涨 10 倍如何降本</a>里"无损降本 → 低损降本 → 结构性优化"的三层顺序,先把容易拿到的收益拿到手,再评估更重的投入项。</p>
+<p>下面五节不再堆新折扣,而是补"账外成本与反模式":暗成本、品类成本框架、Jevons 悖论、路由失败、缓存负优化。选题结构启发自磊叔《关于 AI 产品经理的 100 个问题》Q47 / Q52 / Q53 / Q55 / Q79 / Q80,正文为原创重写。</p>
+<h2 id="token">八、暗成本:Token 账单之外的单位经济学</h2>
+<p><a href="llm-cost-101.html#四别忘了api-调用费不是全部成本">成本测算入门</a>已经列出功能级的非 API 成本(标注、评估、向量库、人力、合规)。评审定价或单次调用 ROI 时,还要把这些成本<strong>摊到每一次有效调用</strong>上,否则会出现"Token 毛利还行、产品越火越亏"。</p>
+<table>
+<thead>
+<tr>
+<th>暗成本项</th>
+<th>含义</th>
+<th>PM 怎么估(框架,非固定倍数)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token / 推理</td>
+<td>API 或自建推理的直接费用</td>
+<td>用<a href="llm-cost-101.html#五给-pm-的估算模板">测算模板</a>算清,这是可见账单</td>
+</tr>
+<tr>
+<td>延迟与转化损耗</td>
+<td>用户多等一秒带来的放弃、重试、客服升级</td>
+<td>用漏斗差估算:延迟升高前后的完成率差 × 该次调用对应的贡献毛利</td>
+</tr>
+<tr>
+<td>人工兜底</td>
+<td>模型失败后的转人工、复核、重做</td>
+<td>转人工率 × 单次人工处理全成本(工资+工时+质检),别只算坐席时薪</td>
+</tr>
+<tr>
+<td>迭代与评估摊销</td>
+<td>Prompt/路由/评测集的持续人力</td>
+<td>(月度算法+产品+标注投入) ÷ 月有效调用量</td>
+</tr>
+<tr>
+<td>数据与基础设施</td>
+<td>标注、日志、向量库、缓存系统、观测</td>
+<td>按功能分摊的月度账单 ÷ 调用量;无 RAG 也常有日志与评测存储</td>
+</tr>
+<tr>
+<td>合规与安全</td>
+<td>内容审核、备案、法务、红队抽检</td>
+<td>固定成本摊销 + 按调用触发的审核 API 费用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>写法建议</strong>:做一张"单位有效调用全成本"表,把上表六项写成区间而不是单一数字;再和定价/ARPU 对照。没有权威行业倍数可以照搬——有人凭经验说真实成本是 Token 的数倍,那只是提醒漏项,不是可引用红线。定价侧怎么把成本底线嵌进商业模式,见<a href="ai-pricing-and-monetization.html">《AI 产品定价与商业化》</a>。</p>
+<h2 id="x">九、品类成本框架:别拿单一"占营收 X%"当行业标准</h2>
+<p>网上和内部评审里常见一种说法:Token(或模型调用)成本占营收到了某个百分比就"活不下去"。<strong>这类具体百分比没有普适财报支撑,本文不把它写成行业标准。</strong>更稳妥的做法是按<strong>品类与变现方式</strong>搭决策框架,再用自己的毛利结构校准阈值。</p>
+<h3 id="_7">先问清三件事</h3>
+<ol>
+<li><strong>钱从哪来</strong>:按次/按量转嫁给客户、订阅包用量、广告/流量变现,还是企业合同打包?</li>
+<li><strong>用量谁控制</strong>:用户是否可无上限消耗(订阅不限次、Agent 多步循环)?还是产品侧有配额、截断、降级?</li>
+<li><strong>毛利缓冲在哪</strong>:除了模型费,还有没有人力交付、渠道分成、云资源等更大头?模型费占比低不代表整体健康。</li>
+</ol>
+<h3 id="_8">品类对照(定性框架)</h3>
+<table>
+<thead>
+<tr>
+<th>品类/变现</th>
+<th>成本压力特征</th>
+<th>决策时优先盯什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工具型按次付费(文案、翻译、生图按量)</td>
+<td>单价透明,用户对"贵"极敏感;模型费几乎直接吃毛利</td>
+<td>单次调用全成本 vs 客单价;先做缓存/批处理/小模型,再谈扩品类</td>
+</tr>
+<tr>
+<td>订阅制(月费包用量或名义不限次)</td>
+<td>重度用户拉高均值成本;轻度用户补贴重度</td>
+<td>用量分位(P50/P90/P99)、是否分层配额、是否对超限降级或加购</td>
+</tr>
+<tr>
+<td>广告/免费增值</td>
+<td>ARPU 低,模型费稍涨就压垮贡献利润</td>
+<td>极严的调用上限、强缓存、尽量小模型;高耗场景要单独变现</td>
+</tr>
+<tr>
+<td>企业 API / 按量转售</td>
+<td>可把推理成本写进合同单价或最低消费</td>
+<td>合同毛利地板、超量条款、是否允许客户选模型档位</td>
+</tr>
+<tr>
+<td>Agent / 多步工作流</td>
+<td>单次用户意图触发多轮模型与工具调用,Token 乘数大</td>
+<td>步数上限、工具失败重试策略、按任务而非按 Token 定价是否成立</td>
+</tr>
+</tbody>
+</table>
+<p><strong>怎么用</strong>:选定品类行 → 列出"可接受的模型费占贡献毛利 / 占营收"的<strong>自有目标区间</strong>(来自财务与定价评审,不是外部分位数) → 用敏感性分析标出触发重谈定价或砍功能的条件。若有人甩出"占营收约四成还能不能活",正确回应是:先归品类、再看能否转嫁与控量,而不是背一个红线百分比。</p>
+<h2 id="jevons">十、Jevons 悖论:单价降了,总账单为什么可能涨</h2>
+<h3 id="_9">经济学定义(可引用)</h3>
+<p><strong>Jevons 悖论</strong>(Jevons paradox):当技术进步提高了某种资源的使用效率时,该资源的<strong>总消耗量往往不降反升</strong>——效率降低了单位用途的有效成本,若需求对价格足够敏感,会诱发更多使用,甚至超过节约下来的部分。英国经济学家 William Stanley Jevons 在 1865 年《煤炭问题》(The Coal Question)中讨论煤与蒸汽机效率时提出这一观察:更节约地用煤,并不等于全社会少用煤。</p>
+<p>(定义综述见 <a href="https://en.wikipedia.org/wiki/Jevons_paradox">Wikipedia: Jevons paradox</a>;原始论著见 Jevons, <em>The Coal Question</em>, 1865。访问日期:2026-08-06。)</p>
+<h3 id="ai">在 AI 产品里怎么表现</h3>
+<p>把"资源"换成 <strong>token / 推理算力</strong> 时,常见链条是:</p>
+<ol>
+<li>模型或 API <strong>单价下降</strong>,或同等效果可用更便宜模型达成;</li>
+<li>原来不划算的形态变得划算:更长上下文、更多轮对话、多步 Agent、更宽的功能入口;</li>
+<li><strong>单次任务的 token 乘数</strong>上升(一次用户请求触发更多内部调用);</li>
+<li>总账单 = 单价 × 用量;单价下降被用量上升抵消甚至反超。</li>
+</ol>
+<p>公开讨论里,推理变便宜后企业总支出仍可能上升、以及"便宜智能刺激更多用法",已有财经与产业侧复盘(例如 <a href="https://www.npr.org/sections/planet-money/2025/02/04/g-s1-46018/ai-deepseek-economics-jevons-paradox">NPR Planet Money 对 AI 与 Jevons 的讨论</a>,2026-08-06 访问)。具体"降价当天账单翻几倍"属于个案叙事,<strong>不能</strong>当作可复现的行业系数;对 PM 有用的是机制,不是轶事数字。</p>
+<h3 id="_10">对降本决策的启示</h3>
+<ul>
+<li>把降价省下来的预算<strong>默认会转化为新用量</strong>,预算模型里要单列"形态扩张"假设,而不是假定调用量固定。</li>
+<li>控总成本的杠杆在产品侧:<strong>配额、步数上限、路由门槛、异步批处理、对重度用户的产品约束</strong>,而不只是换更便宜的模型。</li>
+<li>降本评审要同时看三列:单价、每次任务 token 数、任务次数——只砍第一列,后两列常会反弹。</li>
+</ul>
+<h2 id="_11">十一、路由失败模式:分层很美,落地常翻车</h2>
+<p>第四节讲了分层路由的节省测算与基本缓解手段;这里补<strong>失败模式清单</strong>,对应"什么时候不该上路由 / 上了如何判定负优化"。选型层的分工见<a href="model-selection-framework.html#六大小模型分层策略">模型选型决策框架</a>。</p>
+<table>
+<thead>
+<tr>
+<th>失败模式</th>
+<th>表现</th>
+<th>为何伤成本或体验</th>
+<th>缓解方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>低估难度(漏判)</td>
+<td>复杂请求进了轻量模型</td>
+<td>质量崩、重试与转人工上升,暗成本吃掉 Token 节省</td>
+<td>置信度阈值 + 自动升级;按负反馈率分模型监控</td>
+</tr>
+<tr>
+<td>高估难度(过杀)</td>
+<td>简单请求进了旗舰模型</td>
+<td>白白烧钱,分层形同虚设</td>
+<td>用规则/小分类器先拦意图清晰的简单类;定期抽检过杀率</td>
+</tr>
+<tr>
+<td>路由本身很贵/很慢</td>
+<td>分类再调一次模型,或规则链过重</td>
+<td>TTFT 变差;分类成本接近执行成本</td>
+<td>规则优先、极小模型分类、缓存路由结果;延迟敏感场景慎用</td>
+</tr>
+<tr>
+<td>输出风格分裂</td>
+<td>同产品有时像轻量模型、有时像旗舰</td>
+<td>用户感知"不稳定",信任下降</td>
+<td>统一系统人设与输出约束;关键路径固定模型</td>
+</tr>
+<tr>
+<td>监控缺失</td>
+<td>只看总账单下降</td>
+<td>账单降了但投诉/重试升了,净收益为负</td>
+<td>同时盯:分层占比、升级率、各层点踩/转人工、任务成功率</td>
+</tr>
+<tr>
+<td>边界不清仍硬分层</td>
+<td>开放域对话、风格敏感的创作</td>
+<td>分类器天然不准,失败率难压下去</td>
+<td>先单模型 + Prompt/上下文优化;批处理、离线、内部工具更适合先吃路由红利</td>
+</tr>
+</tbody>
+</table>
+<p><strong>决策框架(替代"错误率超过某百分比就负优化"的口号)</strong>:</p>
+<ol>
+<li>估一笔<strong>期望节省</strong>(轻量层占比 × 价差);</li>
+<li>估一笔<strong>期望损失</strong>(漏判率 × 单次质量事故成本,含重试与人工);</li>
+<li>加上路由引入的<strong>延迟与工程复杂度</strong>;</li>
+<li>只有期望节省明显大于期望损失,且能建成分层监控,才值得上。做不到分类质量与监控,单一主力模型往往更稳。</li>
+</ol>
+<p>多模型"这个请求用哪一档"的日常决策,仍落在效果/成本/延迟/合规四要素上,见<a href="model-selection-framework.html">选型框架</a>;路由只是执行层,不能替代选型评审。</p>
+<h2 id="token_1">十二、缓存负优化:省 Token 的手段何时反噬</h2>
+<p>第二节已说明厂商缓存机制与"前缀命中"设计要点。缓存还有一类<strong>产品与答案层缓存</strong>(高频问答直接返回、少调模型)。两类都可能负优化:</p>
+<table>
+<thead>
+<tr>
+<th>负优化类型</th>
+<th>典型场景</th>
+<th>信号</th>
+<th>怎么处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>写入/存储贵过命中收益</td>
+<td>Anthropic / Gemini 等显式缓存:写入倍数价或 TTL 存储费,但前缀几乎不重复</td>
+<td>缓存相关账单上涨、命中率长期偏低</td>
+<td>只缓存稳定长前缀;TTL 对齐真实复访间隔;命中率不达标就关</td>
+</tr>
+<tr>
+<td>前缀被个性化打断</td>
+<td>用户 ID、时间戳、动态检索块插在 Prompt 最前</td>
+<td>几乎从不命中</td>
+<td>公共系统 Prompt / 静态资料前置,可变部分后置(见第二节)</td>
+</tr>
+<tr>
+<td>答案缓存过期</td>
+<td>知识库/价格/政策已更新,仍返回旧答案</td>
+<td>正确率投诉、客服纠错成本上升</td>
+<td>内容变更时主动失效;短 TTL;高风险域少做答案缓存</td>
+</tr>
+<tr>
+<td>错误答案被缓存</td>
+<td>一次幻觉或错误工具结果被所有人复用</td>
+<td>故障面放大</td>
+<td>写入前质检/允许列表;错误与低置信度禁止入缓存</td>
+</tr>
+<tr>
+<td>缓存层自身延迟</td>
+<td>查询缓存慢,未命中还要回源</td>
+<td>总延迟高于直连模型</td>
+<td>缓存路径必须远快于模型 TTFT;否则直连更优</td>
+</tr>
+<tr>
+<td>命中率过低仍硬上</td>
+<td>创意写作、高度个性化生成</td>
+<td>基础设施与工程成本 &gt; Token 节省</td>
+<td>先度量重复率;重复率低的场景优先 Prompt 瘦身与小模型,而不是上缓存平台</td>
+</tr>
+</tbody>
+</table>
+<p><strong>落地顺序建议</strong>:先度量"可复用前缀占比"和"答案可复用占比" → 再选 Prompt Caching 或答案缓存 → 上线后盯命中率、过期事故、缓存层延迟。厂商侧折扣数字以官方定价为准(见文末参考资料),产品侧负优化靠自己的命中率与事故成本核算,没有统一的"省四成/六成"可当作承诺写进 PRD。</p>
+<h2 id="_12">相关阅读</h2>
+<ul>
+<li><a href="llm-cost-101.html">AI 产品成本测算入门:token、并发与人力</a></li>
+<li><a href="model-selection-framework.html">模型选型决策框架:效果、成本、延迟、合规四要素</a></li>
+<li><a href="ai-pricing-and-monetization.html">AI 产品定价与商业化:订阅、Token、按结果怎么选</a></li>
+<li><a href="../../04-interview/case-analysis/reduce-llm-cost-10x.html">某功能接入大模型后成本涨了 10 倍,如何降本?</a></li>
+<li><a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">AI 产品的商业模式该怎么设计?按次数、按 Token 还是订阅?</a></li>
+<li><a href="../../04-interview/basics/token-cost-and-experience.html">什么是 token?它如何影响产品的成本和体验?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+</ul>
+<h2 id="_13">参考资料</h2>
+<ul>
+<li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Pricing - Claude Platform Docs</a> — Anthropic 官方定价页(含 Prompt Caching、Batch 折扣说明),2026-07 访问;机制相关条目 2026-08-06 复核</li>
+<li><a href="https://developers.openai.com/api/docs/pricing">Pricing | OpenAI API</a> — OpenAI 官方定价页,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/guides/prompt-caching">Prompt caching | OpenAI API</a> — OpenAI 提示缓存机制说明,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/guides/batch">Batch API | OpenAI API</a> — OpenAI 批处理说明,2026-07 访问</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini Developer API pricing | Google AI for Developers</a> — Google 官方定价页,2026-07 访问</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/caching">Context caching | Gemini API | Google AI for Developers</a> — Google 上下文缓存机制说明,2026-07 访问</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/batch-api">Batch API | Gemini API | Google AI for Developers</a> — Google 批处理说明,2026-07 访问</li>
+<li><a href="https://en.wikipedia.org/wiki/Jevons_paradox">Jevons paradox - Wikipedia</a> — Jevons 悖论定义与机制综述,2026-08-06 访问</li>
+<li>Jevons, William Stanley. <em>The Coal Question</em>. London: Macmillan, 1865. 可参考 <a href="https://energyhistory.yale.edu/w-stanley-jevons-the-coal-question-1865/">Yale Energy History 摘录说明</a>,2026-08-06 访问</li>
+<li><a href="https://www.npr.org/sections/planet-money/2025/02/04/g-s1-46018/ai-deepseek-economics-jevons-paradox">Why the AI world is suddenly obsessed with Jevons paradox (NPR / Planet Money)</a> — AI 语境下的公开讨论,2026-08-06 访问</li>
+<li>选题启发:磊叔(AIRay1015)《关于 AI 产品经理的 100 个问题》Q47 / Q52 / Q53 / Q55 / Q79 / Q80(<a href="https://my.feishu.cn/wiki/Rl6zw6lp2ipOnnkBVxwc5urRnLc">飞书链接</a>);本文不摘录其答案正文</li>
+</ul>
+</main>
+</body>
+</html>

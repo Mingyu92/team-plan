@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5-transformers 操作篇</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 07_PDF面试题库/39_5-transformers_操作篇.md</span></div>
+<main>
+<h1 id="5-transformers">5-transformers 操作篇</h1>
+<blockquote>
+<p>来源 PDF：<code>200页AI大模型面试高频必刷题（附详解）/5-transformers 操作篇.pdf</code><br>
+主题：RAG / 文档问答<br>
+页数：3<br>
+字符数：2857<br>
+索引片段数：7</p>
+</blockquote>
+<h2 id="_1">摘要</h2>
+<p>transformers 操作篇 来自： AiGC面试宝典 宁静致远 2024年01月28日 13:20 1. 如何 利用 transformers 加载 Bert 模型？ 可以看到，包括import在内的不到十行代码，我们就实现了读取一个预训练过的BERT模型，来 encode我们指定的一个文本，对文本的每一个token生成768维的向量。如果是二分类任务，我们 • transformers 操作篇 • 1. 如何 利用 transformers 加载 Bert 模型？ • 2. 如何 利用 transforme</p>
+<h2 id="_2">代表性原文片段</h2>
+<h3 id="1">片段 1</h3>
+<p>transformers 操作篇
+来自： AiGC面试宝典
+宁静致远 2024年01月28日 13:20
+1. 如何 利用 transformers 加载 Bert 模型？
+可以看到，包括import在内的不到十行代码，我们就实现了读取一个预训练过的BERT模型，来
+encode我们指定的一个文本，对文本的每一个token生成768维的向量。如果是二分类任务，我们
+• transformers 操作篇
+• 1. 如何 利用 transformers 加载 Bert 模型？
+• 2. 如何 利用 transformers 输出 Bert 指定 hidden_state？
+• 3. BERT 获取最后一层或每一层网络的向量输出
+• 致谢
+import torch
+from transformers import BertModel, BertTokenizer</p>
+<h1 id="bert-base">这里我们调用bert-base模型，同时模型的词典经过小写处理</h1>
+<p>model_name = 'bert-base-uncased'</p>
+<h1 id="tokenizer">读取模型对应的tokenizer</h1>
+<h3 id="2">片段 2</h3>
+<p>izer</p>
+<h1 id="bert-base_1">这里我们调用bert-base模型，同时模型的词典经过小写处理</h1>
+<p>model_name = 'bert-base-uncased'</p>
+<h1 id="tokenizer_1">读取模型对应的tokenizer</h1>
+<p>tokenizer = BertTokenizer.from_pretrained(model_name)</p>
+<h1 id="_3">载入模型</h1>
+<p>model = BertModel.from_pretrained(model_name)</p>
+<h1 id="_4">输入文本</h1>
+<p>input_text = "Here is some text to encode"</p>
+<h1 id="tokenizer-token_id">通过tokenizer把文本变成 token_id</h1>
+<p>input_ids = tokenizer.encode(input_text, add_special_tokens=True)</p>
+<h1 id="input_ids-101-2182-2003-2070-3793-2000-4372-16044-102">input_ids: [101, 2182, 2003, 2070, 3793, 2000, 4372, 16044, 102]</h1>
+<p>input_ids = torch.tensor([input_ids])</p>
+<h1 id="bert">获得BERT模型最后一个隐层结果</h1>
+<p>with torch.no_grad():</p>
+<h3 id="3">片段 3</h3>
+<p>16044, 102]
+input_ids = torch.tensor([input_ids])</p>
+<h1 id="bert_1">获得BERT模型最后一个隐层结果</h1>
+<p>with torch.no_grad():
+last_hidden_states = model(input_ids)[0] # Models outputs are now tuples
+""" tensor([[[-0.0549, 0.1053, -0.1065, ..., -0.3550, 0.0686, 0.6506],
+[-0.5759, -0.3650, -0.1383, ..., -0.6782, 0.2092, -0.1639],
+[-0.1641, -0.5597, 0.0150, ..., -0.1603, -0.1346, 0.6216],
+...,
+[ 0.2448, 0.1254, 0.1587, ..., -0.2749, -0.1163, 0.8809],
+[ 0.0481, 0.4950, -0.2827, ..., -0.6097, -0.1212, 0.2527],</p>
+<h3 id="4">片段 4</h3>
+<p>..., -0.2749, -0.1163, 0.8809],
+[ 0.0481, 0.4950, -0.2827, ..., -0.6097, -0.1212, 0.2527],
+[ 0.9046, 0.2137, -0.5897, ..., 0.3040, -0.6172, -0.1950]]])
+shape: (1, 9, 768)
+"""
+扫码加
+查看更多</p>
+<p>-- 1 of 3 --</p>
+<p>接下来就可以把第一个token也就是[CLS]的768维向量，接一个linear层，预测出分类的logits，或
+者根据标签进行训练。
+2. 如何 利用 transformers 输出 Bert 指定 hidden_state？
+Bert 默认是 十二层，但是有时候预训练时并不需要利用全部利用，而只需要预训练前面几层即
+可，此时该怎么做呢？
+下载到bert-base-uncased的模型目录里面包含 配置文件 config.json, 该文件中包含
+output_hidden_states，可以利用该参数来设置 编码器内隐藏层层数
+3. BERT 获取最后一层或每一层网络的向量输出
+{
+"architectures": [</p>
+<h3 id="5">片段 5</h3>
+<p>含
+output_hidden_states，可以利用该参数来设置 编码器内隐藏层层数
+3. BERT 获取最后一层或每一层网络的向量输出
+{
+"architectures": [
+"BertForMaskedLM"
+],
+"attention_probs_dropout_prob": 0.1,
+"hidden_act": "gelu",
+"hidden_dropout_prob": 0.1,
+"hidden_size": 768,
+"initializer_range": 0.02,
+"intermediate_size": 3072,
+"max_position_embeddings": 512,
+"num_attention_heads": 12,
+"num_hidden_layers": 12,
+"type_vocab_size": 2,
+"vocab_size": 30522
+}
+• transformer 最后一层输出的结果
+last_hidden_state：shape是(batch_size, sequence_length, hidden_size)，</p>
+<h3 id="6">片段 6</h3>
+<p>transformer 最后一层输出的结果
+last_hidden_state：shape是(batch_size, sequence_length, hidden_size)，
+hidden_size=768,它是模型最后一层输出的隐藏状态
+pooler_output：shape是(batch_size, hidden_size)，这是序列的第一个
+token(classification token)的最后一层的隐藏状态，它是由线性层和Tanh激活函数进一步处
+理的，这个输出不是对输入的语义内容的一个很好的总结，对于整个输入序列的隐藏状态序列
+的平均化或池化通常更好。
+hidden_states：这是输出的一个可选项，如果输出，需要指定
+config.output_hidden_states=True,它也是一个元组，它的第一个元素是embedding，其余元
+素是各层的输出，每个元素的形状是(batch_size, sequence_length, hidden_size)
+attentions：这也是输出的一个可选项，如果输出，需要指定</p>
+<h3 id="7">片段 7</h3>
+<p>是各层的输出，每个元素的形状是(batch_size, sequence_length, hidden_size)
+attentions：这也是输出的一个可选项，如果输出，需要指定
+config.output_attentions=True,它也是一个元组，它的元素是每一层的注意力权重，用于计
+算self-attention heads的加权平均值
+• 获取每一层网络的向量输出</p>
+<h2 id="token">最后一层的所有 token向量</h2>
+<p>outputs.last_hidden_state</p>
+<h2 id="cls">cls向量</h2>
+<p>-- 2 of 3 --</p>
+<p>知识星球
+outputs.pooler_output</p>
+<h2 id="hidden_states130embedding1-12">hidden_states，包括13层，第一层即索引0是输入embedding向量，后面1-12索引是每层的</h2>
+<p>输出向量
+hidden_states = outputs.hidden_states
+embedding_output = hidden_states[0]
+attention_hidden_states = hidden_states[1:]</p>
+<p>-- 3 of 3 --</p>
+<h2 id="_5">使用建议</h2>
+<ul>
+<li>这些内容来自授权公开 PDF 的文本抽取结果，网页端会基于同一份静态索引做关键词检索。</li>
+<li>面试复习时建议先用网页 PDF 原文检索定位题目，再回到主 notes 学系统化答案。</li>
+<li>如果片段出现排版噪声，以原 PDF 语义为准，并优先整理成自己的回答模板。</li>
+</ul>
+</main>
+</body>
+</html>

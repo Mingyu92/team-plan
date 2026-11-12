@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 产品定价与商业化：订阅、Token、按结果怎么选</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/cost-and-tech/ai-pricing-and-monetization.md</span></div>
+<main>
+<h1 id="ai-token">AI 产品定价与商业化：订阅、Token、按结果怎么选</h1>
+<blockquote>
+<p><strong>信息状态</strong>：决策框架｜<strong>最后核验</strong>：2026-08-06<br>
+产品/API 公开价目以官方页为准；毛利率无经审计财报支撑时只给框架与示意量级，不作行业红线。</p>
+</blockquote>
+<p>AI 产品的定价，本质不是「定一个好听的月费」，而是把<strong>不确定的推理成本</strong>，翻译成用户能理解、愿付费、你也算得清的商业契约。助手赛道怎么赚钱，见案例合集 <a href="../../03-case-studies/chatbot-assistant/assistant-monetization-paths.html">助手类产品的商业化路径</a>；本文把那些结论升级成<strong>可复用的选型决策树</strong>，并回答三个 PM 常被追问的问题：五种模式怎么选、什么时候别对 C 端透传 Token 账单、成本底线怎么估。</p>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q75 / Q76 / Q78；正文为原创框架，不摘录该 PDF 答案。</p>
+<hr>
+<h2 id="_1">一、先对齐：你在卖什么？</h2>
+<p>定模式前，先写清三句话（写不出来就别开价）：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>写清楚什么</th>
+<th>写不清的后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户买的是什么？</td>
+<td>确定性（包月额度）、弹性（按量）、结果（线索/工单完结）、还是治理（席位+合规）</td>
+<td>订阅与按量混说，客诉与续费崩</td>
+</tr>
+<tr>
+<td>成本怎么随用量变？</td>
+<td>单次调用成本区间、重度用户尾巴、是否可异步/可缓存</td>
+<td>免费层或包干席位被打穿</td>
+</tr>
+<tr>
+<td>免费层算不算成功？</td>
+<td>留存、分发、广告库存、首单授权……哪一项可独立成立</td>
+<td>用单一付费转化率考核整盘，假设过乐观</td>
+</tr>
+</tbody>
+</table>
+<p>成本怎么拆、怎么估，用 <a href="llm-cost-101.html">LLM 成本测算入门</a> 的模板；账太贵再看 <a href="cost-optimization.html">降本手段盘点</a>。定价文不重复价格表，只在需要锚点时引用官方公开价。</p>
+<hr>
+<h2 id="_2">二、五种常见模式（对照表）</h2>
+<p>与面试题 <a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">AI 产品的商业模式与定价</a>、助手商业化合集一致，对外可讲清这五类（可组合，但<strong>主叙事通常只能有一个</strong>）：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>模式</th>
+<th>钱怎么进来</th>
+<th>适合信号</th>
+<th>主要风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>订阅（含额度）</strong></td>
+<td>月/年费；卖模型档、额度、高峰优先、Agent 长跑</td>
+<td>用户能感知「不够用」，愿为稳定体验付月费</td>
+<td>重度用户薅包干；阶梯过陡转化极低</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>按量（Token / 次 / 积分）</strong></td>
+<td>用量 × 单价；成本与收入近似线性</td>
+<td>API、开发者平台、企业内部「真实消耗可见」</td>
+<td>C 端账单不可预期；大客流失</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>按结果 / 效果付费</strong></td>
+<td>按线索、完结工单、合格交付物等收费</td>
+<td>结果可观测、可归因、合同可写清</td>
+<td>归因扯皮；模型失败时谁买单</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Freemium + 广告 / 交易导流</strong></td>
+<td>免费养规模；广告或订单/抽成补现金</td>
+<td>超大免费盘，或自有履约中台</td>
+<td>信任与公正性；有对话无订单</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>企业：席位 + 用量（或封顶）</strong></td>
+<td>低席位费 + API 费率用量，或席位包额度</td>
+<td>要 SSO/审计/数据驻留；用量方差大</td>
+<td>销售周期长；包干被少数重度用户打穿</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2026-08-06">公开产品锚点（截至 2026-08-06，以官方页为准）</h3>
+<p><strong>消费级订阅分层（额度/模型档，不是裸 Token 账单）</strong></p>
+<table>
+<thead>
+<tr>
+<th>产品</th>
+<th>公开分层（摘录）</th>
+<th>官方入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ChatGPT</td>
+<td>Free → Go → Plus → Pro（个人）；另有 Business / Enterprise</td>
+<td><a href="https://chatgpt.com/pricing/">ChatGPT Pricing</a></td>
+</tr>
+<tr>
+<td>Claude</td>
+<td>Free → Pro（月付约 $20；年付折后约 $17/月）→ Max（From $100，5x/20x 用量）；Team 席位分档；Enterprise 常见 <strong>$20/席 + API 费率用量</strong></td>
+<td><a href="https://claude.com/pricing">Claude Pricing</a></td>
+</tr>
+</tbody>
+</table>
+<p>具体美元档位、广告是否出现在某一档、模型名，会随官方页变更；评审以访问当日页为准，不要把媒体「ARR/转化率」当内部 KPI（助手合集已标存疑口径）。</p>
+<p><strong>API 按量（每百万 Token，USD；摘录主力档）</strong></p>
+<table>
+<thead>
+<tr>
+<th>厂商</th>
+<th>模型（示例）</th>
+<th>输入</th>
+<th>输出</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic</td>
+<td>Claude Sonnet 5</td>
+<td>$2（引导价，至 2026-08-31）→ 其后 $3</td>
+<td>$10 → $15</td>
+<td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude API Pricing</a></td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Opus 5 / 4.8 档</td>
+<td>$5</td>
+<td>$25</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Haiku 4.5</td>
+<td>$1</td>
+<td>$5</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>gpt-5.4</td>
+<td>$2.50</td>
+<td>$15.00</td>
+<td><a href="https://developers.openai.com/api/docs/pricing">OpenAI API Pricing</a></td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>gpt-5.4-mini / nano</td>
+<td>$0.75 / $0.20</td>
+<td>$4.50 / $1.25</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>gpt-5.5 / gpt-5.6-sol（短上下文）</td>
+<td>$5.00</td>
+<td>$30.00</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p>输出价普遍约为输入的数倍——对定价的含义是：<strong>「让模型少说废话 / 少瞎跑 Agent 步数」</strong>往往比抠一点点系统 Prompt 更能守毛利。Batch、Prompt Caching 等折扣见降本文，可叠用。</p>
+<p>国内助手（豆包订阅档、千问交易履约等）路径对照见 <a href="../../03-case-studies/chatbot-assistant/assistant-monetization-paths.html">助手商业化路径</a>，本文不重复单品叙事。</p>
+<hr>
+<h2 id="_3">三、决策树：五种模式怎么选</h2>
+<p>把助手合集的「先问履约、再问月费、最后问广告」升格为通用树。<strong>从上到下问，先命中的优先试主模式</strong>；辅模式可并行探索，但对外主叙事保持一条。</p>
+<pre><code>Q0  你的产品是否主要卖「模型能力给开发者/嵌入方」？
+    ├─ 是 → 【2 按量 Token/次】为主；可加预付包/承诺用量折扣
+    │        企业大客再叠【5 席位+用量/封顶】
+    └─ 否 → Q1
+
+Q1  公司是否有可控的商品/履约/支付中台，且对话能接到下单或履约？
+    ├─ 是 → 【4 交易导流】可作主叙事；订阅/广告仅作辅
+    │        （北星：下单率、复购、单均贡献，而非强行对标内容助手打开次数）
+    └─ 否 → Q2
+
+Q2  用户是否需要「账单可预期」，且愿意为额度/档位付月费？
+    ├─ 是，且用量方差可控 → 【1 订阅含额度】
+    │        免费层负责触顶转化；收费点放在高算力 Agent/办公额度
+    ├─ 是，但组织内用量方差极大 / 要治理合规 → 【5 席位 + 用量】
+    │        （Claude Enterprise「席位费 + API 费率」即此类公开结构）
+    └─ 否 → Q3
+
+Q3  结果是否可观测、可归因、合同能写清「什么叫成功」？
+    ├─ 是（如合格线索、关闭工单、交付物验收）→ 【3 按结果】可试点
+    │        建议先小流量 + 人工抽检归因，再扩合同
+    └─ 否 → Q4
+
+Q4  是否有超大免费流量，且必须长期维持「聊天不设墙」？
+    ├─ 是 → 【4 Freemium + 广告】补免费盘现金流；或接受货币化后置到云/API/生态位
+    └─ 否 → 回到成本模板：先砍范围/降本，再谈定价；不要用「先免费再想」代替决策
+</code></pre>
+<h3 id="_4">组合拳怎么打（避免左右互搏）</h3>
+<table>
+<thead>
+<tr>
+<th>主叙事</th>
+<th>常见辅路径</th>
+<th>产品上要统一的事</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>订阅</td>
+<td>API、轻度广告</td>
+<td>免费聊天别设硬墙；墙设在额度/模型档</td>
+</tr>
+<tr>
+<td>交易</td>
+<td>轻度会员</td>
+<td>指标用交易漏斗，不要用 MAU×拍脑袋转化率当已验证 ARR</td>
+</tr>
+<tr>
+<td>API 按量</td>
+<td>预付包、企业合同</td>
+<td>C 端卖确定性，API 卖弹性——双轨说清</td>
+</tr>
+<tr>
+<td>按结果</td>
+<td>底价订阅或按量兜底</td>
+<td>合同写清失败归因与封顶，避免「全或无」把你做穿</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="token">四、Token 计费劝退：什么时候别对用户透传</h2>
+<p><strong>对平台/内部</strong>：按 Token 算账几乎永远有用（预算、路由、降本）。<br>
+<strong>对 C 端用户</strong>：把「输入/输出百万 Token 单价」直接做成账单，常常是体验事故。</p>
+<p>出现以下任一条件，优先改成<strong>额度包月、积分、按次、或结果价</strong>，而不是裸 Token：</p>
+<ol>
+<li><strong>用户无法预估下一句要花多少</strong><br>
+   多轮历史、系统 Prompt、工具定义、RAG 片段都算输入；用户以为在「聊一句」，实际在烧上下文。账单抖动 → 退订与客诉。</li>
+<li><strong>输出单价显著高于输入，且产品鼓励长答/Agent 多步</strong><br>
+   公开 API 上输出常为输入的约 5–6 倍量级（见上表）。用户越「用得爽」，你越难用透明 Token 价解释「为什么这一下特别贵」。</li>
+<li><strong>任务边界模糊、失败要重试</strong><br>
+   重试、换模型、人工兜底若仍按 Token 向用户加价，等于惩罚探索行为。</li>
+<li><strong>采购决策者与使用者分离（常见 B 端）</strong><br>
+   业务要弹性，财务要封顶：更适合席位 + 共享额度池 / 支出上限，而不是每人一张浮动 Token 账单。</li>
+<li><strong>竞品心智已是「包月助手」</strong><br>
+   在 ChatGPT / Claude 式分层已教育市场的品类里，突然改成「看 Token 流水」会抬高理解成本，除非你明确卖的是开发者 API。</li>
+</ol>
+<p><strong>仍应对用户「用量可见」的做法</strong>（不等于裸 Token 价）：进度条式额度、接近上限告警、高峰降速说明、企业支出 cap——面试追问里的「成本不可预期怎么办」同一套路，见 <a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">商业模式面试题</a>。</p>
+<hr>
+<h2 id="_5">五、成本底线：框架 + 举例（不做伪精确红线）</h2>
+<p>公开财报若未拆「AI 推理毛利率」，<strong>不要编造「必须 ≥ xx%」的行业红线</strong>。对内评审用可证伪框架：</p>
+<h3 id="51">5.1 底线不等式（单位：同一周期，如月）</h3>
+<pre><code>贡献毛利 ≈ 收入 − 变动成本（模型 API / 推理 + 与用量线性相关的向量库等）
+          − 应分摊的变动人力（按量增长的标注抽检、人工兜底）
+
+要可持续（示意）：
+  贡献毛利 &gt; 0
+  且  贡献毛利 − 获客与固定研发摊销  在规划期内能转正（或有明确补贴叙事）
+</code></pre>
+<p>「变动成本」用 <a href="llm-cost-101.html">成本测算模板</a> 估；「能不能降」用 <a href="cost-optimization.html">降本盘点</a>。<strong>毛利率目标是公司财务假设，不是本文可引用的外部事实。</strong></p>
+<h3 id="52">5.2 三种常见定价的底线问法</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>底线问句</th>
+<th>举例（示意量级，非标准）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>订阅</td>
+<td>付费用户 ARPU，能否覆盖「该档用户」的 P90 推理成本 + 人工兜底？</td>
+<td>若某档月费 $20，而 P90 用户月推理已接近或超过该档对应成本带，要么涨档（Max 式倍数）、要么限速/降模型，要么接受该档亏损获客</td>
+</tr>
+<tr>
+<td>按量</td>
+<td>卖出价是否覆盖「标价 Token × 实际膨胀系数」？</td>
+<td>实际膨胀常来自：隐藏系统 Prompt、多轮历史、工具定义、重试、Agent 步数。售价按「用户可见字数」定、成本按「全量 Prompt」计，是经典亏法</td>
+</tr>
+<tr>
+<td>按结果</td>
+<td>单次成功结果的收入，能否覆盖「成功路径 + 失败重试 + 人工抽检」的期望成本？</td>
+<td>若平均 3 次生成 + 1 次人工验收才成 1 单，成本按 3+1 计，收入按 1 计</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53">5.3 免费层打平反推（评审一页纸）</h3>
+<p>延续助手合集做法：先用成本模板估出<strong>免费层月度推理区间</strong>，再反推：</p>
+<ul>
+<li>订阅：需要多少付费用户 × ARPU  </li>
+<li>广告：需要多少有效库存 × 怎样的 eCPM（若无实测，只标情景）  </li>
+<li>交易：需要多少单 × 单均贡献（扣补贴与履约）  </li>
+</ul>
+<p>缺公开分母时，转化率与 ARR <strong>只作情景上下界</strong>，写入假设表，不写进「已验证」。</p>
+<h3 id="54">5.4 迷你算例（把底线说清楚即可）</h3>
+<p>沿用成本文量级感：DAU 10 万、渗透 30%、人均日调 5 次、主力档模型，粗算月模型成本可到约 <strong>2.5 万美元</strong> 量级（详见 <a href="llm-cost-101.html">llm-cost-101</a> 完整假设）。  </p>
+<p>若该功能对用户全免费、又无广告/交易第二条腿，则「商业化」问题先变成：<strong>谁补贴这 2.5 万+/月，补贴到什么指标算成功</strong>——而不是先设计精美价目表。若改为 Pro 档订阅承接重度用量，应用本档用户的真实分位成本做压力测试，而不是用「平均用户」自我安慰。</p>
+<hr>
+<h2 id="pm">六、给 PM 的落地清单</h2>
+<ol>
+<li><strong>一页写清</strong>：主模式、辅模式、免费层成功标准、成本模板链接、访问日官方价目截图或链接。  </li>
+<li><strong>收费点对齐高意图 + 高边际成本</strong>：Agent 长跑、高档模型、深度研究、企业治理——而不是打断闲聊。  </li>
+<li><strong>包干必做分位</strong>：看 P90/P99 用量，不看均值；必要时「席位 + 用量」或超额按量。  </li>
+<li><strong>对外数字降级</strong>：官方定价可写进 PRD；媒体收入拆分、匿名转化率默认存疑。  </li>
+<li><strong>模式可改，契约要稳</strong>：调价与改计量方式提前公告；企业合同写清封顶与超额。</li>
+</ol>
+<hr>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="llm-cost-101.html">AI 产品成本测算入门：token、并发与人力</a></li>
+<li><a href="cost-optimization.html">降本手段盘点：缓存、批处理、路由与蒸馏</a></li>
+<li><a href="model-selection-framework.html">模型选型决策框架</a></li>
+<li><a href="../../03-case-studies/chatbot-assistant/assistant-monetization-paths.html">助手类产品的商业化路径：订阅、广告、还是 API</a></li>
+<li><a href="../../04-interview/case-analysis/ai-business-model-and-pricing.html">DeepSeek 峰谷定价 / AI 商业模式面试题</a></li>
+<li><a href="../../04-interview/case-analysis/estimate-daily-active-chat-cost.html">估算日活聊天的 Token 成本</a></li>
+<li><a href="../../04-interview/case-analysis/reduce-llm-cost-10x.html">某功能接入大模型后成本涨了 10 倍，如何降本？</a></li>
+</ul>
+<hr>
+<h2 id="_7">参考资料</h2>
+<ul>
+<li><a href="https://chatgpt.com/pricing/">ChatGPT Plans / Pricing</a> — OpenAI 消费级计划页，访问约 2026-08-06  </li>
+<li><a href="https://claude.com/pricing">Claude Plans &amp; Pricing</a> — Anthropic 消费/团队/企业计划页（含 Pro / Max / Team / Enterprise 结构），访问约 2026-08-06  </li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Pricing - Claude Platform Docs</a> — Anthropic API 定价（含 Sonnet 5 引导价截止日期），访问约 2026-08-06  </li>
+<li><a href="https://developers.openai.com/api/docs/pricing">Pricing | OpenAI API</a> — OpenAI API 定价，访问约 2026-08-06  </li>
+<li>选题启发：磊叔 / AIRay1015《关于 AI 产品经理的 100 个问题》Q75、Q76、Q78（飞书专题；<strong>不摘录正文</strong>）</li>
+</ul>
+</main>
+</body>
+</html>

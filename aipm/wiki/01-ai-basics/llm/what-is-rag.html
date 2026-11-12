@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>什么是 RAG:检索增强生成入门</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/llm/what-is-rag.md</span></div>
+<main>
+<h1 id="rag">什么是 RAG:检索增强生成入门</h1>
+<h2 id="_1">一句话解释</h2>
+<p>RAG(Retrieval-Augmented Generation,检索增强生成)= 先从你的知识库里<strong>检索</strong>出相关内容,再把它们和用户问题一起交给大模型<strong>生成</strong>答案。相当于让模型"开卷考试"而不是"闭卷硬答"。</p>
+<h2 id="rag_1">为什么需要 RAG</h2>
+<p>大模型有三个天然缺陷:</p>
+<ol>
+<li><strong>知识过时</strong>:训练数据有截止日期,不知道昨天发生了什么</li>
+<li><strong>不懂私有知识</strong>:你公司的产品文档、内部制度,模型从没见过</li>
+<li><strong>幻觉</strong>:不知道的问题也会一本正经地编</li>
+</ol>
+<p>RAG 一次性缓解这三个问题:答案基于检索到的真实材料生成,还可以附上引用来源。</p>
+<h2 id="_2">工作流程</h2>
+<p>下面是最常见的入门形态(有时叫 Naive RAG):固定切块、固定 Top-K、再拼进 Prompt。它适合理解原理,但<strong>不等于生产级 RAG 的全部</strong>——混合检索、重排、以及由 Agent 动态决定「查什么」的演进,见<a href="rag-evolution-naive-to-agentic.html">《RAG 没死:死的是 Naive 固定流水线》</a>。</p>
+<pre><code>用户提问
+   ↓
+① 把问题转成向量(Embedding)
+   ↓
+② 在向量数据库中检索最相关的文档片段(通常取 top 3-10 段)
+   ↓
+③ 把「文档片段 + 用户问题」拼成 Prompt 交给大模型
+   ↓
+④ 模型基于给定材料生成答案(可附引用)
+</code></pre>
+<h2 id="pm">PM 需要关心的设计决策</h2>
+<table>
+<thead>
+<tr>
+<th>决策点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文档切片策略</td>
+<td>切太碎丢上下文,切太大检索不准——直接影响答案质量</td>
+</tr>
+<tr>
+<td>检索不到怎么办</td>
+<td>是老实说"不知道",还是让模型自由发挥?前者体验差,后者有幻觉风险</td>
+</tr>
+<tr>
+<td>引用展示</td>
+<td>是否展示来源、怎么展示,是建立用户信任的关键产品设计</td>
+</tr>
+<tr>
+<td>知识库更新机制</td>
+<td>文档变更后多快生效?谁来维护知识库质量?</td>
+</tr>
+<tr>
+<td>评估方法</td>
+<td>检索准不准(召回率)和答得好不好(答案质量)要分开评估</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">典型面试追问</h2>
+<ul>
+<li>RAG 和微调的区别?什么场景选哪个?(参考:知识频繁更新、需要溯源 → RAG;改变模型说话风格和格式 → 微调;两者不互斥)</li>
+<li>用户反馈"答非所问",你怎么排查?(拆解:是检索环节没找到对的材料,还是生成环节没用好材料)</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li>B站:<a href="https://www.bilibili.com/video/BV1JLN2z4EZQ">RAG 工作机制详解</a>（马克的技术工作坊，~33 万播放）— 知识库全流程</li>
+<li>B站:<a href="https://www.bilibili.com/video/BV1RCGR6yEEw">RAG、Memory 与向量检索原理</a>（小白debug，~6.5 万播放）</li>
+<li>B站:<a href="https://www.bilibili.com/video/BV11a4y1c7SW">向量数据库技术鉴赏（上）</a>（Ele实验室，~28 万播放）</li>
+<li><a href="../prompt-engineering/context-engineering.html">Context Engineering：从写 Prompt 到拼上下文系统</a></li>
+<li><a href="prompt-rag-finetuning.html">Prompt、RAG、微调:三种让模型「更懂你」的手段</a></li>
+<li><a href="rag-evolution-naive-to-agentic.html">RAG 没死:死的是 Naive 固定流水线</a></li>
+<li><a href="long-context-vs-rag.html">长上下文 vs RAG:什么时候塞全库,什么时候检索</a></li>
+<li><a href="agentic-retrieval.html">Agentic Retrieval:检索如何变成 Agent 的工具</a></li>
+<li><a href="production-rag-checklist.html">工业级 RAG 清单:混合检索、重排、评测与知识治理</a></li>
+<li><a href="nl2sql-for-ai-pm.html">NL2SQL:自然语言查库,为什么学术高分上不了生产</a></li>
+<li><a href="../glossary.html">AI 术语速查表</a></li>
+<li>面试题:<a href="../../04-interview/basics/is-rag-dead.html">你怎么看「RAG 已死」这说法?</a></li>
+<li>面试题:<a href="../../04-interview/basics/index.html">04-interview/basics</a></li>
+</ul>
+</main>
+</body>
+</html>

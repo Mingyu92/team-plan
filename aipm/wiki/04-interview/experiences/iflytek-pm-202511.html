@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>科大讯飞 产品经理 面经</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/experiences/iflytek-pm-202511.md</span></div>
+<main>
+<h1 id="_1">科大讯飞 产品经理 面经</h1>
+<p><strong>来源</strong>: 牛客 @Felicità_Luce, 2025-11 | <strong>岗位</strong>: 产品经理（消费者 BG，交付方向） | <strong>类型</strong>: 校招/实习</p>
+<p><strong>来源性质</strong>：牛客社区公开面经（部分为社区整理），本文仅整理原文明确内容，未对经历进行独立核验；未披露信息统一标注“原文未披露”。
+<strong>背景</strong>：有至少两段实习经历，并有学校项目与论文经历；具体专业、年限等原文未披露
+<strong>渠道</strong>：原文未披露
+<strong>结果</strong>：二面未通过</p>
+<h2 id="_2">流程概览</h2>
+<p>简历筛选 → 一面（AI 需求与基础概念）→ 二面（实习深挖 + 模型评测与选型 + 故障处理）<br>
+<em>原帖注明：二面未通过。</em></p>
+<h2 id="_3">各轮详情</h2>
+<h3 id="_4">一面</h3>
+<p><strong>问题清单</strong>:</p>
+<ol>
+<li>第二段实习的 AI 产品需求是什么</li>
+<li>RAG 原理是什么</li>
+<li>学校项目做的 BERT 调优是怎么做</li>
+<li>BERT 和大模型有什么区别</li>
+<li>从输入输出上讲一下区别</li>
+</ol>
+<p><strong>一面反问</strong>:</p>
+<ul>
+<li>业务线是什么（答复：消费者 BG，做交付）</li>
+</ul>
+<p><strong>参考回答思路</strong>:</p>
+<ul>
+<li><strong>AI 需求</strong>: 用「用户—场景—能力—验收标准」描述，突出需求如何拆成可交付功能。</li>
+<li><strong>RAG</strong>: 检索增强生成流程（切分、向量化、检索、重排、生成）；与纯生成对比说明解决幻觉与知识更新问题。</li>
+<li><strong>BERT vs 大模型</strong>: BERT 偏编码器、判别式、固定任务；大模型偏生成、通用指令跟随；从输入输出讲清 token 化、上下文长度、输出形式差异。</li>
+</ul>
+<h3 id="_5">二面</h3>
+<p><strong>问题清单</strong>:</p>
+<ol>
+<li>第一段实习有涉及到系统建设或代码吗</li>
+<li>第二段实习承担了什么工作</li>
+<li>模型评测怎么做的</li>
+<li>模型选型怎么做的</li>
+<li>为什么这部分工作交给开发</li>
+<li>模型无法正常输出 SQL，运行报错怎么办</li>
+<li>论文做的什么，图数据用的什么 Python 库</li>
+<li>论文发表情况如何</li>
+</ol>
+<p><strong>参考回答思路</strong>:</p>
+<ul>
+<li><strong>评测与选型</strong>: 业务指标 + 离线 benchmark + 成本延迟；选型矩阵（场景、数据、合规、团队能力）→ POC → 小规模灰度。</li>
+<li><strong>分工边界</strong>: PM 定义问题、验收标准与优先级；开发负责实现；说明协作接口（PRD、评测集、bad case 反馈闭环）。</li>
+<li><strong>SQL 报错排查</strong>: 产品侧先复现与收集日志 → 区分 Prompt/工具链/权限/模型幻觉 → 兜底（规则校验、人工确认、降级模板）；体现跨角色推进而非亲自写代码。</li>
+<li><strong>学术经历</strong>: 如实讲研究问题与方法；图数据库（NetworkX、PyG 等）按实际使用说明即可。</li>
+</ul>
+<h2 id="_6">总结与建议</h2>
+<ul>
+<li>科大讯飞该岗位偏 ToB 交付，一面重概念，二面重「能不能跟项目落地与排障」，实习细节要能讲到执行层。</li>
+<li>RAG、评测、选型是高频三连，建议用同一个项目贯穿回答。</li>
+<li>原帖作者二面未通过，后来者宜加强「故障处理与跨团队协作」的案例准备，而非只背概念。</li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 产品运营：Agent 与 AI 功能的生产化</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/ai-product-operations/README.md</span></div>
+<main>
+<h1 id="ai-agent-ai">AI 产品运营：Agent 与 AI 功能的生产化</h1>
+<p>AI 功能从 Demo 走到生产，难点不只是把模型接进来，而是把不确定的模型行为包进一套<strong>可完成、可观察、可约束、可复盘</strong>的产品系统。本板块聚焦 AI PM 在上线前后需要持续负责的生产化问题。</p>
+<h2 id="_1">目录</h2>
+<ul>
+<li><a href="agent-product-design.html">Agent 产品生产化：从会执行到可负责地完成任务</a> —— 任务拆解、工具调用、状态与记忆、人工接管、权限、重试、成本上限和完成标准</li>
+<li><a href="agent-evaluation-and-observability.html">Agent 评测与可观测性：从最终答案追到完整轨迹</a> —— 任务/步骤/工具指标、轨迹追踪、线上 Badcase、回归、灰度、回滚、成本和延迟</li>
+<li><a href="guardrails-and-agent-security.html">AI 安全与 Agent 权限：把“能做什么”变成可治理的边界</a> —— Prompt Injection、越权调用、数据泄露、恶意网页/文件、确认机制与人工兜底</li>
+<li><a href="ai-product-metrics.html">AI 产品指标体系：从业务结果到成本与风险</a> —— 业务、AI 效果、系统、成本四层指标树，以及指标冲突和上线后监控</li>
+<li><a href="ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标：死亡路径与 DAU 误判</a> —— 队列留存口径、死亡路径分诊、为何单看 DAU 会误判 AI 功能成功</li>
+<li><a href="when-not-to-use-multi-agent.html">何时不该上多 Agent：延迟、成本、工具膨胀与劝退</a> —— 多 Agent 协调税、工具面膨胀、延迟暴增归因，以及劝退老板的一页纸结构</li>
+</ul>
+<h2 id="_2">建议阅读顺序</h2>
+<ol>
+<li>先用<a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门：规划、记忆、工具调用</a>建立概念，再阅读<a href="agent-product-design.html">Agent 产品生产化</a>把概念变成产品契约。</li>
+<li>用<a href="agent-evaluation-and-observability.html">Agent 评测与可观测性</a>定义“完成”和“出了什么问题”，再用<a href="guardrails-and-agent-security.html">AI 安全与 Agent 权限</a>给工具和数据划边界。</li>
+<li>最后用<a href="ai-product-metrics.html">AI 产品指标体系</a>把业务价值、效果、系统稳定性和成本放进同一张监控表；功能上线后的留存与 DAU 误判见<a href="ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标</a>。</li>
+</ol>
+<h2 id="_3">与其他板块的关系</h2>
+<ul>
+<li><a href="../prd-and-design/ai-prd-guide.html">AI 产品 PRD 怎么写</a>负责把效果定义、能力边界、数据回流和成本预算写进需求；本板块继续展开上线后的运行机制。</li>
+<li><a href="../model-evaluation/index.html">模型与产品效果评估</a>负责评测集、人工评分和 Badcase 闭环；本板块补充 Agent 的步骤、工具和轨迹维度。</li>
+<li><a href="../cost-and-tech/index.html">成本测算与技术协作</a>负责模型调用和基础设施成本；本板块把成本上限、任务预算和成本告警放回 Agent 生命周期。</li>
+<li><a href="../vibe-coding/index.html">Vibe Coding</a>适合验证原型假设；涉及真实用户、真实数据和持续稳定性时，仍需回到生产化的权限、评测和监控要求。</li>
+</ul>
+</main>
+</body>
+</html>

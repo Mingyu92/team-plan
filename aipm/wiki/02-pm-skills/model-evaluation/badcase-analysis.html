@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Badcase 分析方法论:收集、归因、分发、验证</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/model-evaluation/badcase-analysis.md</span></div>
+<main>
+<h1 id="badcase">Badcase 分析方法论:收集、归因、分发、验证</h1>
+<h2 id="badcase-ai-pm">为什么 Badcase 分析是 AI PM 的日常功课</h2>
+<p>评测集和 LLM 评分体系(见<a href="build-your-eval-set.html">《从零建设评测集》</a>、<a href="llm-as-a-judge.html">《主观任务怎么评》</a>)解决的是"如何系统性地衡量效果",但再完善的评测集也无法覆盖线上所有真实场景。真正驱动产品持续变好的,是一套稳定运转的 <strong>badcase 闭环</strong>:发现问题 → 搞清楚问题出在哪一环 → 分给能修的人 → 修完验证是否真的解决,并且不引入新问题。这件事本身没有太多"高深算法",却是 AI 产品经理最核心的日常工作之一——因为归因和分发,恰恰是最需要产品视角的环节。</p>
+<h2 id="badcase_1">Badcase 从哪里收集</h2>
+<p>Anthropic 工程团队在讨论 Agent 评估时给出的建议同样适用于所有 AI 产品:不要等一套"完美的评测体系"才开始,<strong>先把手头已有的问题线索转化成 badcase</strong>。常见的收集渠道:</p>
+<table>
+<thead>
+<tr>
+<th>渠道</th>
+<th>具体形式</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户反馈</td>
+<td>点赞/点踩、"回答有误"举报入口、客服工单、社群吐槽</td>
+<td>直接反映真实体验,但样本量取决于反馈意愿,存在"沉默的大多数"</td>
+</tr>
+<tr>
+<td>人工抽检</td>
+<td>按比例随机抽样线上对话,由业务/QA 团队人工复核</td>
+<td>能发现用户不会主动反馈的问题(如态度生硬但不算"错")</td>
+</tr>
+<tr>
+<td>生产监控</td>
+<td>异常指标告警(如响应超时、拒答率突增、置信度骤降)、日志关键词扫描</td>
+<td>能及时发现系统性问题,但需要提前埋点和设阈值</td>
+</tr>
+<tr>
+<td>Bug 追踪与支持队列</td>
+<td>已有的 Bug 系统、客户成功团队上报的问题</td>
+<td>现成渠道,复用已有工作流,门槛低</td>
+</tr>
+</tbody>
+</table>
+<p>Anthropic 的建议是把这些渠道产出的问题"按用户影响程度优先排序",而不是眉毛胡子一把抓——一个每天被上千用户触发的 badcase,和一个只出现过一次的极端边界情况,处理优先级完全不同。</p>
+<h2 id="_1">归因分类树:问题到底出在哪一环</h2>
+<p>收集到 badcase 之后,最容易犯的错误是"发现不对就找算法同学",但很多时候问题根本不在模型本身。一个实用的归因分类树,把常见问题归为五大类:</p>
+<pre><code>Badcase 出现
+   │
+   ├─ 检索问题(适用于 RAG/知识库类产品)
+   │    ├─ 该召回的文档没召回(召回率不足/切片策略问题)
+   │    ├─ 召回了但排序靠后(重排问题)
+   │    └─ 知识库本身缺这块内容(内容覆盖盲区)
+   │
+   ├─ 模型问题
+   │    ├─ 模型能力不足(推理/计算/长文本处理超出能力边界)
+   │    ├─ 模型幻觉(编造检索材料中不存在的信息)
+   │    └─ 模型没有遵循指令(忽略了 Prompt 中的约束)
+   │
+   ├─ Prompt 问题
+   │    ├─ 指令本身有歧义,模型理解方向没错但结果不是产品想要的
+   │    ├─ 缺少必要的示例/上下文,模型&quot;猜&quot;错了格式或语气
+   │    └─ Prompt 版本更新后引入回归(新问题在老 Prompt 下不存在)
+   │
+   ├─ 数据问题
+   │    ├─ 训练/微调数据分布与真实场景不符
+   │    ├─ 知识库内容过时或存在错误
+   │    └─ 标注质量问题(评测集本身标错了标准答案)
+   │
+   └─ 预期问题(不是&quot;错&quot;,是&quot;没达到用户期待&quot;)
+        ├─ 用户对产品能力边界有误解(该场景本来就不支持)
+        └─ 产品没有提前设定合理预期(如没有说明&quot;仅供参考&quot;)
+</code></pre>
+<p>这棵树的价值在于:同一个"看起来像模型答错了"的现象,归因路径可能完全不同。比如用户反馈"机器人不知道我们公司最新的退货政策"——可能是知识库没更新(数据问题),可能是切片时把政策条款切断了(检索问题),也可能是模型看到了正确材料但没引用好(模型问题)。不先分环节排查,直接让算法同学"优化一下模型",大概率是无效劳动。</p>
+<p>RAG 类产品的排查思路可以进一步参考<a href="../../04-interview/basics/rag-kb-accuracy-evaluation.html">《如何评估 RAG 知识库的准确率?》</a>中"分环节评测框架"的表格——检索、重排、生成、端到端各自独立验证,badcase 归因本质上是同一套框架的逆向应用。</p>
+<h2 id="_2">如何分发到对应团队</h2>
+<p>归因清楚之后,分发要解决两个问题:<strong>谁来修、修完怎么知道修好了</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>归因类别</th>
+<th>通常对应团队</th>
+<th>分发要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>检索问题</td>
+<td>检索/工程团队</td>
+<td>附上具体的召回结果截图,标明"应该召回但没召回"的目标文档</td>
+</tr>
+<tr>
+<td>模型问题</td>
+<td>算法团队</td>
+<td>附上完整对话上下文 + 复现步骤,标注是能力不足还是指令遵循问题</td>
+</tr>
+<tr>
+<td>Prompt 问题</td>
+<td>PM/Prompt 负责人自己</td>
+<td>通常不需要"分发"——这是 PM 的直接责任田</td>
+</tr>
+<tr>
+<td>数据问题</td>
+<td>知识库运营/数据团队</td>
+<td>指出具体过时/错误的内容条目,给出修正建议</td>
+</tr>
+<tr>
+<td>预期问题</td>
+<td>PM + 设计</td>
+<td>转化为产品设计问题:补充免责说明、优化拒答话术、调整功能边界宣传</td>
+</tr>
+</tbody>
+</table>
+<p>一个容易被忽视的操作细节:<strong>每条分发出去的 badcase,都要同步登记进评测集候选池</strong>(见<a href="build-your-eval-set.html">《从零建设评测集》</a>中"Badcase 回流"这一用例来源),否则修复效果无法在下一次迭代中被验证,只能靠"记忆"判断"好像修好了"。</p>
+<h2 id="_3">修复后回归验证</h2>
+<p>Badcase 修复不是"提交了代码/改了 Prompt"就结束,而要闭环到验证:</p>
+<ol>
+<li><strong>点验证</strong>:把这条 badcase 本身重新跑一遍,确认修复生效。</li>
+<li><strong>面验证</strong>:把这条 badcase 加入回归测试集(而不是评测集里即用即弃),防止未来的改动让它复发。</li>
+<li><strong>副作用检查</strong>:在完整评测集上重新跑一次全量评测,确认修复这一个问题没有引入新的回归——这一步经常被跳过,却恰恰是"修好一个、坏了三个"的高发环节。</li>
+<li><strong>上线灰度观察</strong>:小流量验证真实效果,而不是只信离线评测分数。</li>
+</ol>
+<p>这几步呼应了 <a href="build-your-eval-set.html">《从零建设评测集》</a>里"上线验收流程"的设计逻辑——badcase 修复本质上是一次微型迭代,同样需要走完整的验收闭环,不能因为"只是修一个小问题"就跳过验证。</p>
+<h2 id="badcase_2">Badcase 例会机制</h2>
+<p>比工具更重要的是机制。一个可落地的 badcase 例会设计:</p>
+<table>
+<thead>
+<tr>
+<th>要素</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>频率</td>
+<td>高频迭代期(如上线初期)每周一次;稳定期可两周一次</td>
+</tr>
+<tr>
+<td>参会人</td>
+<td>PM、算法、检索/工程、数据/知识库运营,视归因类型灵活拉人</td>
+</tr>
+<tr>
+<td>例会输入</td>
+<td>上周新增 badcase 列表(按归因分类树预先打好标签)、优先级排序</td>
+</tr>
+<tr>
+<td>例会产出</td>
+<td>每条 badcase 的归因结论、responsible owner、预计修复时间</td>
+</tr>
+<tr>
+<td>追踪机制</td>
+<td>维护一张滚动看板,标注"待归因/已分发/修复中/待验证/已闭环"状态</td>
+</tr>
+<tr>
+<td>长期沉淀</td>
+<td>定期(如每月)复盘高频归因类型,推动系统性解决(如某类检索问题反复出现,说明该做切片策略的整体优化,而不是逐条打补丁)</td>
+</tr>
+</tbody>
+</table>
+<p>例会的核心价值不是"过一遍问题清单",而是逼着团队持续做"分环节归因"这件事,防止 badcase 堆积成谁都不认领的黑洞。</p>
+<h2 id="_4">"模型指标涨了,业务指标没涨"怎么排查</h2>
+<p>这是面试和实际工作中都极高频的场景(参见<a href="../../04-interview/basics/model-evaluation-system.html">《如何构建大模型效果评测体系?》</a>中的追问延伸),本质上是一次特殊的"badcase"——不是某一条用例错了,而是整个评测体系与业务现实脱节了。排查思路可以按下面的顺序展开:</p>
+<ol>
+<li><strong>评测集分布是否漂移</strong>:离线评测集的用例分布,和线上真实流量分布是否一致?如果评测集还是半年前的用例,而线上已经出现大量新场景,分数再高也不能代表真实体验。</li>
+<li><strong>评测维度是否遗漏</strong>:是不是只看了"准确率"这一个指标,而业务体验还依赖响应速度、语气、拒答率等未被纳入评测的维度?</li>
+<li><strong>指标定义是否对齐</strong>:模型侧的"正确"和业务侧的"有用"是不是同一件事?比如检索召回率涨了,但用户真正在意的是"问题有没有被解决",这是两个不同的指标。</li>
+<li><strong>是否存在环节衰减</strong>:模型能力提升了,但上下游(比如展示层、交互设计、用户引导)没有同步跟上,好的回答没有被用户感知到。</li>
+<li><strong>是否是短期噪声</strong>:业务指标本身波动大、样本量不足、观测周期太短,导致"没涨"只是统计噪声而非真实效果缺失。</li>
+</ol>
+<p>排查这类问题时,建议直接把它当作一条最高优先级的 badcase 走完整归因流程:先确认是评测集问题还是产品体验问题,再决定该找算法团队修模型,还是该找产品和设计重新设计交互——这正是本文归因分类树里"预期问题"和"数据问题"最容易被忽视,但在这个场景下往往是真正病灶的地方。</p>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="build-your-eval-set.html">从零建设评测集:用例从哪来、标准答案怎么定</a></li>
+<li><a href="llm-as-a-judge.html">主观任务怎么评:人工评估与 LLM-as-a-Judge</a></li>
+<li><a href="../../04-interview/basics/model-evaluation-system.html">如何构建大模型效果评测体系?</a></li>
+<li><a href="../../04-interview/basics/rag-kb-accuracy-evaluation.html">如何评估 RAG 知识库的准确率?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+</ul>
+<h2 id="_6">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Demystifying evals for AI agents</a> — Anthropic 工程博客,2026-07 访问</li>
+<li><a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">Define success criteria and build evaluations</a> — Anthropic 官方文档,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/guides/evaluation-best-practices">Evaluation best practices</a> — OpenAI 官方文档,2026-07 访问</li>
+<li><a href="https://developers.google.com/stax/best-practices">Evaluation best practices | Stax</a> — Google for Developers 官方文档,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

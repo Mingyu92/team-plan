@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>如何判断一个 AI PM offer 是不是「伪 AI 岗」？</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/behavioral/spot-fake-ai-pm-role.md</span></div>
+<main>
+<h1 id="ai-pm-offer-ai">如何判断一个 AI PM offer 是不是「伪 AI 岗」？</h1>
+<p><strong>难度</strong>:⭐⭐ 常规
+<strong>出现频率</strong>:中,转行者 / offer 决策场景常见;也常见于「你怎么选岗位」类行为面</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>是否分得清「应用型 AI PM」与「挂羊头卖狗肉」——不把调 API 一律判假</li>
+<li>能否给出<strong>可验证</strong>的判断信号(职责、评测、拍板权),而不是凭公司名气或 JD 形容词</li>
+<li>是否体现职业规划意识:入职后能不能攒下可深挖的 AI 决策履历</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<h3 id="_3">一句话核心</h3>
+<p>伪 AI 岗的判据不是「有没有自研模型」,而是:<strong>标题承诺你对 AI 产品结果负责,实际只让你画原型、写文档、催排期</strong>——碰不到效果标准、方案取舍和迭代闭环。</p>
+<h3 id="_4">先划界:什么不算伪岗</h3>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>怎么看</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用型(智能客服 / 导购 / 办公助手等,多半调 API)</td>
+<td><strong>通常是真岗</strong>,也是岗位数量最多的一类</td>
+</tr>
+<tr>
+<td>早期团队,评测与监控还不成熟</td>
+<td>若对方说清「缺什么、授权你建什么」→ 可能是机会;若把「还没有」说成「不需要」→ 谨慎</td>
+</tr>
+<tr>
+<td>标题叫 AI PM,但 JD / 面试都说明是传统功能 + 偶尔对接供应商</td>
+<td>可以接,但按<strong>传统 PM + AI 素养</strong>定价,别按模型产品负责人规划路径</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分界一句话</strong>:真岗至少有一块你长期负责的「模型相关质量」(评测怎么定、错了怎么办、下次改什么);伪岗往往只负责「功能有没有按时上线」。</p>
+<h3 id="_5">判断框架:三层信号叠加</h3>
+<p>单一信号不够判死刑;下面三层<strong>叠加出现</strong>时,伪岗概率上升。</p>
+<p><strong>1. JD 层(可读预警)</strong></p>
+<ul>
+<li>形容词多、可交付物少:满篇「引领大模型落地」,几乎不写评测、Badcase、灰度、成本、兜底</li>
+<li>职责像传统交付 PM:排期 / 周报 / 对接外包占比很高,「效果验收」一笔带过</li>
+<li>成功指标只有上线节点,没有效果、接管率、成本或风险指标的位置</li>
+<li>编制里没有算法 / 数据 / 评估相关角色,却要求你「主导模型能力」</li>
+</ul>
+<p>反向也成立:JD 看起来朴素,但写清「共背效果、参与评测门槛、设计失败兜底」,往往更靠谱。</p>
+<p><strong>2. 面试反问层(主战场)</strong></p>
+<p>带走 4–6 个硬问题,听对方用<strong>事实</strong>还是<strong>愿景</strong>回答:</p>
+<table>
+<thead>
+<tr>
+<th>优先问</th>
+<th>你在听什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>评测集 / 验收标准谁维护?PM 能否参与门槛定义?</td>
+<td>有没有效果所有权</td>
+</tr>
+<tr>
+<td>最近一次因效果不达标延期或回滚,依据是什么?</td>
+<td>有没有真实质量门禁</td>
+</tr>
+<tr>
+<td>模型 / 供应商 / RAG vs 微调,PM 的输入是什么?谁拍板?</td>
+<td>你是文档员还是取舍方</td>
+</tr>
+<tr>
+<td>举近一两月例子:PM 做了哪些不可替代的判断?</td>
+<td>若只剩写 PRD、跟进度 → 职责可能被掏空</td>
+</tr>
+<tr>
+<td>入职 90 天,成功 / 失败各长什么样?</td>
+<td>目标是否可验证</td>
+</tr>
+</tbody>
+</table>
+<p>面试后对每个答案标三档:<strong>清晰</strong>(有责任人 / 实例 / 指标)、<strong>早期但诚实</strong>(承认不足 + 建设计划 + 你的权限)、<strong>回避 / 空话</strong>。经验规则:效果类问题两题以上空话,且说不清你的判断权 → 更接近交付型挂名。</p>
+<p><strong>3. Offer 前保护</strong></p>
+<ul>
+<li>书面确认:你是否至少负责效果标准 / 评测参与 / 方案取舍中的一项</li>
+<li>对照能力模型自检:未来 12 个月能否练到「数据与评估」「技术认知」;练不到则转型收益会被摊薄</li>
+<li>想清楚履历:哪怕业务早期,也要能留下评测草稿、Badcase 归因或一次有证据的方案取舍——否则下轮面试很难讲清「我做了什么判断」</li>
+</ul>
+<h3 id="_6">避坑:常见误判</h3>
+<table>
+<thead>
+<tr>
+<th>误判</th>
+<th>更稳妥的看法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>「调 API = 假 AI」</td>
+<td>应用型主流就是调 API;关键看有无场景 / 效果 / 成本 / 兜底决策</td>
+</tr>
+<tr>
+<td>「大厂标题 = 真岗」</td>
+<td>同一集团不同业务线差异极大;仍要用反问验证具体团队</td>
+</tr>
+<tr>
+<td>「没评测 = 一定是坑」</td>
+<td>可能是授权你从 0 建;区分「让你建」与「永远不打算建」</td>
+</tr>
+<tr>
+<td>「反问会得罪人」</td>
+<td>专业团队通常欢迎具体问题;反感硬问题本身也是信号</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_7">回答收束</h3>
+<blockquote>
+<p>我会先排除「应用型 / 早期建设」这些正常形态,再用 JD 信号 + 面试反问 + Offer 书面职责三层叠加判断。核心只问一件事:<strong>入职后我能不能对一块 AI 相关质量负责,并留下可复述的决策链</strong>。标题再炫、公司再响,若只剩排期和文档,对我这种转型候选人来说机会成本太高。</p>
+</blockquote>
+<h2 id="_8">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:「你怎么区分『早期没评测』和『伪岗』?」
+  → 关键看对方是否承认缺口、是否给出建设计划和你的权限边界;「清晰地承认没有」可接受,「假装已经有 / 说不需要」要警惕。</li>
+<li><strong>追问 2</strong>:「如果 Offer 待遇很好但职责偏交付,你接不接?」
+  → 先说取舍标准:若 12 个月内仍碰不到效果与方案取舍,转型履历会被摊薄;可以接,但要下调预期(传统 PM + AI 素养),并争取书面划清可练的一块能力。</li>
+<li><strong>追问 3</strong>:「你反问这些问题,不怕面试官觉得你挑剔吗?」
+  → 强调这是双向匹配:你在确认能否创造对方要的结果,也在确认自己能否积累可迁移能力;反感具体问题本身就是组织信号。</li>
+</ul>
+<h2 id="_9">相关阅读</h2>
+<ul>
+<li><a href="../../00-roadmap/spot-fake-ai-pm-jobs.html">如何识别「挂羊头卖狗肉」的 AI PM 岗位</a>(正课全文与完整反问清单)</li>
+<li><a href="../../00-roadmap/ai-pm-job-types.html">AI PM 岗位类型盘点</a></li>
+<li><a href="../../00-roadmap/transition-guide.html">传统 PM 转型 AI PM 指南</a></li>
+<li><a href="../../00-roadmap/ai-pm-capability-model.html">AI 产品经理能力模型</a></li>
+<li><a href="ai-pm-vs-traditional-pm.html">AI 产品经理和传统产品经理最大的区别是什么?</a></li>
+<li><a href="../preparation/project-deep-dive.html">AI PM 项目深挖的准备方法</a></li>
+</ul>
+</main>
+</body>
+</html>

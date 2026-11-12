@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Product Manager: The Interview Rounds</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">en / rounds.md</span></div>
+<main>
+<h1 id="ai-product-manager-the-interview-rounds">AI Product Manager: The Interview Rounds</h1>
+<p>Every round an AI PM loop runs, with what it tests, how it is conducted, what good looks like, common mistakes, and realistic example prompts. Companies mix and match, but the shape below covers frontier labs, big tech, and enterprises. Pair each round with the matching themes in <a href="questions.html">questions.md</a>.</p>
+<p>Quick map of the loop:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Round</th>
+<th>Length</th>
+<th>Core signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Recruiter screen</td>
+<td>30 min</td>
+<td>Archetype fit, one AI product you owned</td>
+</tr>
+<tr>
+<td>2</td>
+<td>AI product sense</td>
+<td>45-60 min</td>
+<td>Should we use AI, and if so, design it end to end</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Analytical / metrics</td>
+<td>45-60 min</td>
+<td>Eval harness, offline vs online, unit economics</td>
+</tr>
+<tr>
+<td>4</td>
+<td>AI technical literacy</td>
+<td>45-60 min</td>
+<td>What models and agents can and cannot do</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Behavioral / leadership</td>
+<td>45 min</td>
+<td>Ambiguity, influence, judgment, the graveyard</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Cross-functional / execution</td>
+<td>45-60 min</td>
+<td>Trust with eng and data science, build vs buy</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Live prototype (increasingly common)</td>
+<td>45-60 min</td>
+<td>Hands-on judgment with an AI builder tool</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="the-interview-loop">The interview loop</h2>
+<pre><code class="language-text"> [1] Recruiter -&gt; [2] Product sense -&gt; [3] Metrics -&gt; [4] AI literacy -&gt; [5] Behavioral -&gt; [6] Execution -&gt; [7] Prototype -&gt; OFFER
+     fit            design a feature    analytical     what AI can /      leadership       cross-func       build a live
+                    end to end          + evals        cannot do          judgment         coordination     demo (2026)
+</code></pre>
+<p>The product-sense round, designing an AI feature end to end, is the heart of the loop.</p>
+<h2 id="1-recruiter-screen">1. Recruiter screen</h2>
+<p><strong>What it tests.</strong> Whether you fit the archetype (genuinely an AI PM, not a PM who read a few blog posts), your motivation, one AI product you truly owned, and logistics (level, comp, timeline, location).</p>
+<p><strong>How it is run.</strong> 30 minutes, conversational, resume-driven. The recruiter is listening for whether you can talk about a real AI product with specifics: what it did, how you measured it, what went wrong.</p>
+<p><strong>What good looks like.</strong> You can name one AI product you owned and, unprompted, describe how you measured its quality and one thing you would change. You use specifics (metric names, numbers, failure modes) instead of adjectives. You show you follow the field without name-dropping.</p>
+<p><strong>Common mistakes.</strong> Describing AI work you were adjacent to but did not own. Only citing input metrics (sessions, prompts sent) instead of outcomes. Saying you would change "nothing." Overselling a fine-tune you did not actually run.</p>
+<p><strong>Example prompts.</strong>
+- "Walk me through an AI product you owned. What did it do and how did you know it was working?"
+- "Why an AI PM role, and why now?"
+- "What are you looking for in your next role, and what is your target level and comp?"
+- "What is an AI product you admire, and the one decision that made it work?"</p>
+<h2 id="2-ai-product-sense-design-an-ai-feature-end-to-end">2. AI product sense (design an AI feature end to end)</h2>
+<p><strong>What it tests.</strong> The instinct to ask whether AI belongs in the problem at all, then product design under probabilistic behavior: users, use cases, the model's role, the UX around wrongness, and metrics. At frontier teams this is a distinct round, not a follow-up.</p>
+<p><strong>How it is run.</strong> 45 to 60 minutes. You are given an open design prompt (design an AI assistant for X). You clarify the user and goal, decide whether and where a model adds value versus risk, sketch the experience, and name how you would measure success. Meta and similar teams now shift mid-round into building or critiquing a live AI feature and grade the "should we even use AI" instinct as hard as the design. Expect follow-ups on retrieval, token cost, and latency.</p>
+<p><strong>What good looks like.</strong> You separate where the model adds value from where it only adds risk. You design confidence gates, graceful fallback to a human, citations or abstention, undo, and edit-in-place. You pick a north-star tied to the user outcome plus guardrail metrics, and you name the failure mode you would watch. You are willing to say "this part should not use a model."</p>
+<p><strong>Common mistakes.</strong> Sprinkling AI on everything. Designing only the happy path. Forgetting the wrongness cost of the domain (a wrong medical answer is not a wrong movie recommendation). Ignoring latency and cost. No evaluation story.</p>
+<p><strong>Example prompts.</strong>
+- "Design an AI assistant for a busy hospital nurse."
+- "Design an AI feature for our product. Where would the model add value, and where would it just add risk?"
+- "Design a customer-support experience for a bank using an LLM. What do you refuse to automate?"
+- "A stakeholder wants to add AI to a search box that works fine today. Walk me through that conversation and, if you build it, the design."
+- "Design an AI writing assistant inside a document editor. How do you handle the first time it is confidently wrong in front of a user?"</p>
+<h2 id="3-analytical-metrics-evaluation-and-technical-depth">3. Analytical / metrics (evaluation and technical depth)</h2>
+<p><strong>What it tests.</strong> This is the round that most predicts the hire. It tests whether you can define and defend an evaluation strategy: offline eval sets and regression suites versus online production signals, north-star versus guardrails, unit economics, and the discipline to catch a model silently getting worse.</p>
+<p><strong>How it is run.</strong> 45 to 60 minutes, often with a data scientist present. You are handed a scenario (we launched an assistant; how do you know it is working, and how do you know when it is not) and pushed with "how did you measure that" until you hit either bedrock or air.</p>
+<p><strong>What good looks like.</strong> You describe an eval harness: a labeled offline set with regression suites gating releases, plus online signals (task success, containment and escalation for agents, thumbs and edit rates, faithfulness). For RAG you separate retrieval metrics (recall@k, MRR) from generation faithfulness. You define hallucination concretely, give a rate you would refuse to launch above, and design a layered alarm: a product outcome on top, a model-quality metric beneath, and an alert when the two diverge. You reason about cost per call and p95 latency changing what you ship.</p>
+<p><strong>Common mistakes.</strong> Hand-waving "relevance" instead of naming retrieval and generation metrics separately. Only tracking the north-star and missing silent degradation. No offline-versus-online distinction. Ignoring cost and latency. Treating an LLM-as-judge as ground truth without validating it against human labels.</p>
+<p><strong>Example prompts.</strong>
+- "Walk me through your eval harness for an AI feature. What is offline, what is online?"
+- "You ship an assistant and the north-star goes up. How would you know the model is quietly getting worse?"
+- "How would you measure whether a RAG system is actually working?"
+- "Define hallucination. How do you measure the rate, and what rate would you refuse to launch above?"
+- "Walk me through the unit economics of an LLM feature. How do cost per inference and p95 latency change what you build?"
+- "Improve accuracy by 2 points or ship a month sooner. How do you decide?"</p>
+<h2 id="4-ai-technical-literacy">4. AI technical literacy</h2>
+<p><strong>What it tests.</strong> Whether technical people can trust you: what models and agents can and cannot do, and the tradeoffs. RAG versus fine-tuning versus prompting, when an agent is warranted, context engineering, reasoning models, MCP, model selection, and how to explain all of it simply.</p>
+<p><strong>How it is run.</strong> 45 to 60 minutes, often with an engineer. Not a coding interview. You are asked to reason about architecture choices and explain concepts to both technical and non-technical audiences. Expect "when would you reach for X versus Y" and "explain Z to my VP of Sales."</p>
+<p><strong>What good looks like.</strong> You choose RAG for fresh, large, or proprietary knowledge that needs citations, fine-tuning for behavior and style, prompting when it already clears the bar, and you note you often combine them. You know an agent adds tools, memory, and a loop, and you reach for one only when the task needs multiple steps, external actions, or adaptation, because agents add cost, latency, and failure modes. You can explain embeddings, context windows, and drift in one plain minute. You know current tradeoffs: reasoning models trade latency and cost for multi-step quality; MCP standardizes tool and data connections; context engineering (what enters the window) often beats prompt wording.</p>
+<p><strong>Common mistakes.</strong> Confusing RAG and fine-tuning. Proposing an agent for a task a single call or fixed workflow handles. Treating the context window as infinite and free. Buzzword soup with no mechanism underneath. Being unable to translate for a non-technical exec.</p>
+<p><strong>Example prompts.</strong>
+- "When would you use RAG instead of fine-tuning, and when would you do both?"
+- "What makes something an agent, and when do you actually need one?"
+- "Explain embeddings to a non-technical executive in under a minute."
+- "What is MCP and why does a PM care?"
+- "Custom-trained model, a fine-tune, or a third-party API. How do you decide?"
+- "What can reasoning models do that standard LLMs cannot, and what is the cost?"</p>
+<h2 id="5-behavioral-leadership">5. Behavioral / leadership</h2>
+<p><strong>What it tests.</strong> Judgment under ambiguity, influence without authority, and whether you have real scars. AI-specific behavioral signal: have you killed an AI feature, explained a hard AI concept to a skeptical stakeholder, and handled a model that degraded or a fairness problem in production.</p>
+<p><strong>How it is run.</strong> 45 minutes, STAR-style. Standard behavioral competencies plus AI-flavored prompts. Interviewers probe for specifics: metric movements, the unglamorous fix, the timeline.</p>
+<p><strong>What good looks like.</strong> Concrete stories with numbers and your specific actions. You have a graveyard: an AI feature you killed or an experiment you stopped, with the data that drove it. You can describe explaining an AI limitation to an executive who wanted magic, and holding the line. You take ownership of a failure without blaming the model.</p>
+<p><strong>Common mistakes.</strong> No graveyard (you have never stopped an AI feature). Vague "we retrained it" with no specifics. Taking credit for team wins and dodging failures. Framing yourself as the struggling learner rather than the person who made the call.</p>
+<p><strong>Example prompts.</strong>
+- "Tell me about an AI feature you killed. What data drove the decision?"
+- "Tell me about a model you owned that degraded in production. How did you catch it and what did you do?"
+- "Tell me about explaining a complex AI concept to a non-technical stakeholder who wanted more than the model could do."
+- "Give me a real example where a fairness or ethics concern changed a product decision."
+- "Describe a stakeholder conflict in an AI context and how you resolved it."</p>
+<h2 id="6-cross-functional-execution">6. Cross-functional / execution</h2>
+<p><strong>What it tests.</strong> Whether engineers and data scientists trust you, and whether you can drive execution: build-versus-buy, roadmap prioritization under a scarce data-science budget, PRDs for probabilistic features, and launch-readiness gates.</p>
+<p><strong>How it is run.</strong> 45 to 60 minutes. Frontier teams put a real engineer and a data scientist in the room, because AI PMs live or die on technical trust. You may prioritize a roadmap, write or defend a PRD, or resolve a build-versus-buy decision live.</p>
+<p><strong>What good looks like.</strong> Build-versus-buy answers weigh token cost against control, latency against time to market, the data moat you own against the one you wish you had, and vendor lock-in. You write PRDs that specify how the experience degrades around wrongness and define AI-specific launch gates (eval thresholds, red-team pass, fallback tested, cost and latency budgets, rollback plan). You prioritize by expected user value against the wrongness cost, not by novelty.</p>
+<p><strong>Common mistakes.</strong> Picking a side on build-versus-buy without weighing the tradeoffs. PRDs that assume the model is always right. Launch gates copied from a normal feature with no eval or red-team step. Prioritizing the flashiest model work over the data scientist's actual bandwidth.</p>
+<p><strong>Example prompts.</strong>
+- "We can use a vendor API or fine-tune our own model for this. Walk me through the decision."
+- "You have 1 data scientist and 3 AI features waiting. How do you prioritize?"
+- "Write the launch-readiness checklist for a customer-facing LLM feature."
+- "How do you write a PRD for a feature whose output is probabilistic and occasionally wrong?"
+- "The eng lead says the eval bar is unrealistic and will slip the date. How do you handle it?"</p>
+<h2 id="7-live-prototype-round-increasingly-common-in-2026">7. Live prototype round (increasingly common in 2026)</h2>
+<p><strong>What it tests.</strong> Whether you can get hands-on when the situation calls for it, and how well you guide an AI builder tool and critically evaluate its output. It is less about the code than about judgment. Meta hands candidates an internal AI tool and asks them to build a working prototype; other teams use Cursor or v0.</p>
+<p><strong>How it is run.</strong> 45 to 60 minutes. You build a small working demo of a feature (often the one from the product-sense round) using an AI-assisted builder, narrating your choices. You are graded on how you direct the tool, spot when it is wrong, and make product tradeoffs live, not on clean code.</p>
+<p><strong>What good looks like.</strong> You scope tightly, prompt the tool clearly, sanity-check its output instead of trusting it, and talk through the tradeoffs (what you faked, what you would measure, where it would break). You show taste about which 10 percent of the feature to demo.</p>
+<p><strong>Common mistakes.</strong> Trying to build everything. Accepting the tool's output uncritically. Going silent and coding instead of narrating product judgment. Freezing because you are not an engineer; the bar is judgment, not syntax.</p>
+<p><strong>Example prompts.</strong>
+- "Here is our internal builder. Prototype the assistant you just designed, and talk me through your choices."
+- "Build a quick demo of a RAG-backed help widget for this docs site."
+- "Take this feature and get a clickable version working in the next 40 minutes."</p>
+<hr>
+<h2 id="cross-cutting-advice">Cross-cutting advice</h2>
+<ul>
+<li>Bring a specific portfolio of 3 to 4 AI stories you can tell in any round: one you shipped and measured, one you killed, one where you pushed back on using AI, and one degradation or fairness incident.</li>
+<li>In every round, expect the "how did you measure that" drill. Have numbers.</li>
+<li>Responsible AI is not its own round at most companies; it surfaces inside product sense, metrics, and behavioral. Treat model failures as product failures.</li>
+<li>Match depth to the company: frontier labs and agent platforms push hardest on evals and agent design; enterprises push hardest on compliance, build-versus-buy, and cross-functional trust.</li>
+</ul>
+<p>Next: work the <a href="questions.html">question bank</a>, then follow the <a href="prep-plan.html">prep plan</a>.</p>
+</main>
+</body>
+</html>

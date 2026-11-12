@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SFT 有监督微调</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 02_训练与对齐/06_SFT.md</span></div>
+<main>
+<h1 id="sft">SFT 有监督微调</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>SFT 的数据格式是什么？为什么只对 Assistant 部分计算 loss？</li>
+<li>SFT 和预训练的本质区别是什么？</li>
+<li>如何防止 SFT 导致的灾难性遗忘？</li>
+<li>数据质量和数量哪个更重要？LIMA 的核心结论是什么？</li>
+<li>SFT 数据如何构造、清洗和验收？</li>
+<li>多轮 SFT 和单轮 SFT 的差异是什么？</li>
+<li>什么时候只做 SFT 就够，什么时候还要继续做 DPO / RLHF？</li>
+</ul>
+<hr>
+<h2 id="sft_1">一、SFT 是什么</h2>
+<p><strong>细化理解：</strong> SFT 的本质是让模型模仿高质量指令数据中的回答分布。它通常不会让模型获得大量新知识，而是让模型学会如何按用户问题组织答案、遵循角色格式、调用工具或输出结构化结果。SFT 数据质量比数量更关键，低质量样本会把模板化、啰嗦、幻觉和错误格式一起教给模型。</p>
+<p>Supervised Fine-Tuning（有监督微调）是在预训练模型基础上，用高质量的指令-回答对继续训练，让模型从“会续写文本”变成“会遵循指令完成任务”。</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;预训练基座&lt;br/&gt;会续写&quot;] --&gt; B[&quot;SFT 数据&lt;br/&gt;指令-回答对&quot;]
+    B --&gt; C[&quot;SFT 模型&lt;br/&gt;会按要求回答&quot;]
+</code></pre>
+<p>一个更准确的说法是：</p>
+<ul>
+<li>预训练让模型拥有基础能力</li>
+<li>SFT 让这些能力以人类可用的接口释放出来</li>
+</ul>
+<p>所以 SFT 常常不是“给模型补课”，而是“把模型调成能工作”。</p>
+<hr>
+<h2 id="sft_2">二、SFT 数据格式</h2>
+<h3 id="chat-template">Chat Template</h3>
+<p>现代模型通常把数据序列化成统一对话模板：</p>
+<pre><code class="language-text">&lt;|system|&gt;
+你是一个专业、准确、有帮助的 AI 助手。
+&lt;|user|&gt;
+请用三句话解释什么是 Transformer
+&lt;|assistant|&gt;
+Transformer 是一种基于自注意力机制的神经网络架构...
+</code></pre>
+<h3 id="assistant-loss">为什么只对 Assistant 部分计算 loss</h3>
+<p>这通常叫 <strong>loss masking</strong>。</p>
+<pre><code class="language-text">[system] [user] [assistant]
+   x        x        ✓
+</code></pre>
+<p>原因有三点：</p>
+<ol>
+<li>训练目标是学“如何回答”，不是学“如何提问”</li>
+<li>避免模型把用户问题模板背死</li>
+<li>保持推理时对任意输入格式的泛化能力</li>
+</ol>
+<p>本质上，SFT 优化的是<strong>回答分布</strong>，不是用户输入分布。</p>
+<hr>
+<h2 id="sft_3">三、SFT 和预训练的本质区别</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>预训练</th>
+<th>SFT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据</td>
+<td>海量无监督语料</td>
+<td>高质量监督样本</td>
+</tr>
+<tr>
+<td>目标</td>
+<td>下一个 token 预测</td>
+<td>指令遵循与任务执行</td>
+</tr>
+<tr>
+<td>loss 位置</td>
+<td>全序列</td>
+<td>主要在 assistant 回复上</td>
+</tr>
+<tr>
+<td>关注点</td>
+<td>知识与基础能力</td>
+<td>行为、格式、交互方式</td>
+</tr>
+<tr>
+<td>风险</td>
+<td>数据噪声、配比不合理</td>
+<td>过拟合、遗忘、风格僵化</td>
+</tr>
+</tbody>
+</table>
+<h3 id="continued-pretraining-sft">Continued Pretraining 和 SFT 的边界</h3>
+<ul>
+<li><strong>Continued Pretraining</strong>：补领域知识分布</li>
+<li><strong>SFT</strong>：补任务接口和输出行为</li>
+</ul>
+<p>如果模型“不知道”，优先考虑继续预训练；如果模型“知道但不会按要求答”，优先考虑 SFT。</p>
+<hr>
+<h2 id="_2">四、数据质量为什么比数量更重要</h2>
+<h3 id="lima">LIMA 的启示</h3>
+<p>LIMA 的核心结论不是“1000 条就够”，而是：</p>
+<blockquote>
+<p>少量高质量 SFT 数据，也能显著改变模型行为。</p>
+</blockquote>
+<p>这说明预训练模型很多能力早就存在，SFT 的作用主要是：</p>
+<ul>
+<li>统一输出风格</li>
+<li>建立任务接口</li>
+<li>教模型何时结构化输出、何时承认不知道</li>
+</ul>
+<h3 id="_3">什么算高质量数据</h3>
+<p><strong>好数据：</strong></p>
+<ul>
+<li>指令清晰、可执行</li>
+<li>回答准确、完整、格式稳定</li>
+<li>推理步骤自然</li>
+<li>有边界感，不乱答</li>
+<li>多轮场景下上下文一致</li>
+</ul>
+<p><strong>差数据：</strong></p>
+<ul>
+<li>指令模糊</li>
+<li>回答模板化、废话多</li>
+<li>事实错误</li>
+<li>格式前后不一致</li>
+<li>风格过于机械</li>
+</ul>
+<hr>
+<h2 id="sft_4">五、SFT 数据如何构造</h2>
+<p><img alt="Self-Instruct 原论文流程图" src="https://ar5iv.labs.arxiv.org/html/2212.10560/assets/x2.png"></p>
+<blockquote>
+<p>图源：<code>Self-Instruct: Aligning Language Models with Self-Generated Instructions</code> 论文 HTML 图。它展示了从少量种子任务出发，自动生成指令、样本并过滤的流程。</p>
+</blockquote>
+<h3 id="1">1. 人工编写</h3>
+<p>优点：</p>
+<ul>
+<li>质量高</li>
+<li>风格可控</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>贵</li>
+<li>扩展慢</li>
+</ul>
+<h3 id="2-self-instruct">2. Self-Instruct / 数据合成</h3>
+<p>用强模型生成 instruction-response 数据，再做过滤与抽样。</p>
+<h3 id="3">3. 蒸馏强模型</h3>
+<p>让更强的 teacher 模型产出高质量答案，student 去学习。</p>
+<h3 id="4">4. 渐进式指令构造</h3>
+<p>例如从简单任务逐渐演化到复杂约束任务，让数据难度更平滑。</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;原始任务需求&quot;] --&gt; B[&quot;模板化与清洗&quot;]
+    B --&gt; C[&quot;去重/格式校验&quot;]
+    C --&gt; D[&quot;人工抽样验收&quot;]
+    D --&gt; E[&quot;序列化为 Chat Template&quot;]
+    E --&gt; F[&quot;构造 Loss Mask&quot;]
+    F --&gt; G[&quot;进入训练&quot;]
+</code></pre>
+<hr>
+<h2 id="_4">六、灾难性遗忘</h2>
+<h3 id="_5">是什么</h3>
+<p>SFT 数据分布过窄时，模型会越来越像这个数据集，导致其他能力退化。</p>
+<p>例如：</p>
+<ul>
+<li>对话能力涨了</li>
+<li>代码能力掉了</li>
+<li>数学能力掉了</li>
+</ul>
+<h3 id="_6">常见缓解方案</h3>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>混入少量通用数据</td>
+<td>保留基础能力</td>
+</tr>
+<tr>
+<td>小学习率</td>
+<td>降低对原权重破坏</td>
+</tr>
+<tr>
+<td>LoRA / PEFT</td>
+<td>降低整体扰动</td>
+</tr>
+<tr>
+<td>数据多样性</td>
+<td>减少偏科</td>
+</tr>
+<tr>
+<td>渐进式训练</td>
+<td>平滑迁移</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_7">一个实用建议</h3>
+<p>如果你的 SFT 目标很垂直，不要把全部数据都换成该垂直任务，最好保留一部分通用任务样本做混合。</p>
+<hr>
+<h2 id="sft_5">七、多轮 SFT 的特殊点</h2>
+<p>单轮 SFT 更像“问一次答一次”，多轮 SFT 还要学会：</p>
+<ul>
+<li>追踪上下文</li>
+<li>处理代词和省略</li>
+<li>保持角色一致</li>
+<li>接住用户追问和纠错</li>
+</ul>
+<h3 id="_8">训练构造方式</h3>
+<ol>
+<li>
+<p><strong>整段多轮一起训练</strong><br>
+   更贴近真实聊天</p>
+</li>
+<li>
+<p><strong>拆成带历史上下文的单轮样本</strong><br>
+   更便于扩充样本和控制长度</p>
+</li>
+</ol>
+<p>多轮场景下，真正学到的是“对话状态管理”，不只是回答本身。</p>
+<hr>
+<h2 id="sft_6">八、什么时候只做 SFT 就够</h2>
+<h3 id="sft_7">适合只做 SFT 的场景</h3>
+<ul>
+<li>任务边界清晰</li>
+<li>输出质量可规则判断</li>
+<li>主观偏好差异不大</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>SQL 生成</li>
+<li>结构化抽取</li>
+<li>分类</li>
+<li>模板化问答</li>
+</ul>
+<h3 id="dpo-rlhf">需要继续做 DPO / RLHF 的场景</h3>
+<ul>
+<li>通用助手</li>
+<li>主观体验差异大</li>
+<li>安全、拒答、语气非常重要</li>
+</ul>
+<p>一句话：</p>
+<ul>
+<li>SFT 解决“会不会做”</li>
+<li>偏好对齐解决“做得讨不讨喜、稳不稳定”</li>
+</ul>
+<hr>
+<h2 id="_9">九、工程实践视角</h2>
+<h3 id="sft_8">一个常见 SFT 配方</h3>
+<ol>
+<li>统一 chat template</li>
+<li>数据去重和污染检查</li>
+<li>控制任务类型、难度和长度分布</li>
+<li>小学习率跑 1-2 epoch</li>
+<li>保留通用能力验证集</li>
+</ol>
+<h3 id="_10">数据验收清单</h3>
+<table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>重点看什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>格式</td>
+<td>chat template 是否统一，role 是否错位</td>
+</tr>
+<tr>
+<td>Loss Mask</td>
+<td>是否只训练 assistant 回复，system/user 是否被 mask</td>
+</tr>
+<tr>
+<td>去重</td>
+<td>是否有模板化重复、近重复、泄露评测集</td>
+</tr>
+<tr>
+<td>事实性</td>
+<td>专业问答是否可追溯，是否存在胡编引用</td>
+</tr>
+<tr>
+<td>分布</td>
+<td>长度、任务类型、语言、难度是否过窄</td>
+</tr>
+<tr>
+<td>安全边界</td>
+<td>是否有该拒答不拒答、该回答过度拒答的问题</td>
+</tr>
+</tbody>
+</table>
+<h3 id="loss">评估时不要只看 loss</h3>
+<p>还要看：</p>
+<ul>
+<li>指令遵循是否更稳</li>
+<li>格式是否正确</li>
+<li>通用能力是否掉</li>
+<li>多轮表现是否崩</li>
+</ul>
+<h3 id="_11">常见失败信号</h3>
+<ul>
+<li>训练集 loss 很低，但真实用户问题变差：过拟合或模板化严重</li>
+<li>格式遵循变强，但推理能力下降：数据分布太窄或学习率过大</li>
+<li>多轮对话容易丢上下文：样本构造只覆盖单轮</li>
+<li>模型越来越啰嗦：训练数据里的回答风格被放大</li>
+</ul>
+<hr>
+<h2 id="_12">十、常见误区</h2>
+<h3 id="1sft">误区 1：SFT 就是在给模型灌新知识</h3>
+<p>不准确。很多时候它是在重新组织已有能力的使用方式。</p>
+<h3 id="2">误区 2：数据越多一定越好</h3>
+<p>低质量和模板化数据会很快把模型带偏。</p>
+<h3 id="3sft-epoch">误区 3：SFT 一定要训很多 epoch</h3>
+<p>通常不是。高质量数据下，1 到 2 个 epoch 往往已经足够。</p>
+<h3 id="4-loss">误区 4：训练 loss 下降就说明效果好</h3>
+<p>不一定。模型可能只是更擅长模仿训练集风格，而不是更适合真实用户。</p>
+<hr>
+<h2 id="_13">十一、面试延伸</h2>
+<p><strong>Q：SFT 数据多样性为什么重要？</strong></p>
+<blockquote>
+<p>因为模型学的不该是某个固定任务答案，而是“如何处理不同类型指令”的元能力。数据分布太窄，很容易导致其他能力退化。</p>
+</blockquote>
+<p><strong>Q：如何评估 SFT 效果？</strong></p>
+<blockquote>
+<p>通常结合自动评测和人工评测：看指令遵循、格式正确率、多轮稳定性，以及领域专项任务表现。只看 loss 或 BLEU/ROUGE 这类指标不够。</p>
+</blockquote>
+<p><strong>Q：SFT 要做几个 epoch？</strong></p>
+<blockquote>
+<p>实践中大多是 1 到 3 个 epoch，高质量小数据集通常 1 到 2 个就够。再多容易过拟合和灾难性遗忘。</p>
+</blockquote>
+<p><strong>Q：SFT 和 DPO 的分工是什么？</strong></p>
+<blockquote>
+<p>SFT 负责把模型从“会续写”变成“会回答”，DPO 负责在此基础上进一步优化偏好排序，比如更有帮助、更自然、更安全。</p>
+</blockquote>
+<hr>
+<h2 id="_14">十二、学完可以做什么</h2>
+<ol>
+<li>自己构造 200 条高质量 instruction 数据做一次小型 SFT。</li>
+<li>对比 <code>base -&gt; SFT</code> 在格式遵循和任务完成率上的差异。</li>
+<li>做一个多轮对话样本构造器，练习 chat template 和 loss mask 生成。</li>
+</ol>
+<hr>
+<h2 id="_15">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LIMA: Less Is More for Alignment (Zhou et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2305.11206">arxiv.org/abs/2305.11206</a></td>
+</tr>
+<tr>
+<td>Self-Instruct (Wang et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2212.10560">arxiv.org/abs/2212.10560</a></td>
+</tr>
+<tr>
+<td>WizardLM (Xu et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2304.12244">arxiv.org/abs/2304.12244</a></td>
+</tr>
+<tr>
+<td>InstructGPT (Ouyang et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2203.02155">arxiv.org/abs/2203.02155</a></td>
+</tr>
+<tr>
+<td>Orca (Mukherjee et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2306.02707">arxiv.org/abs/2306.02707</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_16">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1gmWDeLEMZ/">大模型微调看这个视频就够了 SFT NEFTune</a></td>
+<td>SFT 全流程与技巧</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1HYBWBaEE3/">20分钟带你快速弄懂SFT、RLHF、DPO</a></td>
+<td>适合理清边界</td>
+</tr>
+<tr>
+<td>📖 Hugging Face TRL</td>
+<td><a href="https://huggingface.co/docs/trl/sft_trainer">SFT Trainer</a></td>
+<td>官方 SFTTrainer 用法与数据格式</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

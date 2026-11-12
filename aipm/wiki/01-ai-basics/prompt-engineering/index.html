@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prompt 工程</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/prompt-engineering/README.md</span></div>
+<main>
+<h1 id="prompt">Prompt 工程</h1>
+<p>Prompt 是 AI PM 最直接的"生产工具":不写代码也能显著改变产品效果。进阶则要理解：线上效果往往取决于「窗口里拼进了什么」——见 Context Engineering。</p>
+<h2 id="_1">目录</h2>
+<ul>
+<li><a href="prompt-basics.html">Prompt 基本功:角色、任务、约束、示例、输出格式</a>(含 Few-shot 用法)</li>
+<li><a href="structured-output.html">结构化输出:让模型稳定吐出 JSON</a></li>
+<li><a href="system-prompt-and-prompt-ops.html">系统提示词设计与 Prompt 工程化:把玄学变工程</a>(含版本管理与回归测试)</li>
+<li><a href="context-engineering.html">Context Engineering：从写 Prompt 到拼上下文系统</a> —— Prompt Eng vs Context Eng；缓存 / 工具上下文 / PM 边界</li>
+<li><a href="chain-of-thought.html">思维链(CoT):让模型先想再答</a> —— 适用场景、成本权衡、Self-Consistency;面试题见 <a href="../../04-interview/basics/chain-of-thought.html">什么是思维链?</a></li>
+</ul>
+</main>
+</body>
+</html>

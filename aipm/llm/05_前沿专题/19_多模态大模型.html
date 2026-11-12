@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLaVA 的核心：把视觉特征&quot;翻译&quot;成 LLM 能理解的 token</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 05_前沿专题/19_多模态大模型.md</span></div>
+<main>
+<p>﻿# 多模态大模型（Multimodal LLM / VLM）</p>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>多模态模型的两条主流技术路线是什么？</li>
+<li>视觉编码器（CLIP/SigLIP）如何与 LLM 对齐？</li>
+<li>高分辨率图像如何处理？动态分辨率方案是什么？</li>
+<li>早期融合（Early Fusion）和晚期融合（Late Fusion）的区别？</li>
+<li>为什么说 GPT-4o 是"原生多模态"？</li>
+<li>视频理解为什么比图像理解更难？</li>
+</ul>
+<hr>
+<h2 id="_2">一、技术路线全景</h2>
+<p><strong>细化理解：</strong> 多模态模型的核心是把视觉、音频或视频信号对齐到语言模型可理解的表示空间。常见路线包括视觉编码器 + projector + LLM、原生多模态 token 化、以及面向视频的帧采样和时序建模。难点在于细粒度定位、OCR、空间关系和跨模态指令跟随。</p>
+<p>2025 年多模态 LLM 已从"给 LLM 加视觉插件"进化为<strong>原生 Any-to-Any 架构</strong>。两条主流路线：</p>
+<pre><code class="language-mermaid">graph TB
+    subgraph 路线一_Connector_桥接
+        IMG1[图像] --&gt; VE1[Vision Encoder&lt;br/&gt;CLIP/SigLIP&lt;br/&gt;冻结]
+        VE1 --&gt; PROJ[Projector&lt;br/&gt;MLP / Q-Former]
+        TEXT1[文本] --&gt; TE1[Text Tokenizer]
+        PROJ --&gt; LLM1[LLM&lt;br/&gt;可微调]
+        TE1 --&gt; LLM1
+        LLM1 --&gt; OUT1[文本输出]
+    end
+
+    subgraph 路线二_早期融合_Omni
+        IMG2[图像] --&gt; VT[视觉 Tokenizer]
+        TEXT2[文本] --&gt; TT[文本 Tokenizer]
+        AUDIO2[语音] --&gt; AT[语音 Tokenizer]
+        VT --&gt; UT[统一 Transformer&lt;br/&gt;全模态联合预训练]
+        TT --&gt; UT
+        AT --&gt; UT
+        UT --&gt; OUT2[文本/图像/语音输出]
+    end
+
+    style LLM1 fill:#7c6af7,color:#fff
+    style UT fill:#f472b6,color:#fff
+    style PROJ fill:#5eead4,color:#000
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>路线一：Connector 桥接</th>
+<th>路线二：早期融合（Omni）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代表模型</td>
+<td>LLaVA, InternVL, Qwen-VL</td>
+<td>GPT-4o, Gemini 2.0, Chameleon</td>
+</tr>
+<tr>
+<td>视觉编码器</td>
+<td>独立（CLIP/SigLIP，通常冻结）</td>
+<td>内嵌在统一模型中</td>
+</tr>
+<tr>
+<td>训练成本</td>
+<td>低（可冻结大部分参数）</td>
+<td>高（全模态联合预训练）</td>
+</tr>
+<tr>
+<td>输入支持</td>
+<td>图像 + 文本</td>
+<td>任意模态组合</td>
+</tr>
+<tr>
+<td>输出支持</td>
+<td>仅文本</td>
+<td>任意模态（文/图/音）</td>
+</tr>
+<tr>
+<td>灵活性</td>
+<td>可独立升级视觉/语言模块</td>
+<td>紧耦合，但交互更自然</td>
+</tr>
+<tr>
+<td>当前主流</td>
+<td>开源生态主流</td>
+<td>闭源前沿模型走向</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="connector-based">二、连接器桥接（Connector-based）详解</h2>
+<h3 id="llava">LLaVA 风格架构</h3>
+<p><strong>细化理解：</strong> LLaVA 风格架构通常用 CLIP/ViT 提取图像特征，再通过投影层连接到 LLM，最后用图文指令数据对齐。它结构清晰、成本相对低，但视觉细节受编码器分辨率和训练数据影响很大。面试时可以把它概括为“视觉特征作为软提示输入语言模型”。</p>
+<pre><code class="language-mermaid">graph LR
+    IMG[图像 224×224] --&gt; CLIP[CLIP ViT-L&lt;br/&gt;冻结]
+    CLIP --&gt; FEAT[576个视觉特征&lt;br/&gt;每个4096维]
+    FEAT --&gt; MLP[2层 MLP&lt;br/&gt;Projector&lt;br/&gt;训练]
+    MLP --&gt; TOK[576个视觉 Token&lt;br/&gt;与文本Token同维度]
+
+    TXT[请描述这张图] --&gt; EMBED[Text Embedding]
+    EMBED --&gt; TOK_T[文本 Token]
+
+    TOK --&gt; CONCAT[拼接]
+    TOK_T --&gt; CONCAT
+    CONCAT --&gt; LLM[LLM&lt;br/&gt;Vicuna/LLaMA]
+    LLM --&gt; OUT[图中是一只猫...]
+
+    style CLIP fill:#94a3b8,color:#fff
+    style MLP fill:#5eead4,color:#000
+    style LLM fill:#7c6af7,color:#fff
+</code></pre>
+<pre><code class="language-python"># LLaVA 的核心：把视觉特征&quot;翻译&quot;成 LLM 能理解的 token
+class LLaVA(nn.Module):
+    def __init__(self):
+        self.vision_encoder = CLIPVisionModel.from_pretrained(...)  # 冻结
+        self.projector = nn.Sequential(
+            nn.Linear(1024, 4096),  # CLIP 1024 → LLaMA 4096
+            nn.GELU(),
+            nn.Linear(4096, 4096)
+        )
+        self.llm = LlamaForCausalLM.from_pretrained(...)
+
+    def forward(self, image, text_ids):
+        # 1. 图像 → 视觉特征
+        vision_features = self.vision_encoder(image)  # [B, 576, 1024]
+
+        # 2. 视觉特征 → LLM Token 空间
+        vision_tokens = self.projector(vision_features)  # [B, 576, 4096]
+
+        # 3. 与文本 token 拼接
+        text_embeddings = self.llm.embed_tokens(text_ids)
+        combined = torch.cat([vision_tokens, text_embeddings], dim=1)
+
+        # 4. 送入 LLM
+        return self.llm(inputs_embeds=combined)
+</code></pre>
+<hr>
+<h2 id="_3">三、视觉编码器对比</h2>
+<pre><code class="language-mermaid">graph TD
+    A[视觉编码器选择] --&gt; B[CLIP ViT&lt;br/&gt;2021]
+    A --&gt; C[SigLIP&lt;br/&gt;2023]
+    A --&gt; D[DINOv2&lt;br/&gt;2023]
+
+    B --&gt; B1[图文对比学习&lt;br/&gt;InfoNCE Loss]
+    B --&gt; B2[强语义对齐]
+    B --&gt; B3[使用: LLaVA, BLIP-2]
+
+    C --&gt; C1[Sigmoid Loss&lt;br/&gt;不用 softmax]
+    C --&gt; C2[支持任意 batch&lt;br/&gt;性能更强]
+    C --&gt; C3[使用: InternVL, PaliGemma]
+
+    D --&gt; D1[纯自监督&lt;br/&gt;无需文本]
+    D --&gt; D2[空间特征丰富]
+    D --&gt; D3[使用: 检测/分割]
+
+    style B fill:#7c6af7,color:#fff
+    style C fill:#5eead4,color:#000
+    style D fill:#fbbf24,color:#000
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>编码器</th>
+<th>训练方式</th>
+<th>优势</th>
+<th>短板</th>
+<th>主要使用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLIP ViT</strong></td>
+<td>图文对比学习（InfoNCE）</td>
+<td>强语义对齐，多语言支持好</td>
+<td>softmax 受 batch size 限制</td>
+<td>LLaVA, BLIP-2</td>
+</tr>
+<tr>
+<td><strong>SigLIP</strong></td>
+<td>Sigmoid 损失</td>
+<td>任意 batch size, 更强性能</td>
+<td>较新，生态尚在建设</td>
+<td>InternVL, PaliGemma</td>
+</tr>
+<tr>
+<td><strong>DINOv2</strong></td>
+<td>纯自监督（无文本）</td>
+<td>空间特征丰富，适合检测分割</td>
+<td>缺乏语义对齐</td>
+<td>检测/分割任务为主</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_4">四、高分辨率图像处理</h2>
+<h3 id="vit">问题：标准 ViT 难处理高分辨率</h3>
+<pre><code>CLIP ViT 通常在 224×224 或 336×336 训练
+如果输入 1024×1024 的高清图：
+  ① 直接 resize 到 224 → 文字、细节全糊
+  ② 直接喂给 ViT → 位置编码不匹配，效果崩
+
+但很多任务需要高分辨率：
+  - OCR：识别图片中的文字
+  - 图表理解：精确读取数值
+  - 医学影像：肿瘤等微小特征
+  - 文档理解：表格、字段对齐
+</code></pre>
+<h3 id="internvlqwen-vl">动态分辨率（InternVL/Qwen-VL 方案）</h3>
+<pre><code class="language-mermaid">graph TD
+    IMG[高分辨率图像&lt;br/&gt;例如 1280×960] --&gt; SPLIT{自适应切片&lt;br/&gt;选择最佳比例}
+    SPLIT --&gt; T1[Tile 1&lt;br/&gt;448×448]
+    SPLIT --&gt; T2[Tile 2&lt;br/&gt;448×448]
+    SPLIT --&gt; T3[Tile 3&lt;br/&gt;448×448]
+    SPLIT --&gt; T4[Tile 4&lt;br/&gt;448×448]
+    SPLIT --&gt; T5[Tile 5&lt;br/&gt;448×448]
+    SPLIT --&gt; T6[Tile 6&lt;br/&gt;448×448]
+    SPLIT --&gt; THUMB[缩略图&lt;br/&gt;448×448&lt;br/&gt;提供全局信息]
+
+    T1 --&gt; VE[ViT 独立编码]
+    T2 --&gt; VE
+    T3 --&gt; VE
+    T4 --&gt; VE
+    T5 --&gt; VE
+    T6 --&gt; VE
+    THUMB --&gt; VE
+
+    VE --&gt; CAT[拼接所有 Token]
+    CAT --&gt; LLM[LLM]
+
+    style IMG fill:#f472b6,color:#fff
+    style THUMB fill:#fbbf24,color:#000
+    style LLM fill:#7c6af7,color:#fff
+</code></pre>
+<p><strong>关键点</strong>：
+- 切片之间无 Attention 交互（独立编码降低算力）
+- 加入"缩略图 token"提供全局上下文（防止 LLM 看不到整体）
+- LLM 通过位置 token 或特殊分隔符理解切片的空间关系</p>
+<h3 id="internvl-25-ocr">InternVL 2.5 在 OCR 任务上的效果</h3>
+<pre><code>固定 336×336 分辨率：               ✗ 长文档/小字识别失败
+动态切片（最多 12 个 tile）：        ✓ OCR 精度接近商用引擎
+                                    ✓ 图表数值读取准确
+                                    ✓ 文档表格结构理解
+</code></pre>
+<hr>
+<h2 id="q-formerblip-2">五、Q-Former（BLIP-2 风格）</h2>
+<pre><code class="language-mermaid">graph LR
+    IMG[图像] --&gt; VE[ViT]
+    VE --&gt; VF[视觉特征&lt;br/&gt;~1000个 Token]
+
+    Q[32个可学习&lt;br/&gt;查询向量] --&gt; CA[Cross-Attention]
+    VF --&gt; CA
+    CA --&gt; OUT[32个视觉 Token&lt;br/&gt;固定数量]
+    OUT --&gt; LLM[LLM]
+
+    style Q fill:#5eead4,color:#000
+    style CA fill:#fbbf24,color:#000
+    style LLM fill:#7c6af7,color:#fff
+</code></pre>
+<pre><code>传统 LLaVA：图像 → 576 个视觉 Token → 占用大量上下文
+Q-Former：图像 → 32 个固定 Token → 上下文压力小
+
+Q-Former 优点：
+  - 视觉 Token 数量固定（与图像分辨率无关）
+  - LLM 上下文压力小，可处理多图输入
+
+Q-Former 缺点：
+  - 信息压缩损失，不适合 OCR/细粒度任务
+  - 32 个 token 难以编码复杂场景
+</code></pre>
+<p><strong>适用场景</strong>：图像描述、视觉问答等"粗粒度"任务。OCR/细粒度任务推荐用动态分辨率方案。</p>
+<hr>
+<h2 id="_5">六、多模态对齐训练阶段</h2>
+<p>LLaVA 等模型通常分三阶段训练：</p>
+<pre><code class="language-mermaid">graph LR
+    A[Stage 1&lt;br/&gt;特征对齐] --&gt; B[Stage 2&lt;br/&gt;视觉指令微调]
+    B --&gt; C[Stage 3&lt;br/&gt;RLHF/DPO 对齐]
+
+    A1[训练数据:&lt;br/&gt;图文对&lt;br/&gt;~500K] --&gt; A
+    A2[冻结:&lt;br/&gt;LLM + Vision] --&gt; A
+    A3[训练:&lt;br/&gt;仅 Projector] --&gt; A
+
+    B1[训练数据:&lt;br/&gt;视觉指令&lt;br/&gt;~700K] --&gt; B
+    B2[冻结:&lt;br/&gt;Vision Encoder] --&gt; B
+    B3[训练:&lt;br/&gt;Projector + LLM] --&gt; B
+
+    C1[训练数据:&lt;br/&gt;人类偏好] --&gt; C
+    C2[训练:&lt;br/&gt;整体对齐] --&gt; C
+
+    style A fill:#5eead4,color:#000
+    style B fill:#fbbf24,color:#000
+    style C fill:#f472b6,color:#fff
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>训练数据</th>
+<th>冻结</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage 1：特征对齐</td>
+<td>图文对（如 LAION-558K）</td>
+<td>LLM + Vision Encoder</td>
+<td>训练 Projector 把视觉特征"翻译"成 LLM 语言</td>
+</tr>
+<tr>
+<td>Stage 2：指令微调</td>
+<td>视觉指令数据（GPT-4 生成）</td>
+<td>Vision Encoder</td>
+<td>联合训练 Projector + LLM，学会回答视觉问题</td>
+</tr>
+<tr>
+<td>Stage 3（可选）：RLHF</td>
+<td>视觉对话偏好数据</td>
+<td>-</td>
+<td>提升对话质量、安全性、视觉幻觉缓解</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_6">七、视频理解的额外挑战</h2>
+<p>视频 = 时序图像序列 + 音频，但简单"把视频拆成帧"会爆炸：</p>
+<pre><code>1 分钟视频 @ 1fps = 60 帧
+每帧 256 个视觉 token
+总计 60 × 256 = 15,360 token
+
+如果 5 分钟视频 = 76,800 token，已经超出常规 LLM 上下文
+更不用说细粒度的 30fps 视频
+</code></pre>
+<h3 id="_7">主流解决方案</h3>
+<pre><code class="language-mermaid">graph TD
+    V[视频输入] --&gt; S{帧采样策略}
+    S --&gt; US[均匀采样&lt;br/&gt;简单但漏关键帧]
+    S --&gt; KF[关键帧检测&lt;br/&gt;基于场景变化]
+    S --&gt; DS[密集采样&lt;br/&gt;需要时序压缩]
+
+    KF --&gt; TC[时序 Token 压缩&lt;br/&gt;多帧合并为少量 Token]
+    DS --&gt; TC
+    TC --&gt; SA[稀疏注意力&lt;br/&gt;降低 token 间 attention 成本]
+    SA --&gt; LLM[LLM]
+
+    style V fill:#f472b6,color:#fff
+    style TC fill:#5eead4,color:#000
+    style LLM fill:#7c6af7,color:#fff
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>描述</th>
+<th>代表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>均匀采样</strong></td>
+<td>每 N 秒取 1 帧</td>
+<td>简单基线，常用于评测</td>
+</tr>
+<tr>
+<td><strong>关键帧检测</strong></td>
+<td>用 SAM 等模型识别场景变化</td>
+<td>LLaVA-Video</td>
+</tr>
+<tr>
+<td><strong>时序 Token 压缩</strong></td>
+<td>多帧 token 在时间维度池化/聚合</td>
+<td>Video-ChatGPT</td>
+</tr>
+<tr>
+<td><strong>时序 Attention</strong></td>
+<td>在时间维度做轻量 Attention 学习时序关系</td>
+<td>Qwen2.5-VL</td>
+</tr>
+<tr>
+<td><strong>专门时序模块</strong></td>
+<td>用 TimeSformer 等替代静态 ViT</td>
+<td>InternVideo</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="sota-2025">八、当前 SOTA 模型对比（2025）</h2>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>开源</th>
+<th>参数量</th>
+<th>上下文</th>
+<th>输出模态</th>
+<th>特色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-4o</td>
+<td>否</td>
+<td>-</td>
+<td>128K</td>
+<td>文/图/音</td>
+<td>原生 Any-to-Any，实时语音</td>
+</tr>
+<tr>
+<td>Gemini 2.0 Flash</td>
+<td>否</td>
+<td>-</td>
+<td>1M</td>
+<td>文/图/音/视频</td>
+<td>超长上下文 + 原生视频</td>
+</tr>
+<tr>
+<td>Claude 3.5 Sonnet</td>
+<td>否</td>
+<td>-</td>
+<td>200K</td>
+<td>文 + 图理解</td>
+<td>视觉推理强</td>
+</tr>
+<tr>
+<td><strong>InternVL 2.5</strong></td>
+<td><strong>是</strong></td>
+<td>1B-78B</td>
+<td>32K</td>
+<td>文</td>
+<td><strong>开源最强 VLM</strong>，动态分辨率</td>
+</tr>
+<tr>
+<td><strong>Qwen2.5-VL</strong></td>
+<td><strong>是</strong></td>
+<td>3B-72B</td>
+<td>128K</td>
+<td>文</td>
+<td>中文好，视频理解强</td>
+</tr>
+<tr>
+<td>LLaMA 3.2 Vision</td>
+<td>是</td>
+<td>11B/90B</td>
+<td>128K</td>
+<td>文</td>
+<td>Meta 开源 VLM</td>
+</tr>
+<tr>
+<td>MiniCPM-V 2.6</td>
+<td>是</td>
+<td>8B</td>
+<td>32K</td>
+<td>文</td>
+<td>端侧最强，OCR 出色</td>
+</tr>
+<tr>
+<td>DeepSeek-VL2</td>
+<td>是</td>
+<td>28B MoE</td>
+<td>32K</td>
+<td>文</td>
+<td>MoE + 视觉</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_8">九、面试延伸</h2>
+<p><strong>Q：为什么视觉 Token 数量很重要？</strong></p>
+<blockquote>
+<p>每张图片通常生成 256-4096 个 token，直接占用 LLM 上下文窗口。例如：① 8K 上下文模型，输入 4 张图片（每张 1024 token）就用掉一半上下文；② 视觉 token 越多 → KV Cache 越大 → 推理延迟越高、显存压力越大。所以 Q-Former（固定 32 token）、动态分辨率（按需切片）、视觉 token 压缩等技术都很重要。生产环境中通常按场景选：粗粒度任务用 Q-Former 风格压缩、细粒度（OCR/图表）用动态切片。</p>
+</blockquote>
+<p><strong>Q：多模态模型为什么在 OCR 和图表理解上困难？</strong></p>
+<blockquote>
+<p>文字和图表识别需要<strong>像素级的高分辨率感知</strong>：① 标准 ViT 训练分辨率（224/336）下，小字直接变模糊；② ViT 的 patch（如 14×14 像素）粒度对单个字符来说太大；③ CLIP 等编码器的预训练目标是"语义对齐"，不是精确字符识别。解决路径：动态分辨率切片 + 更大的视觉编码器 + OCR 专项训练数据。InternVL/Qwen-VL 的 OCR 能力强主要靠这条路线。</p>
+</blockquote>
+<p><strong>Q：语音模态通常如何加入？</strong></p>
+<blockquote>
+<p>两种方式：① <strong>桥接方式</strong>：Whisper 等 ASR 模型提取声学特征，通过 Projector（类似视觉的 MLP）映射到 LLM token 空间，与文本 token 拼接（如 LLaSM、Qwen-Audio）。② <strong>原生方式</strong>：把语音离散化为 token（用 codec 模型），与文本 token 联合训练一个统一 Transformer（如 GPT-4o 的语音模式、Moshi）。桥接方式实现简单但延迟高（先 ASR 再 LLM），原生方式延迟低但训练成本高。</p>
+</blockquote>
+<p><strong>Q：为什么 GPT-4o 被称为"原生多模态"？</strong></p>
+<blockquote>
+<p>"原生"指的是同一个 Transformer 在 token 级别处理多模态，而不是用桥接器把各模态外挂到 LLM 上。具体表现：① 语音输入端到端处理（不先 ASR），延迟 ~320ms（人类反应级别）；② 可以直接输出语音（不依赖 TTS）；③ 训练时是图/文/音联合预训练，而非"先训语言模型再加多模态"。代价是训练成本极高，目前只有几家头部公司能做到。</p>
+</blockquote>
+<hr>
+<h2 id="_9">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP (Radford et al., 2021)</td>
+<td><a href="https://arxiv.org/abs/2103.00020">arxiv.org/abs/2103.00020</a></td>
+</tr>
+<tr>
+<td>LLaVA (Liu et al., NeurIPS 2023)</td>
+<td><a href="https://arxiv.org/abs/2304.08485">arxiv.org/abs/2304.08485</a></td>
+</tr>
+<tr>
+<td>BLIP-2 / Q-Former (Li et al., ICML 2023)</td>
+<td><a href="https://arxiv.org/abs/2301.12597">arxiv.org/abs/2301.12597</a></td>
+</tr>
+<tr>
+<td>InternVL 2.5 (Chen et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2412.05271">arxiv.org/abs/2412.05271</a></td>
+</tr>
+<tr>
+<td>SigLIP (Zhai et al., ICCV 2023)</td>
+<td><a href="https://arxiv.org/abs/2303.15343">arxiv.org/abs/2303.15343</a></td>
+</tr>
+<tr>
+<td>Chameleon: Mixed-Modal Early-Fusion (Meta, 2024)</td>
+<td><a href="https://arxiv.org/abs/2405.09818">arxiv.org/abs/2405.09818</a></td>
+</tr>
+<tr>
+<td>LLaVA-OneVision: Easy Visual Task Transfer (2024)</td>
+<td><a href="https://arxiv.org/abs/2408.03326">arxiv.org/abs/2408.03326</a></td>
+</tr>
+<tr>
+<td>LLaVA-Video: Learning Video Representations (2024)</td>
+<td><a href="https://arxiv.org/abs/2410.02713">arxiv.org/abs/2410.02713</a></td>
+</tr>
+<tr>
+<td>Qwen2.5-VL: Expanding Horizons for Vision-Language Models (2025)</td>
+<td><a href="https://arxiv.org/abs/2502.13923">arxiv.org/abs/2502.13923</a></td>
+</tr>
+<tr>
+<td>InternVL3: Advanced Training for Multimodal Models (2025)</td>
+<td><a href="https://arxiv.org/abs/2504.10479">arxiv.org/abs/2504.10479</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_10">官方仓库</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LLaVA GitHub</td>
+<td><a href="https://github.com/haotian-liu/LLaVA">github.com/haotian-liu/LLaVA</a></td>
+</tr>
+<tr>
+<td>InternVL GitHub</td>
+<td><a href="https://github.com/OpenGVLab/InternVL">github.com/OpenGVLab/InternVL</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_11">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1nw4m1S7nZ/">多模态大模型LLaVA模型讲解——transformers源码解读</a></td>
+<td>4万播放，LLaVA架构源码级深度解析</td>
+</tr>
+<tr>
+<td>📖 GitHub</td>
+<td><a href="https://github.com/OpenGVLab/InternVL">OpenGVLab InternVL</a></td>
+<td>InternVL 官方项目页与模型资料</td>
+</tr>
+<tr>
+<td>📖 GitHub</td>
+<td><a href="https://github.com/haotian-liu/LLaVA">LLaVA</a></td>
+<td>LLaVA 官方项目页，理解视觉编码器 + LLM 路线</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1sWXPYtE3d/">【AI大模型-LLM多模态视觉大模型精讲教程 全40集】</a></td>
+<td>1.8万播放，系统完整的多模态学习课程</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

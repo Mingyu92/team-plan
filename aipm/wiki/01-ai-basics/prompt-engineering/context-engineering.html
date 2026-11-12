@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Context Engineering：从写 Prompt 到拼上下文系统</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/prompt-engineering/context-engineering.md</span></div>
+<main>
+<h1 id="context-engineering-prompt">Context Engineering：从写 Prompt 到拼上下文系统</h1>
+<blockquote>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q4 / Q10；正文为本库原创，未摘录该 PDF 答案原文。</p>
+</blockquote>
+<p>写好一条 Prompt，只能决定「模型被怎么吩咐」；真正决定线上效果的，往往是<strong>这一次调用里窗口里到底有什么</strong>——系统指令、检索片段、对话历史、工具定义与工具返回、用户画像、业务规则……这些拼在一起，才是模型「看见」的世界。</p>
+<p>业界把这件事叫做 <strong>Context Engineering（上下文工程）</strong>：不是再写一句更巧的指令，而是设计一套<strong>动态拼装与维护上下文</strong>的系统。Anthropic 在工程博客中将其定义为：在推理时<strong>策展并维持最优 token 集合</strong>的策略集合，且明确把它视为 Prompt Engineering 的自然延伸——Prompt 工程主要管「怎么写指令」，Context 工程管「窗口里还有哪些会落地的信息、以及如何持续更新这套状态」。（来源见文末参考资料；访问日期 2026-08-06。）</p>
+<p>本篇面向 AI PM：讲清概念边界、和 Prompt 工程的对比、窗口里常见部件、生产里常用的工程手段，以及<strong>你该管什么、不该代替工程调参什么</strong>。窗口容量与成本细节见 <a href="../llm/context-window.html">上下文窗口</a>；单条 Prompt 写法见 <a href="prompt-basics.html">Prompt 基本功</a>。</p>
+<h2 id="prompt-engineering-vs-context-engineering">Prompt Engineering vs Context Engineering</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Prompt Engineering</th>
+<th>Context Engineering</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>核心问题</td>
+<td>指令怎么写才稳、才可测</td>
+<td>这一步推理应装进哪些 token、以什么形态装</td>
+</tr>
+<tr>
+<td>典型对象</td>
+<td>System / User 文案、示例、输出格式</td>
+<td>检索结果、历史消息、工具定义与返回、记忆条目、MCP/Skills 注入物</td>
+</tr>
+<tr>
+<td>时间尺度</td>
+<td>偏「一次写好 + 版本迭代」</td>
+<td>偏「每轮/每步动态策展」，长任务里还要压缩与外置记忆</td>
+</tr>
+<tr>
+<td>失败形态</td>
+<td>指令歧义、格式漂移、边界不清</td>
+<td>该进的没进、不该进的挤爆窗口、工具结果堆积、缓存失效导致成本飙升</td>
+</tr>
+<tr>
+<td>与工程的交界</td>
+<td>Prompt 模板、变量拆分、评测回归（见 <a href="system-prompt-and-prompt-ops.html">Prompt 工程化</a>）</td>
+<td>检索策略、工具面设计、compaction / 清理、prompt caching 布局</td>
+</tr>
+<tr>
+<td>对 PM 的抓手</td>
+<td>产品人格、能力边界、验收标准、示例质量</td>
+<td><strong>上下文清单与优先级</strong>、哪些场景允许「即时拉取」、成本/延迟预算、失败时降级口径</td>
+</tr>
+</tbody>
+</table>
+<p><strong>事实（厂商口径）</strong>：Anthropic 将 Context Engineering 表述为 Prompt Engineering 的进展；Prompt 工程侧重写与组织指令，Context 工程覆盖推理时整份上下文状态（系统指令、工具、MCP、外部数据、消息历史等）。</p>
+<p><strong>建议（本库归纳，非厂商原文）</strong>：面试或立项时，不要把「我们优化过 Prompt」和「我们有上下文系统」混为一谈——前者是文案资产，后者是运行时管线。</p>
+<h2 id="_1">一次调用里，上下文通常装什么</h2>
+<p>结合 <a href="../llm/context-window.html">上下文窗口</a> 的容器观，生产系统里常见的「可策展部件」包括：</p>
+<pre><code>系统指令 / 开发者指令（相对稳定）
++ 工具与 schema 定义（Agent 场景常很大）
++ 检索/知识片段（RAG 等）
++ 短期对话与中间推理痕迹
++ 工具调用记录与 tool_result
++ 长期记忆中「本次被选中」的条目
++ 用户本轮输入
++ 预留给模型输出的额度
+────────────────
+≤ 上下文窗口
+</code></pre>
+<p>其中：</p>
+<ul>
+<li><strong>指令类</strong>：仍靠 Prompt 工程写清楚；但要意识到它只占整窗的一小部分。</li>
+<li><strong>知识类</strong>：多数来自 <a href="../llm/what-is-rag.html">RAG</a> 或「按需用工具再读」——不是一次性写死在 Prompt 里。</li>
+<li><strong>工具类</strong>：工具定义本身也占窗口；长跑 Agent 里，历史 <code>tool_result</code> 往往是窗口膨胀的主因（见 <a href="../llm/agent-basics.html">Agent 入门</a>）。</li>
+</ul>
+<p>Anthropic 在同文中强调：上下文是<strong>有限且边际收益递减</strong>的资源（他们用 needle-in-a-haystack 类评测讨论随长度增加的检索/专注退化，并使用 <em>context rot</em> 表述）。因此「能塞」不等于「该塞」——这与本库在上下文窗口一文里讲的「中间遗忘 / 够用优于越大越好」一致，此处不重复展开机制细节。</p>
+<h2 id="context">生产里常见的 Context 策略（事实为主）</h2>
+<p>下列手段来自公开工程文档与厂商博客；<strong>具体 API 字段、价目、最低可缓存长度会随模型与平台变化，落地前以官方页为准。</strong></p>
+<h3 id="1-prompt-caching">1. 静态前缀可复用：Prompt Caching</h3>
+<p><strong>事实</strong>：</p>
+<ul>
+<li><strong>Anthropic</strong>：通过 <code>cache_control</code> 等机制对稳定前缀做缓存；命中后可显著降低重复前缀的计费与延迟。官方文档给出的倍率口径包括：约 5 分钟 TTL 的 cache write 为基价输入的 <strong>1.25×</strong>，1 小时 TTL 的 write 为 <strong>2×</strong>，cache read 约为基价输入的 <strong>0.1×</strong>（截至 2026-08-06，见 Anthropic Prompt Caching 文档）。另有按模型区分的最低可缓存 token 门槛；未达门槛则不会真正缓存。</li>
+<li><strong>OpenAI</strong>：对符合条件的请求可对<strong>精确前缀匹配</strong>自动做 Prompt Caching；官方指南建议把稳定内容（指令、示例、工具定义等）放在靠前位置，可变内容靠后，以提高命中率。较新模型家族还提供显式 breakpoint / <code>prompt_cache_key</code> 等控制项（见 OpenAI Prompt Caching 指南；访问日期 2026-08-06）。</li>
+</ul>
+<p><strong>建议</strong>：PM 侧把「哪些字段会每请求变化」（时间戳、用户 ID、随机会话噪声）从「应稳定缓存的系统层」里剔出去，当作产品约束写进 PRD；<strong>不要</strong>自己拍板具体 breakpoint 落在第几个 content block——那是工程实现。</p>
+<h3 id="2-agent">2. 工具面与工具结果：别让 Agent「自己把自己撑爆」</h3>
+<p><strong>事实</strong>：</p>
+<ul>
+<li>OpenAI 将 Function / Tool Calling 定义为模型通过结构化调用对接外部系统与数据的标准路径；工具定义可计入可缓存前缀，大规模工具集可用 tool search 等能力延迟加载（见 OpenAI Function calling / Tools 文档）。</li>
+<li>Anthropic 在工具上下文管理文档中，把 <strong>prompt caching（降重复工具定义成本）</strong>、<strong>tool search（大工具集按需加载定义）</strong>、<strong>programmatic tool calling</strong>、<strong>context editing / tool-result clearing（清掉过时笨重的工具返回）</strong> 等列为应对「工具定义 + 累积 tool_result 吃光窗口」的不同切入点。</li>
+</ul>
+<p><strong>建议</strong>：PM 定义「工具目录的最小必要集」和「高风险工具必须人工确认」；要求工程对长任务给出窗口占用可观测性（每轮 input tokens、工具结果占比）。工具返回要不要全文进窗、何时摘要/清理，由工程按官方能力选型，PM 只给业务优先级（例如：支付回执必须保留原文 vs 日志可摘要）。</p>
+<h3 id="3-agent">3. 长任务：压缩、外置记忆、子 Agent</h3>
+<p><strong>事实（Anthropic 工程博客归纳）</strong>：对超出单窗的长程任务，常见做法包括 <strong>compaction（摘要后重启窗口）</strong>、<strong>structured note-taking / memory（笔记落在窗外、需要时再拉回）</strong>、<strong>sub-agent（子代理在干净窗口里深挖，只回传蒸馏摘要）</strong>。Claude 平台亦提供与 compaction、tool clearing、memory tool 相关的产品化能力（见 Anthropic cookbook / docs；能力名与 beta 头以当日文档为准）。</p>
+<p><strong>建议</strong>：产品叙事上把「记忆」说成工程模拟的跨轮状态，而不是「模型真的记住了」；临界体验（触顶是截断、摘要还是转人工）应写进需求，而不是留给模型自由发挥。</p>
+<h3 id="4-vs">4. 「预先塞满」vs「即时拉取」</h3>
+<p><strong>事实</strong>：Anthropic 描述一类 <strong>just-in-time</strong> 策略——上下文里先放轻量标识（路径、查询、链接），运行时再用工具按需载入，而不是推理前把可能相关的材料全部预取进窗。这与「固定 Top-K 预检索」的 Naive RAG 形成对照，也和 Agentic 检索演进一致。</p>
+<p><strong>建议</strong>：知识变化快、全量预取贵或噪声大时，优先讨论「标识 + 按需读」是否成立；知识稳定且延迟敏感时，可保留部分预取。选型框架链到 <a href="../llm/long-context-vs-rag.html">长上下文 vs RAG</a>，此处不展开检索算法。</p>
+<h2 id="pm">PM 职责边界</h2>
+<table>
+<thead>
+<tr>
+<th>该管（产品 / 约束）</th>
+<th>不该代替工程做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务目标、成功标准、不可接受失败（胡说、越权、泄密）</td>
+<td>具体 Prompt 措辞的逐 token 调参、温度/采样细节</td>
+</tr>
+<tr>
+<td>「上下文清单」：必须有 / 可以有 / 禁止进入窗口的信息类别</td>
+<td>向量库参数、切块大小、重排模型选型的最终拍板（可参与评审）</td>
+</tr>
+<tr>
+<td>成本与延迟预算：单次任务 token 上限、是否允许多轮工具循环</td>
+<td>Cache breakpoint、compaction 触发阈值、清理策略的实现代码</td>
+</tr>
+<tr>
+<td>工具权限与确认策略：哪些动作要人点头</td>
+<td>MCP/工具 schema 的字段级实现</td>
+</tr>
+<tr>
+<td>评测与回归：上下文策略变更是否纳入 eval / 灰度</td>
+<td>把「感觉更好」当上线依据</td>
+</tr>
+</tbody>
+</table>
+<p>一句话：<strong>PM 管「要什么上下文、在什么约束下拼、怎样算拼对了」；工程管「怎么高效、可靠、可观测地拼」。</strong> 你深度参与 Prompt 与上下文设计是加分项，但替代工程调参会让系统不可维护，也让责任边界糊掉。</p>
+<h2 id="ai-pm">给 AI PM 的可操作检查清单（建议）</h2>
+<p>立项或复盘一次「答得差 / 又贵又慢」的 AI 功能时，按序问：</p>
+<ol>
+<li>失败更像<strong>指令问题</strong>还是<strong>材料/历史/工具结果问题</strong>？（前者回 Prompt 工程化；后者开 Context 工程复盘。）</li>
+<li>当前窗口里，占比最大的三块是什么？有没有「从不被引用却每轮都带上」的块？</li>
+<li>稳定前缀是否被动态字段打散，导致 caching 几乎打不中？（对照厂商「静态在前」建议。）</li>
+<li>Agent 场景：工具数量是否超过人也能说清「该用哪个」的程度？历史 tool_result 是否只进摘要？</li>
+<li>策略变更有没有进评测集与灰度？（与 <a href="system-prompt-and-prompt-ops.html">系统提示词与 Prompt 工程化</a> 同一纪律。）</li>
+</ol>
+<h2 id="_2">相关阅读</h2>
+<ul>
+<li><a href="prompt-basics.html">Prompt 基本功:角色、任务、约束、示例、输出格式</a></li>
+<li><a href="system-prompt-and-prompt-ops.html">系统提示词设计与 Prompt 工程化:把玄学变工程</a></li>
+<li><a href="../llm/context-window.html">上下文窗口:限制、成本与产品设计影响</a></li>
+<li><a href="../llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="../llm/long-context-vs-rag.html">长上下文 vs RAG:什么时候塞全库,什么时候检索</a></li>
+<li><a href="../llm/mcp.html">MCP:给 Agent 接上外部世界的「USB-C」</a></li>
+<li><a href="../llm/agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li>面试题:<a href="../../04-interview/basics/what-is-context-engineering.html">什么是 Context Engineering？和 Prompt Engineering 有什么区别？</a></li>
+<li>面试题:<a href="../../04-interview/basics/context-window-and-memory.html">大模型的上下文窗口和记忆机制是什么?</a></li>
+</ul>
+<h2 id="_3">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a> — Anthropic Engineering，发布约 2025-09-29；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Prompt caching</a> — Anthropic 官方文档；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/manage-tool-context">Manage tool context</a> — Anthropic 官方文档；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://developers.openai.com/api/docs/guides/prompt-caching">Prompt caching</a> — OpenAI 官方文档；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://developers.openai.com/api/docs/guides/function-calling">Function calling</a> — OpenAI 官方文档；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://developers.openai.com/api/docs/guides/tools">Using tools</a> — OpenAI 官方文档；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://www.langchain.com/blog/the-rise-of-context-engineering">The rise of "context engineering"</a> — LangChain 对术语与「动态提供正确信息与工具」的业界表述；<strong>2026-08-06 访问</strong></li>
+<li><a href="https://www.langchain.com/blog/context-engineering-for-agents">Context Engineering</a> — LangChain 对 write / select / compress / isolate 等策略综述；<strong>2026-08-06 访问</strong></li>
+</ul>
+</main>
+</body>
+</html>

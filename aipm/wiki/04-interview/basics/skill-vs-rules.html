@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skill 和 Rules 到底有什么区别?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/skill-vs-rules.md</span></div>
+<main>
+<h1 id="skill-rules">Skill 和 Rules 到底有什么区别?</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:高,2025–2026 Agent / Coding Agent 相关面试常见;社区面经亦多</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否分清「全局行为约束」与「按需加载的任务手册」</li>
+<li>是否理解两者对上下文成本、可维护性、跨工具复用的产品含义</li>
+<li>能否给出选型:什么进 Rules,什么做成 Skill</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话对比</strong>:Rules(含系统提示词/项目约定)是「这个 Agent 一直要遵守的规矩」;Skill 是「这类任务临时打开的操作手册」。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Rules / 系统提示词</th>
+<th>Agent Skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作用范围</td>
+<td>全局或会话级,长期生效</td>
+<td>按任务匹配触发</td>
+</tr>
+<tr>
+<td>加载方式</td>
+<td>通常整段进入上下文</td>
+<td>渐进披露:先描述,匹配后再读全文</td>
+</tr>
+<tr>
+<td>形态</td>
+<td>一段或几段文本</td>
+<td>文件夹 + <code>SKILL.md</code>(+ 脚本/资料)</td>
+</tr>
+<tr>
+<td>适合放什么</td>
+<td>安全红线、语气人格、仓库默认规范</td>
+<td>领域 SOP、可复用工作流、专用检查清单</td>
+</tr>
+<tr>
+<td>失败模式</td>
+<td>越写越长,互相打架、又贵又钝</td>
+<td>description 写糊导致触发不准</td>
+</tr>
+</tbody>
+</table>
+<p><strong>产品选型口诀</strong>:
+- 每轮对话都该生效、且很短 → <strong>Rules</strong>
+- 只在某类任务才需要、内容会长 → <strong>Skill</strong>
+- 要跨 Cursor / Codex / Claude Code 等带走 → 优先标准化 <strong>Skill</strong> 资产</p>
+<p>可记:Rules 管「人设与红线」,Skill 管「怎么把某类活干对」。二者叠加,不是二选一。更完整的机制见正课 <a href="../../01-ai-basics/llm/agent-skills.html">Agent Skills</a>。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"团队把所有规范都塞进 Rules,有什么问题?"
+  → 上下文被长期占用、token 成本升、无关任务也被「规范噪音」干扰;规范一改要动全局配置,回归面大。</li>
+<li><strong>追问 2</strong>:"Skill 会不会取代 MCP?"
+  → 不会。Skill 是知识/剧本层,MCP 是连接外部系统的协议层;接得上不等于做得对,两者互补。</li>
+<li><strong>追问 3</strong>:"你怎么验收一条 Skill 写得好不好?"
+  → 看 description 能否让 Agent「该触发时触发、不该时不触发」;看步骤是否可执行、是否有边界案例;看无关任务是否被误触发。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li><a href="skill-versioning-and-dependencies.html">Skill 怎么做版本管理与依赖治理?</a></li>
+<li><a href="skill-token-efficiency.html">如何设计 Skill 来降低 token 消耗?</a></li>
+<li><a href="../../01-ai-basics/llm/mcp.html">MCP:给 Agent 接上外部世界的「USB-C」</a></li>
+</ul>
+</main>
+</body>
+</html>

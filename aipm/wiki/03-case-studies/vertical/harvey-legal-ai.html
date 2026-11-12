@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Harvey 案例拆解:法律垂直的高合规企业 AI</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/vertical/harvey-legal-ai.md</span></div>
+<main>
+<h1 id="harvey-ai">Harvey 案例拆解:法律垂直的高合规企业 AI</h1>
+<p><strong>分类</strong>:垂直行业
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_1">一、产品背景</h2>
+<p>法律是典型的高合规、高客单价、强专业壁垒行业:一份合同审查出错、一条引证幻觉、一次客户数据外泄,代价都可能远超一次客服会话失败。通用大模型可以起草、摘要、问答,但律所和企业法务真正买的不是"能聊天",而是能嵌进尽职调查、合同审查、诉讼准备等既有工作流、且经得起合规审计的基础设施。</p>
+<p>Harvey 定位自己是律所与企业法务的"法律操作系统 / 法律基础设施"(legal infrastructure / operating system for legal and professional services)。2022 年由前律师 Winston Weinberg 与前 DeepMind/Meta 研究员 Gabe Pereyra 创立;2026 年 3 月 25 日官方宣布完成 <strong>2 亿美元融资、估值 110 亿美元</strong>,本轮由 GIC 与 Sequoia 联合领投,a16z、Coatue、Kleiner Perkins 等老股东跟投,累计融资超 10 亿美元。CNBC、Reuters 等同日报道了这一轮融资。</p>
+<p>官方披露的覆盖面(2026-03 融资博文口径):全球 <strong>10 万+ 律师</strong>、<strong>1,300+ 组织</strong>,覆盖多数 AmLaw 100、500+ 企业法务团队、50 家资产管理公司、60 个国家;平台上运行着 <strong>2.5 万+ 自定义 Agent</strong>,覆盖并购、尽调、合同起草与文档审查等场景。命名客户包括 NBCUniversal、HSBC、DLA Piper(扩大合作)、McCann Fitzgerald(全所部署)等。</p>
+<p>与仓库已有的<a href="ai-customer-service.html">智能客服案例</a>形成对照:<strong>客服卖的是可计费的"会话结果"(解决/转接/线索判定),Harvey 卖的是嵌入法律工作流的高合规生产力平台</strong>——律师仍对最终判断负责,AI 的"结果"定义不是一次性关闭工单,而是完成一段可审计的专业工作流(尽调清单、条款比对、多步 Agent 任务)。</p>
+<h2 id="_2">二、核心功能拆解</h2>
+<p>按 Harvey 官网产品矩阵,可以把能力拆成"人机协作层 → 知识与文档层 → 自主执行层":</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>做什么</th>
+<th>AI 介入程度</th>
+<th>合规相关设计点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Assistant</td>
+<td>法律问答、文档分析、起草</td>
+<td>高</td>
+<td>领域专用模型/提示,输出需律师复核</td>
+</tr>
+<tr>
+<td>Vault</td>
+<td>安全存储、组织与批量分析法律文档</td>
+<td>高(批量理解/抽取)</td>
+<td>客户文档隔离与访问控制是卖点前提</td>
+</tr>
+<tr>
+<td>Knowledge</td>
+<td>跨域法律、监管与税务问题检索研究</td>
+<td>高</td>
+<td>答案需可追溯至可信法律内容源</td>
+</tr>
+<tr>
+<td>Agents</td>
+<td>端到端执行复杂法律工作流(并购、尽调、基金设立等长周期任务)</td>
+<td>很高</td>
+<td>多步执行需留痕、可中断、可与律所流程对齐</td>
+</tr>
+<tr>
+<td>Shared Spaces</td>
+<td>律所与外部客户/合作方在安全空间协作</td>
+<td>中–高</td>
+<td>跨组织权限与数据边界</td>
+</tr>
+<tr>
+<td>Contract Intelligence</td>
+<td>合同洞察、谈判与审查加速</td>
+<td>高</td>
+<td>条款风险提示仍属辅助,非自动签约</td>
+</tr>
+<tr>
+<td>Command Center</td>
+<td>用量、基准与 Agent 洞察,支撑所内 AI 转型管理</td>
+<td>低–中</td>
+<td>管理侧可见性,便于治理与采购复盘</td>
+</tr>
+</tbody>
+</table>
+<p>一次典型企业侧流程可以概括为:</p>
+<ol>
+<li>把案件/交易相关文档装入 Vault →</li>
+<li>用 Assistant / Knowledge 做研究与初稿 →</li>
+<li>对重复性、多步骤任务启动自定义 Agent(平台已有 2.5 万+ 客户自建 Agent)→</li>
+<li>律师在关键节点审阅、改写、签字确认 →</li>
+<li>必要时在 Shared Spaces 与客户或外部顾问协同。</li>
+</ol>
+<p>官方叙事强调:AI 不只是"协助律师",而是成为<strong>法律工作得以执行的系统</strong>;律师应把时间留给判断、策略与结果把关。对 PM 而言,这意味着产品成功指标要从"回答是否流畅"切到"<strong>工作流是否跑完、是否可审计、律师是否敢在客户交付物上署名</strong>"。</p>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下内容部分来自官方博客披露,部分为基于产品行为的合理推测,已标注区分。</p>
+</blockquote>
+<ul>
+<li><strong>官方已披露</strong>:客户在 Harvey 上部署大量<strong>自定义 Agent</strong>,覆盖并购、尽调、合同起草与文档审查;并出现<strong>长周期(long-horizon)Agent</strong>,可在较长时间跨度内执行多步工作流(官方举例包括基金设立 fund formation)。融资用途明确写为"扩展客户在 Harvey 上运行的 Agent"以及扩大嵌入客户侧的 <strong>legal engineering</strong>(法律工程)团队——说明交付不只是 SaaS 登录,还包括驻场/嵌入式工作流共建。</li>
+<li><strong>官方已披露(产品矩阵)</strong>:Assistant / Vault / Knowledge / Agents / Ecosystem 等模块并存,暗示不是单一对话框,而是"文档库 + 研究 + 自主执行 + 协作空间"的组合架构。</li>
+<li><strong>推测</strong>:领域问答与合同分析大概率采用"通用大模型 + 法律语料/检索增强 + 领域后处理"的组合;Knowledge 与引证场景对幻觉极度敏感,推测会强调来源 grounding(具体是否深度绑定某家法律数据库,以厂商当时公开合作为准,本文不展开未核实细节)。</li>
+<li><strong>推测</strong>:Vault 的批量分析接近"对企业文档库做结构化抽取与问答"的 RAG/索引流水线;Agents 则是在此之上叠加任务规划、工具调用与人工审批闸门——法律场景几乎必然需要<strong>人在回路(human-in-the-loop)</strong>,否则无法满足职业责任与客户合同约束。</li>
+<li><strong>推测</strong>:SOC/权限、数据驻留、审计日志等企业安全能力是采购门槛而非锦上添花;没有这些,AmLaw 与 Fortune 级客户很难规模化上线。</li>
+</ul>
+<h2 id="_4">四、商业模式(效果指标与计费逻辑)</h2>
+<p><strong>与客服"按结果付费"的差异(本文重点)</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>智能客服(Fin/Sierra)</th>
+<th>Harvey(法律垂直)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"结果"是什么</td>
+<td>一次会话解决、流程化转接、线索合格等可计费事件</td>
+<td>工作流完成度、律师可采纳的分析/草稿、Agent 跑完的尽调/审查包</td>
+</tr>
+<tr>
+<td>谁对结果负责</td>
+<td>厂商用规则定义"算不算解决",客户按次付费</td>
+<td>律师/合伙人最终对客户交付负责,AI 是辅助执行层</td>
+</tr>
+<tr>
+<td>计费主轴</td>
+<td>按 outcome 计价(如 Fin 的 $0.99/结果)</td>
+<td><strong>企业合同 + 席位/模块/用量协商</strong>,官方不公布价目表</td>
+</tr>
+<tr>
+<td>验证难度</td>
+<td>相对短周期、可会话级统计</td>
+<td>周期长、专业判断介入多,难以把"一次正确法律结论"直接做成公开计价单位</td>
+</tr>
+</tbody>
+</table>
+<p>换句话说:客服可以把"结果"定义成双方都认的、短闭环商业事件;法律很难把"这份备忘录是否正确到可出庭"定义成自动计费触发器——<strong>结果定义不同,商业模式就会分叉</strong>。</p>
+<p><strong>可核实的规模与收入口径</strong></p>
+<ul>
+<li>覆盖与 Agent 规模:以 Harvey 官方 2026-03 融资博文为准(见上文)。</li>
+<li>年经常性收入(ARR):CNBC 报道称 Harvey 在 <strong>2026 年 1 月达到约 1.9 亿美元 ARR</strong>,较其 2025 年 8 月披露的约 1 亿美元有明显增长。<strong>该数字来自媒体报道对融资时点业务数据的转述,非 Harvey 官方博文正文逐字披露,引用时请标明来源层级。</strong></li>
+</ul>
+<p><strong>席位价(第三方估计,标存疑)</strong></p>
+<p>Harvey <strong>不公开标准价目表</strong>,销售为询价制企业合同。二级媒体与行业评测中常见"$1,000–$1,200+/席位/月""约 20 席起订、年付"等说法,来源多为泄露报价、竞品对比文或分析站转引,口径互不一致。<strong>本文不把具体席位单价当作已核实事实</strong>;对 PM 有用的确定信息是:<strong>高客单价、席位/模块协商、长销售周期、常配实施与 legal engineering</strong>——这更接近 Sierra 式 to big-B,而不是 Fin 式标准化 outcome SKU。</p>
+<p><strong>效果指标体系(客户侧更可能看什么)</strong></p>
+<table>
+<thead>
+<tr>
+<th>指标类型</th>
+<th>含义</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工作流吞吐</td>
+<td>尽调/审查/起草周期缩短</td>
+<td>比"聊天满意度"更贴近律所 P&amp;L</td>
+</tr>
+<tr>
+<td>律师采纳与返工率</td>
+<td>AI 草稿被采用的比例、合伙人改写量</td>
+<td>间接反映质量与信任</td>
+</tr>
+<tr>
+<td>Agent 任务完成率</td>
+<td>多步 Agent 是否跑完、卡在哪一闸门</td>
+<td>接近客服解决率,但粒度是任务而非会话</td>
+</tr>
+<tr>
+<td>合规事件</td>
+<td>数据越权、幻觉引证、越权建议</td>
+<td>一票否决项,发生即采购危机</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>"按结果付费"不是万能模板,先问结果能不能被双方审计且短闭环计价。</strong> 客服可以;法律往往不能把"正确法律意见"自动计价。Harvey 选择席位/平台费 + 深度实施,是因为<strong>结果定义不同</strong>——PM 做垂直定价时,应先画清"结果是事件、是工件,还是最终职业判断"。</li>
+<li><strong>高合规垂直的壁垒在工作流嵌入与责任分配,不在模型参数量。</strong> 2.5 万+ 自定义 Agent、legal engineering、Vault/Shared Spaces,说明客户买的是"能在所内规范地跑起来",通用 Chat 很难替代。</li>
+<li><strong>人在回路是产品功能,不是失败兜底。</strong> 法律 AI 的成功体验是"加速到律师敢签字",而不是"全自动替代合伙人"。设计审批节点、引证展示、权限边界,本身就是核心需求。</li>
+</ol>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="ai-customer-service.html">智能客服:最成熟的 LLM 落地场景拆解</a> —— 对照"按结果付费"与本文不同的结果定义</li>
+<li><a href="../../00-roadmap/ai-pm-job-types.html">AI 产品经理岗位类型盘点</a> —— 垂直 AI PM 与 Harvey 示例</li>
+<li><a href="../../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架:效果、成本、延迟、合规四要素</a></li>
+<li><a href="../../04-interview/basics/hallucination-mitigation.html">如何缓解幻觉?</a></li>
+<li><a href="../../04-interview/product-design/competitive-differentiation.html">成熟市场里 AI 产品如何差异化?</a></li>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+</ul>
+<h2 id="_6">参考资料</h2>
+<ul>
+<li><a href="https://www.harvey.ai/blog/harvey-raises-at-dollar11-billion-valuation-to-scale-agents-across-law-firms-and-enterprises">Harvey Raises at $11 Billion Valuation to Scale Agents Across Law Firms and Enterprises</a> — Harvey 官方博客,2026-03-25,2026-07 访问</li>
+<li><a href="https://www.harvey.ai/blog/harvey-raises-growth-round-at-dollar11-billion-valuation-co-led-by-gic-and-sequoia">Harvey Raises Growth Round at $11 Billion Valuation Co-led by GIC and Sequoia</a> — Harvey 官方博客(同轮融资说明),2026-07 访问</li>
+<li><a href="https://www.cnbc.com/2026/03/25/legal-ai-startup-harvey-raises-200-million-at-11-billion-valuation.html">Legal AI startup Harvey raises $200 million at $11 billion valuation</a> — CNBC,含约 $190M ARR 等业务数据转述,2026-07 访问</li>
+<li><a href="https://www.reuters.com/technology/legal-software-firm-harvey-valued-11-billion-latest-funding-round-2026-03-25/">Legal software firm Harvey valued at $11 billion in latest funding round</a> — Reuters,2026-07 访问</li>
+<li><a href="https://www.harvey.ai/">Harvey 产品与解决方案概览</a> — 官方站点产品矩阵(Assistant / Vault / Agents 等),2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

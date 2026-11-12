@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 产品团队怎么建：角色、分工与选型话语权</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 00-roadmap/ai-pm-team-org-and-roles.md</span></div>
+<main>
+<h1 id="ai">AI 产品团队怎么建：角色、分工与选型话语权</h1>
+<blockquote>
+<p>本文回答三件事：AI 产品团队常见怎么搭？从 0 到 1 最少要哪些角色？模型选型时 PM 和算法各自说了算什么？
+文中组织建议均为<strong>常见模式、非唯一正解</strong>——适合作为讨论起点，需按公司阶段、业务形态与合规约束裁剪，不宜照搬某一家大厂的编制表。</p>
+</blockquote>
+<p>组织与岗位形态和「你要做哪一类 AI PM」强相关，建议先读 <a href="ai-pm-job-types.html">AI PM 岗位类型盘点</a> 与 <a href="ai-pm-capability-model.html">AI 产品经理能力模型</a>；选型四要素与评审流程见 <a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架</a>。</p>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q83 / Q84 / Q9。</p>
+<h2 id="_1">一、为什么组织问题会卡产品</h2>
+<p>AI 产品比传统功能多出几条跨职能链路：效果评估、数据与标注、模型/供应商选型、内容安全与合规。这些事如果没人认领、或认领边界不清，常见后果不是「缺人」，而是：</p>
+<ul>
+<li>评测集没人定标准，上线后只能用业务指标事后吵架</li>
+<li>选型会上各说各话（体验 / 成本 / 技术可行性），会开完仍无决策</li>
+<li>飞轮只停在算法侧指标，产品侧埋点与反馈回路缺位</li>
+</ul>
+<p>搭团队的目标，不是先画一张完美组织图，而是让「谁定义成功、谁提供候选方案、谁拍板取舍、谁对风险升级」在项目早期就写清楚。</p>
+<h2 id="_2">二、按功能分还是按场景/模型分？</h2>
+<p>这是早期团队最常纠结的组织题。下面两种都是<strong>常见模式、非唯一正解</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>怎么切</th>
+<th>常见优点</th>
+<th>常见代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>职能制（按功能分）</td>
+<td>产品 / 设计 / 工程 / 算法 / 数据 / 安全各自成组</td>
+<td>专业深度集中，基础设施与公共能力不易重复建设</td>
+<td>跨组协调成本高；AI 迭代快时，联调与决策容易成为瓶颈</td>
+</tr>
+<tr>
+<td>场景/模型小组制</td>
+<td>按核心场景或核心能力线组「端到端小分队」（PM + 算法 + 工程 + 设计等）</td>
+<td>决策半径短，从方案到上线反馈更快</td>
+<td>易重复造轮子；公共平台、评测基建、安全基线可能各自为政</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_3">怎么选（启发式，非硬规则）</h3>
+<ol>
+<li><strong>探索期、场景少</strong>：小组制往往更顺——用小半径闭环验证「场景是否成立」，而不是先把职能墙砌齐。</li>
+<li><strong>规模化、场景多、要共用底座</strong>：职能制或「平台职能 + 场景小组」混合更常见——公共能力（推理网关、评测平台、内容审核、成本监控）收口，场景组只负责业务闭环。</li>
+<li><strong>混合（也很常见）</strong>：核心增长场景用小组制抢速度；模型托管、评测、安全、数据管道用职能制保深度与复用。</li>
+</ol>
+<p>公开招聘也能侧面看到「按产品线/能力线切分」的痕迹，而不是单一「算法大组 vs 产品大组」二分。例如 Anthropic 招聘页上的 PM 岗位会按 Compute Platform、Safeguards、Model Behaviors、消费端 Web 等方向拆开（截至 2026-08 访问）；Google DeepMind 的 Gemini 相关岗位也会区分 API/模型发布、Post Training、App 等。这不等于你的公司也要照抄编制，只说明：<strong>组织往往跟着产品对象切，而不是先按「有没有 AI」统一挂一个大部门。</strong></p>
+<h2 id="0-1">三、从 0 到 1：最小角色配置</h2>
+<p>「最少要几个人」没有行业标准编制。下表是创业团队与大厂内部创新小队里较常见的<strong>最小闭环</strong>——同样是<strong>常见模式、非唯一正解</strong>。人可以兼职，角色不宜缺席。</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>0→1 阶段主要负责什么</th>
+<th>缺席时常见后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI 产品经理</td>
+<td>场景与成功标准、效果底线、优先级、跨角色对齐、评估闭环的产品侧定义</td>
+<td>团队会「做出东西」，但说不清什么叫做成</td>
+</tr>
+<tr>
+<td>算法 / ML 工程师</td>
+<td>模型与方案可行性、Prompt/RAG/微调等路径、离线评测与效果调优</td>
+<td>只能堆交互壳，核心能力不可控</td>
+</tr>
+<tr>
+<td>全栈 / 应用工程师</td>
+<td>产品可交互形态、服务与 API、上线与观测埋点落地</td>
+<td>方案停在 notebook / demo</td>
+</tr>
+<tr>
+<td>设计师（可兼职）</td>
+<td>不确定性交互、失败态与预期管理、信任相关信息架构</td>
+<td>功能可用但不可信、不可用、不可恢复</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_4">几点边界说明</h3>
+<ul>
+<li><strong>「四个角色」是闭环，不是编制 KPI</strong>。同一人可兼设计+前端，或算法兼部分工程；关键是责任有人认，而不是头衔凑齐。</li>
+<li><strong>数据标注 / 评测运营</strong>：验证期可用外包或业务兼职；一旦进入持续迭代，通常需要固定 owner（仍可不单独成组）。</li>
+<li><strong>安全 / 合规 / 法务</strong>：早期可借公司共享职能；面向 C 端内容生成、未成年人、金融医疗等场景时，应尽早拉进评审，而不是上线前突击。</li>
+<li><strong>人越多不一定越快</strong>：0→1 阶段多余协调层，往往会稀释决策、拉长「改一版 Prompt / 评测集」的反馈周期。</li>
+</ul>
+<p>产品长大后，角色通常会再拆：算法侧出现数据工程、推理优化；工程侧出现前端/后端/SRE；产品侧出现增长、商业化、平台 PM 等——对应关系可对照 <a href="ai-pm-job-types.html">岗位类型盘点</a> 里的应用 / 平台 / 行业分型，而不是用同一套最小班底硬套所有阶段。</p>
+<h2 id="pm">四、选型话语权：听算法还是听 PM？</h2>
+<p>模型选型表面上是技术会，底层通常是<strong>体验、成本、延迟、合规</strong>的取舍会。把它理解成「谁官大谁说了算」，几乎总会陷入僵局。</p>
+<p>更稳的做法是<strong>决策分层</strong>（与 <a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">选型框架</a> 一致）：</p>
+<table>
+<thead>
+<tr>
+<th>决策层</th>
+<th>主要内容</th>
+<th>谁主导</th>
+<th>谁协作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>约束与成功标准</td>
+<td>效果底线、延迟上限、成本上限、合规一票否决项</td>
+<td><strong>PM 主导</strong></td>
+<td>算法补充可行性；法务/安全确认红线</td>
+</tr>
+<tr>
+<td>候选方案与技术边界</td>
+<td>哪些模型/层级组合能在约束内跑通；路由、缓存、自建可行性</td>
+<td><strong>算法 / 工程主导</strong></td>
+<td>PM 提供流量与场景假设</td>
+</tr>
+<tr>
+<td>产品取舍拍板</td>
+<td>在可行候选里选哪条：多付一点换体验，还是降本换可接受效果</td>
+<td><strong>PM 主导（对业务结果负责）</strong></td>
+<td>算法陈述风险与不确定性</td>
+</tr>
+<tr>
+<td>上线后复盘</td>
+<td>业务指标 + 技术指标是否同向；是否触发换模/降级</td>
+<td>共同 owner</td>
+<td>监控阈值事先写进评审纪要</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_5">一场典型选型会怎么开（可直接当议程）</h3>
+<ol>
+<li><strong>PM 先摊约束</strong>（写在一页纸上）：任务定义、「好」的标准、不可突破的延迟/成本/合规。</li>
+<li><strong>算法给候选池</strong>（通常 3–5 个组合），附：离线评测摘要、延迟与单价粗估、已知失效模式——不在会上现场「发明」一个最强模型。</li>
+<li><strong>一起算规模化账单</strong>（方法见成本测算正课），避免只比「单次调用贵不贵」。</li>
+<li><strong>PM 在约束内拍板</strong>；算法保留「技术否决权」仅针对<strong>不可行或不可控风险</strong>（例如根本达不到底线、或合规不可用），而不是对体验偏好行使否决。</li>
+<li><strong>写下监控与复评节奏</strong>（例如按季度复评模型和价格），避免「选定即永久」。</li>
+</ol>
+<p>一句话原则（与选型框架第九节同向）：<strong>PM 对「要什么效果、能接受什么代价」负责；算法对「能不能做到、边界在哪」负责。</strong> PM 不该替算法定超参与推理优化细节；算法也不该在业务约束未声明时单独决定「上最强模型」。</p>
+<p>若你关心能力侧「怎样才有资格参与这类讨论」，对照能力模型里的「技术认知」与「商业判断」及格线 / 优秀线即可。</p>
+<h2 id="_6">五、和已有文档怎么配合用</h2>
+<table>
+<thead>
+<tr>
+<th>你的问题</th>
+<th>先读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>我适合哪类 AI PM、团队里常见岗位差异</td>
+<td><a href="ai-pm-job-types.html">AI PM 岗位类型盘点</a></td>
+</tr>
+<tr>
+<td>我缺哪块能力才会在协作里失语</td>
+<td><a href="ai-pm-capability-model.html">AI 产品经理能力模型</a></td>
+</tr>
+<tr>
+<td>选型会该用哪套评审与分工表</td>
+<td><a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架</a></td>
+</tr>
+<tr>
+<td>转型后如何补评估与成本意识</td>
+<td><a href="transition-guide.html">传统 PM 转型 AI PM 指南</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">相关阅读</h2>
+<ul>
+<li><a href="ai-pm-job-types.html">AI PM 岗位类型盘点</a></li>
+<li><a href="ai-pm-capability-model.html">AI 产品经理能力模型</a></li>
+<li><a href="transition-guide.html">传统 PM 转型 AI PM 指南</a></li>
+<li><a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架：效果、成本、延迟、合规</a></li>
+<li><a href="../02-pm-skills/cost-and-tech/llm-cost-101.html">AI 产品成本测算入门</a></li>
+<li><a href="../02-pm-skills/model-evaluation/index.html">模型与产品效果评估</a></li>
+</ul>
+<h2 id="_8">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/careers/jobs">Jobs · Anthropic</a> — Anthropic 官方招聘页，可见按平台 / 安全 / 模型行为 / 消费产品等方向拆分的 PM 岗位结构，2026-08 访问</li>
+<li><a href="https://deepmind.google/careers/">Careers at Google DeepMind</a> — Google DeepMind 官方招聘页，Gemini 相关 PM 岗位按 API、Post Training、App 等方向区分，2026-08 访问</li>
+<li><a href="https://claude.com/blog/product-management-on-the-ai-exponential">Product management on the AI exponential</a> — Anthropic / Claude 官方博客（Cat Wu），讨论 AI 产品团队中角色边界模糊与跨职能协作节奏，2026-08 访问</li>
+<li>选题启发：磊叔《关于 AI 产品经理的 100 个问题》Q83（组织切分）、Q84（最小角色）、Q9（选型话语权）</li>
+</ul>
+</main>
+</body>
+</html>

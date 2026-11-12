@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 产品指标体系：从业务结果到成本与风险</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/ai-product-operations/ai-product-metrics.md</span></div>
+<main>
+<h1 id="ai">AI 产品指标体系：从业务结果到成本与风险</h1>
+<p>AI 产品不能用一个“准确率”概括好坏。用户是否愿意使用、任务是否真的完成、模型是否遵守边界、系统是否足够快、每项任务是否负担得起，分别属于不同层级。AI PM 的工作是把这些指标组织成一棵能解释因果、发现问题、支持决策的指标树。</p>
+<blockquote>
+<p><strong>事实</strong>：官方评测指南强调要围绕具体任务定义成功标准，并持续比较模型、提示和系统变更；业务结果、模型效果和系统运行指标不是同一个概念，不能互相替代。见文末资料。</p>
+<p><strong>建议</strong>：指标树先写“用户价值和业务结果”，再向下拆 AI 效果、系统表现、成本与风险；上线后看分层趋势和分群差异，不要只盯一个总平均。</p>
+</blockquote>
+<h2 id="_1">一、先画指标树：一个北极星，四个支柱</h2>
+<p>可以用“有效完成的用户任务”作为常见的价值主线，再根据产品类型调整：</p>
+<pre><code class="language-text">用户/业务价值：用户以可接受的成本完成了有价值的任务
+├─ 业务指标：采用、任务完成、后续业务结果、留存/转化、人效
+├─ AI 效果指标：正确性、相关性、引用/依据、工具成功、拒答质量、安全
+├─ 系统指标：延迟、错误、可用性、吞吐、轨迹完整性、服务稳定性
+└─ 成本指标：模型调用、工具/基础设施、存储、人工复核、单位任务成本
+</code></pre>
+<p>这棵树不是“必须使用某一个北极星指标”，而是要求每个产品都能回答：<strong>业务结果由哪些 AI 体验推动，AI 体验又受哪些系统与成本约束？</strong></p>
+<h2 id="_2">二、四层指标怎么定义</h2>
+<h3 id="1">1. 业务指标：有没有创造结果</h3>
+<p>业务指标必须对应真实用户行为或业务结果，而不是把模型分数直接当成价值。常见方向包括：</p>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>指标例子</th>
+<th>PM 要补充的定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>采用</td>
+<td>功能使用率、有效启动率、重复使用率</td>
+<td>谁是有资格使用的用户，什么叫一次有效使用</td>
+</tr>
+<tr>
+<td>任务</td>
+<td>任务完成率、用户采纳率、人工接管率</td>
+<td>完成由什么业务证据确认，部分完成如何计入</td>
+</tr>
+<tr>
+<td>体验</td>
+<td>满意度、点踩率、追问率、取消率</td>
+<td>反馈是否按任务类型和用户分群拆开</td>
+</tr>
+<tr>
+<td>效率</td>
+<td>单任务处理时长、人工处理量、等待时间</td>
+<td>节省的是用户时间还是把工作转移给了人工</td>
+</tr>
+<tr>
+<td>经营</td>
+<td>转化、留存、复购、收入或成本回收</td>
+<td>需要实验或对照才能支持因果判断</td>
+</tr>
+</tbody>
+</table>
+<p>不要把“用户使用了 AI”直接解释成“用户得到了价值”。例如用户频繁追问可能说明功能有吸引力，也可能说明第一次回答没有解决问题；需要结合任务成功、追问原因和人工结果判断。</p>
+<h3 id="2-ai-agent">2. AI 效果指标：模型和 Agent 做得对不对</h3>
+<p>按任务选择指标，不要为了统一而强行使用“准确率”：</p>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>效果指标方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分类/抽取</td>
+<td>正确率、召回率、F1、字段完整率、格式合规率</td>
+</tr>
+<tr>
+<td>生成/总结</td>
+<td>事实正确性、相关性、完整性、风格/rubric 得分、引用可验证性</td>
+</tr>
+<tr>
+<td>RAG</td>
+<td>检索覆盖、检索排序、依据一致性、答案正确性、无依据时的拒答质量</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>任务成功率、必要步骤完成率、工具业务成功率、有效重试率、人工接管率</td>
+</tr>
+<tr>
+<td>安全</td>
+<td>越权拦截率、敏感信息泄露率、风险动作确认率、误拒率</td>
+</tr>
+</tbody>
+</table>
+<p>对主观任务，指标必须绑定 rubric 和抽检校准；对高风险任务，安全指标通常是上线闸门，而不是可以用业务转化抵消的普通分数。评测集、标注和 Badcase 处理方法见<a href="../model-evaluation/index.html">模型与产品效果评估</a>。</p>
+<h3 id="3">3. 系统指标：能不能稳定提供服务</h3>
+<p>系统指标关注“AI 结果被用户看到和使用的条件”：</p>
+<ul>
+<li><strong>延迟</strong>：请求排队、首 token、完整响应、工具往返、任务总时长；</li>
+<li><strong>稳定性</strong>：可用性、超时率、错误率、限流率、重试率、任务中断率；</li>
+<li><strong>容量</strong>：并发、吞吐、队列长度、上下文长度和资源利用率；</li>
+<li><strong>可观测性</strong>：轨迹完整率、工具结果可关联率、日志脱敏成功率；</li>
+<li><strong>体验状态</strong>：加载、流式、等待确认、转人工和恢复任务的成功率。</li>
+</ul>
+<p>平均延迟很容易掩盖长尾，建议按业务场景看分位数，并把“用户等待确认”与“系统无响应”分开。对于 Agent，还要按任务步骤和工具拆解，否则无法判断慢在模型、网络、第三方服务还是人工环节。</p>
+<h3 id="4">4. 成本指标：每一项价值花多少钱</h3>
+<p>成本应从“每次调用”上升到“每个有效任务”：</p>
+<pre><code class="language-text">单次调用成本 = 输入 token 成本 + 输出 token 成本 + 相关工具/基础设施成本
+单项任务成本 = 该任务全部调用与工具成本 + 人工确认/接管成本
+单位价值成本 = 总成本 ÷ 有效完成任务数
+</code></pre>
+<p>还应监控：成本/活跃用户、成本/租户、不同模型层级成本、重试带来的额外成本、缓存命中率、长任务成本分布和预算消耗速度。单价、调用量和 Token 估算方法见<a href="../cost-and-tech/llm-cost-101.html">AI 产品成本测算入门</a>；缓存、批处理和模型路由见<a href="../cost-and-tech/cost-optimization.html">降本手段盘点</a>。</p>
+<h2 id="_3">三、从指标树到诊断链路</h2>
+<p>上线评审时，可以把指标写成一条假设链：</p>
+<pre><code class="language-text">功能触达
+  → 用户愿意启动
+  → Agent 正确完成任务
+  → 用户采纳或减少人工接管
+  → 业务结果改善
+
+其中每一步都受到：效果、延迟、稳定性、安全和单位成本约束
+</code></pre>
+<p>每个节点要配一个<strong>主指标</strong>和一组<strong>诊断指标</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>节点</th>
+<th>主指标</th>
+<th>诊断问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>启动</td>
+<td>有效启动率</td>
+<td>用户是否理解能力边界？入口是否打扰？</td>
+</tr>
+<tr>
+<td>完成</td>
+<td>任务成功率</td>
+<td>哪个步骤、工具或数据源最常失败？</td>
+</tr>
+<tr>
+<td>采纳</td>
+<td>用户采纳率/人工接管率</td>
+<td>结果不可信、不可编辑，还是业务流程不允许直接使用？</td>
+</tr>
+<tr>
+<td>业务结果</td>
+<td>场景对应的业务指标</td>
+<td>是否有对照组？结果变化是否来自其他活动？</td>
+</tr>
+<tr>
+<td>可持续</td>
+<td>单项任务成本、长尾延迟</td>
+<td>规模扩大后是否仍能承受？</td>
+</tr>
+</tbody>
+</table>
+<p>这样可以避免“转化没涨，所以模型要继续调”的单一路径。问题可能出在入口、结果展示、权限、流程、价格、等待时间或评测集与线上分布不一致。</p>
+<h2 id="_4">四、指标冲突：先定硬约束，再做优化</h2>
+<p>AI 产品的指标经常互相拉扯：</p>
+<table>
+<thead>
+<tr>
+<th>冲突</th>
+<th>常见现象</th>
+<th>建议的决策顺序</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>效果 vs 延迟</td>
+<td>更强模型更慢，长回答更完整</td>
+<td>先确定任务最低质量，再按场景分层模型/输出和异步化</td>
+</tr>
+<tr>
+<td>效果 vs 成本</td>
+<td>增加上下文、重试或大模型提升分数</td>
+<td>看单位有效任务成本，评估提升是否转化为真实结果</td>
+</tr>
+<tr>
+<td>自动化 vs 安全</td>
+<td>放宽权限和自动执行能提高完成率</td>
+<td>安全、合规和不可逆风险是硬闸门，不能用转化抵消</td>
+</tr>
+<tr>
+<td>拒答 vs 采用</td>
+<td>更保守的策略减少风险，也可能降低覆盖</td>
+<td>区分合理拒答和误拒，设计转人工/补充信息路径</td>
+</tr>
+<tr>
+<td>平均值 vs 长尾</td>
+<td>平均效果好，少数高风险失败</td>
+<td>分层看高风险、长尾和关键租户，设置一票否决项</td>
+</tr>
+<tr>
+<td>使用量 vs 效率</td>
+<td>追问更多，活跃和调用量上升</td>
+<td>结合一次解决率、完成时长和成本，避免奖励无效对话</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议的指标优先级</strong>：安全与合规硬约束 → 任务成功和用户价值 → 体验/系统底线 → 单位成本和规模效率 → 长期增长。具体顺序应由业务风险决定，医疗、金融、权限和外发场景不能套用低风险内容产品的优先级。</p>
+<h2 id="_5">五、上线前后怎么监控</h2>
+<h3 id="_6">上线前：为每个指标写“基线—上线线—目标线”</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>要写清的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基线</td>
+<td>现有规则、人工流程或旧版本的结果和观测周期</td>
+</tr>
+<tr>
+<td>上线线</td>
+<td>不达标不能上线的质量、安全、稳定性、成本和延迟条件</td>
+</tr>
+<tr>
+<td>目标线</td>
+<td>上线后持续优化的方向，不把长期目标伪装成上线必达</td>
+</tr>
+<tr>
+<td>分群</td>
+<td>用户、租户、任务类型、模型层级、工具和数据新鲜度</td>
+</tr>
+<tr>
+<td>责任人</td>
+<td>每个指标谁看、谁解释、谁有权降级或回滚</td>
+</tr>
+<tr>
+<td>行动</td>
+<td>触发告警后是限流、关闭工具、切模型、转人工还是暂停发布</td>
+</tr>
+</tbody>
+</table>
+<p>阈值不应凭空复制别的产品。可以先用历史基线和风险等级确定，再通过灰度验证；高风险安全事件、权限越界和敏感数据泄露通常直接作为阻断条件。</p>
+<h3 id="_7">上线后：看趋势、分布和组合指标</h3>
+<p>上线监控至少分三层：</p>
+<ol>
+<li><strong>实时层</strong>：错误、超时、队列、工具失败、越权拦截、费用异常和高风险告警；</li>
+<li><strong>日/周运营层</strong>：任务成功、转人工、用户反馈、Badcase 类型、成本/任务和延迟分布；</li>
+<li><strong>版本复盘层</strong>：模型/Prompt/工具变更前后，离线评测、灰度分群和业务结果的对照。</li>
+</ol>
+<p>监控要支持从指标跳到样本和轨迹：先发现“某任务成功率下降”，再定位“哪个用户分群、哪个工具、哪个模型版本、哪类 Badcase”造成变化。Agent 轨迹追踪方法见<a href="agent-evaluation-and-observability.html">Agent 评测与可观测性</a>。</p>
+<h2 id="ai-pm">六、AI PM 指标评审清单</h2>
+<ul>
+<li>[ ] 指标树从业务结果出发，且每层指标有明确公式、分母和数据来源。</li>
+<li>[ ] 业务、AI 效果、系统、成本和安全指标没有混为一个总分。</li>
+<li>[ ] 任务成功有可验证证据，主观任务有 rubric，安全指标有独立闸门。</li>
+<li>[ ] 指标能按用户、任务、模型、工具、版本和数据新鲜度分层。</li>
+<li>[ ] 已区分基线、上线线和长期目标线，避免用空泛的“效果好”验收。</li>
+<li>[ ] 成本按有效完成任务计算，并监控重试、长任务和人工接管的额外成本。</li>
+<li>[ ] 指标冲突有预先约定的决策顺序，出现风险时知道谁能降级或回滚。</li>
+<li>[ ] 上线后看板可以从趋势跳到样本、轨迹和 Badcase，形成闭环。</li>
+<li>[ ] 飞轮相关埋点有字段定义、责任人、回填验收；显式反馈与隐式行为信号都进看板。</li>
+<li>[ ] 编辑 / 复制 / 重生成等行为可按幅度、类型与事后是否采纳拆开，而不是只记“有/无编辑”。</li>
+</ul>
+<hr>
+<blockquote>
+<p><strong>补充说明（本节起）</strong>：下面三节回答指标树落地时最常见的三类运营断点——埋点采不到、反馈点不到、隐式编辑信号读不懂。选题结构启发自磊叔《关于 AI 产品经理的 100 个问题》Q28 / Q49 / Q63；正文为原创方法论，不复述原书答案。飞轮链路与反模式见<a href="../data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮</a>；留存与「死亡路径」诊断见<a href="ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标</a>（与本文指标树配套阅读）。</p>
+</blockquote>
+<h2 id="_8">七、飞轮为何卡在埋点：不是“没埋”，是“埋了也转不起来”</h2>
+<p>数据飞轮的叙事通常是：行为 → 数据 → 优化 → 更好体验 → 更多行为。实践里大量团队停在第一步——不是完全没有日志，而是<strong>采到的东西无法支撑下一环</strong>。指标树上这表现为：业务层只有 DAU / 调用量，效果层缺少可归因的线上信号，回流看板永远空着。</p>
+<h3 id="1_1">1. 卡点通常在哪</h3>
+<table>
+<thead>
+<tr>
+<th>卡点</th>
+<th>典型症状</th>
+<th>PM 可验收的修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>所有权悬空</td>
+<td>上线时埋点缺失或半截；出事三方互推</td>
+<td>PRD / 上线清单写明：字段 owner、事件 schema、验收人；无验收不放量</td>
+</tr>
+<tr>
+<td>只记结果不记过程</td>
+<td>只有“生成成功”，没有复制、编辑、重试、转人工、放弃位置</td>
+<td>按任务漏斗补齐过程事件；Agent 还要能关联步骤与工具结果（见<a href="agent-evaluation-and-observability.html">可观测性</a>）</td>
+</tr>
+<tr>
+<td>字段不可分析</td>
+<td>有事件名，无任务类型、模型版本、Prompt 版本、租户/场景标签</td>
+<td>每个关键事件强制带可 join 的维度；版本变更必须可回溯</td>
+</tr>
+<tr>
+<td>信号定义模糊</td>
+<td>“点踩”“失败”“完成”各团队口径不同</td>
+<td>写一页事件字典：触发条件、分母、正负含义、是否进入标注池</td>
+</tr>
+<tr>
+<td>采了不回流</td>
+<td>湖里有日志，标注与评测从不消费</td>
+<td>定义“何种事件进入筛选队列”和节奏；避免<a href="../data-annotation/cold-start-and-data-flywheel.html#飞轮反模式">只收集不标注</a></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>建议</strong>：把“埋点完成”定义成<strong>可 join、可分层、可进入筛选队列</strong>，而不是“事件表里多了几行”。否则飞轮在采集层看起来很忙，优化层其实是停的——这与飞轮反模式中的「只收集不标注」「KPI 化采集量」同源。</p>
+</blockquote>
+<h3 id="2">2. 最小可用埋点包（按信号价值排序）</h3>
+<p>不必一次埋全站百科，优先保证下面几类能进同一任务 ID：</p>
+<ol>
+<li><strong>任务结果</strong>：启动、完成证据、取消、超时、转人工；</li>
+<li><strong>输出处置</strong>：复制、插入、发送、导出、采纳 / 拒绝；</li>
+<li><strong>修正行为</strong>：编辑（见第九节）、重生成、改写追问、重新提问；</li>
+<li><strong>显式反馈</strong>：点赞 / 点踩及原因标签（见第八节）；</li>
+<li><strong>系统上下文</strong>：模型 / Prompt / 工具版本、延迟分位、错误码、权限拦截。</li>
+</ol>
+<p>冷启动阶段更要把“边用边攒”写进第一天方案，而不是等“数据够了再补埋点”——见<a href="../data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮</a>的回流闭环。</p>
+<h2 id="_9">八、用户为何不点反馈：低覆盖不是用户“满意了”</h2>
+<p>点赞 / 点踩是指标树里最显眼、也最容易被高估的体验信号。产品上有按钮，并不等于飞轮有燃料。</p>
+<h3 id="1_2">1. 不点，通常不是因为“答得对”</h3>
+<p>更常见的原因是<strong>成本高、收益低、时机差</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>原因</th>
+<th>用户侧感受</th>
+<th>产品含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>认知成本</td>
+<td>要停下来判断“错在哪”、还要选标签或写字</td>
+<td>摩擦高于随手关掉页面</td>
+</tr>
+<tr>
+<td>收益不可见</td>
+<td>点了也不会立刻变好，下次还是老样子</td>
+<td>缺少“反馈被用上了”的感知闭环</td>
+</tr>
+<tr>
+<td>情绪与场景</td>
+<td>着急完成任务时没空评价；只有极满意或极愤怒才点</td>
+<td>显式样本有自选择偏差</td>
+</tr>
+<tr>
+<td>信任与隐私</td>
+<td>担心对话被拿去训练、或反馈没人看</td>
+<td>未说明用途与控制项时更不愿意点</td>
+</tr>
+<tr>
+<td>交互抢注意力</td>
+<td>弹窗 / 强提醒打断主任务</td>
+<td>反馈率可能被刷高，但信号被污染（参见飞轮反模式里的 KPI 化）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>事实</strong>：面向用户的 LLM 产品里，显式点赞点踩覆盖率往往很低；有研究将其描述为约 1%–3% 量级，并因此强调隐式行为信号的价值。该数字是<strong>文献报道区间，不是你产品的基线</strong>——应用自己的分母（有效输出次数）实测。见文末 arXiv 条目。</p>
+<p><strong>建议</strong>：把显式反馈当<strong>高置信、低覆盖</strong>的金标准抽样源；把隐式行为当<strong>高覆盖、需校准</strong>的主监测网。交互控件怎么做更低摩擦，见<a href="../prd-and-design/fallback-and-feedback-design.html">兜底与反馈设计</a>；本文只定指标口径与诊断用法。</p>
+</blockquote>
+<h3 id="2_1">2. 指标上怎么用，才不被反馈率骗到</h3>
+<ul>
+<li><strong>分母</strong>：用“有资格评价的输出次数”，不要用 DAU。</li>
+<li><strong>分层</strong>：按任务类型、新老用户、对错严重度拆开；总反馈率上升可能只是弹窗变多。</li>
+<li><strong>护栏</strong>：监控“诱导点击 / 为关弹窗而点”的污染；不要把日均反馈条数当北极星（反模式见<a href="../data-annotation/cold-start-and-data-flywheel.html#飞轮反模式">飞轮反模式 · KPI 化</a>）。</li>
+<li><strong>配对</strong>：显式点踩与随后的复制、编辑、转人工对照；互相矛盾的会话优先进人工复盘。</li>
+<li><strong>闭环可见</strong>：同类问题修好后，可用轻量提示让贡献过反馈的用户感知改进——这是留存与信任问题，展开见<a href="ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标</a>。</li>
+</ul>
+<h2 id="_10">九、从编辑行为挖改进方向：幅度 × 类型 × 事后是否采纳</h2>
+<p>用户没有点踩，却改了输出再继续用——这往往是飞轮里<strong>信息密度最高</strong>的隐式信号：说明“不够好，但还有救”。指标设计要能回答三件事，而不是只记一个布尔值 <code>edited=true</code>。</p>
+<h3 id="1_3">1. 三维读法</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>看什么</th>
+<th>常见改进指向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>幅度</strong></td>
+<td>编辑距离、改写比例、保留片段占比</td>
+<td>大改 → 结构/事实/任务理解问题优先；小改 → 格式、语气、长度、合规措辞</td>
+</tr>
+<tr>
+<td><strong>类型</strong></td>
+<td>事实纠错、补全遗漏、删幻觉、调结构、改指令遵循、改风格</td>
+<td>映射到 Prompt、检索、工具、模板或模型能力；不同类型进不同标注标签</td>
+</tr>
+<tr>
+<td><strong>事后采纳</strong></td>
+<td>改完是否发送/保存/下游成功；还是改完仍放弃或转人工</td>
+<td>「改完能用」可作弱正样本或偏好对；「改完仍失败」是高优 bad case</td>
+</tr>
+</tbody>
+</table>
+<p>再叠加上下文：同一任务是否多次重生成、是否先复制后粘贴到别处再改、Agent 是否在确认前被用户改写参数——避免把“用户个性化润色”一律当成模型失败。</p>
+<h3 id="2_2">2. 落到指标与回流</h3>
+<p>建议在运营看板增加（名称可按产品调整）：</p>
+<ul>
+<li><strong>编辑率</strong>与<strong>大编辑率</strong>（自行定义幅度阈值，按场景校准，勿照搬他产品）；</li>
+<li><strong>编辑后采纳率</strong> / <strong>编辑后仍失败率</strong>；</li>
+<li><strong>按编辑类型的 Top 失败标签分布</strong>（需轻量分类：规则、人工、或抽检校准的自动标签）；</li>
+<li>与显式点踩、转人工、任务成功的<strong>交叉表</strong>。</li>
+</ul>
+<p>回流时优先抽样：「大编辑 + 事后仍失败」「小编辑但高频重复的同一类改动」「编辑与点踩同时出现」。这些样本适合进评测集与 Prompt/规则迭代；直接拿原始编辑对做训练前，仍要过筛选、脱敏与标注规范（见<a href="../data-annotation/cold-start-and-data-flywheel.html">冷启动回流闭环</a>与<a href="../data-annotation/data-compliance.html">数据合规</a>）。</p>
+<blockquote>
+<p><strong>建议</strong>：编辑信号解决的是“模型/产品该往哪改”；是否留存、是否走完任务，要放回<a href="ai-feature-retention-and-success-metrics.html">留存与成功指标</a>的路径框架，避免把“很多人在改”误读成“功能很受欢迎”。</p>
+</blockquote>
+<h2 id="_11">相关阅读</h2>
+<ul>
+<li><a href="ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标：死亡路径与 DAU 误判</a></li>
+<li><a href="../data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮：没有数据时产品怎么起步</a>（含飞轮反模式）</li>
+<li><a href="../../04-interview/basics/data-flywheel.html">什么是数据飞轮?对 AI 产品为什么重要?</a></li>
+<li><a href="../prd-and-design/fallback-and-feedback-design.html">兜底、反馈与预期管理</a></li>
+<li><a href="agent-product-design.html">Agent 产品生产化：从会执行到可负责地完成任务</a></li>
+<li><a href="agent-evaluation-and-observability.html">Agent 评测与可观测性：从最终答案追到完整轨迹</a></li>
+<li><a href="guardrails-and-agent-security.html">AI 安全与 Agent 权限：把“能做什么”变成可治理的边界</a></li>
+<li><a href="../prd-and-design/ai-prd-guide.html">AI 产品 PRD 怎么写：与传统 PRD 的核心差异</a></li>
+<li><a href="../model-evaluation/index.html">模型与产品效果评估</a></li>
+<li><a href="../model-evaluation/build-your-eval-set.html">从零建设评测集：用例从哪来、标准答案怎么定</a></li>
+<li><a href="../model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试：概率性输出下如何做实验</a></li>
+<li><a href="../cost-and-tech/index.html">成本测算与技术协作</a></li>
+<li><a href="../../04-interview/basics/model-evaluation-system.html">如何构建大模型效果评测体系?</a></li>
+<li><a href="../../04-interview/basics/token-cost-and-experience.html">什么是 token?它如何影响产品的成本和体验?</a></li>
+</ul>
+<h2 id="_12">参考资料</h2>
+<ul>
+<li><a href="https://developers.openai.com/api/docs/guides/evaluation-best-practices">Evaluation best practices</a> —— OpenAI 官方文档，2026-07 访问</li>
+<li><a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">Define success criteria and build evaluations</a> —— Anthropic 官方文档，2026-07 访问</li>
+<li><a href="https://cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-overview">Generative AI evaluation overview</a> —— Google Cloud 官方文档，2026-07 访问</li>
+<li><a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a> —— Anthropic 官方工程文章，2026-07 访问</li>
+<li><a href="https://arxiv.org/html/2606.20482">Your Mouse and Eyes Secretly Leak Your Preference: LLM Alignment using Implicit Feedback from Users</a> —— 讨论显式反馈覆盖有限、隐式行为可用于对齐；文中引用约 1%–3% 显式反馈量级（Wang et al.），作区间参考而非产品基线，2026-08-06 访问</li>
+<li>第七–九节选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q28、Q49、Q63；正文为原创重写，未摘录原书答案</li>
+</ul>
+</main>
+</body>
+</html>

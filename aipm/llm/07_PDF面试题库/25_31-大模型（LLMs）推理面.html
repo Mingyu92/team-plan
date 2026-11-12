@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>31-大模型（LLMs）推理面</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 07_PDF面试题库/25_31-大模型（LLMs）推理面.md</span></div>
+<main>
+<h1 id="31-llms">31-大模型（LLMs）推理面</h1>
+<blockquote>
+<p>来源 PDF：<code>200页AI大模型面试高频必刷题（附详解）/31-大模型（LLMs）推理面.pdf</code><br>
+主题：训练 / 微调<br>
+页数：6<br>
+字符数：6801<br>
+索引片段数：17</p>
+</blockquote>
+<h2 id="_1">摘要</h2>
+<p>大模型（LLMs）推理面 来自： AiGC面试宝典 宁静致远 2023年10月22日 22:43 1. 为什么大模型推理时显存涨的那么多还一直占着？ 2. 大模型在gpu和cpu上推理速度如何？ 7B量级下： 3. 推理速度上，int8和fp16比起来怎么样？ 根据实践经验，int8模式一般推理会明显变慢（huggingface的实现） 4. 大模型有推理能力吗？ 大模型有推理能力。有下面2个方面的体现： ChatGPT拥有in-context correction的能力，即如果说错了，给出矫正，ChatGPT能“</p>
+<h2 id="_2">代表性原文片段</h2>
+<h3 id="1">片段 1</h3>
+<p>大模型（LLMs）推理面
+来自： AiGC面试宝典
+宁静致远 2023年10月22日 22:43
+1. 为什么大模型推理时显存涨的那么多还一直占着？
+2. 大模型在gpu和cpu上推理速度如何？
+7B量级下：
+3. 推理速度上，int8和fp16比起来怎么样？
+根据实践经验，int8模式一般推理会明显变慢（huggingface的实现）
+4. 大模型有推理能力吗？
+大模型有推理能力。有下面2个方面的体现：
+ChatGPT拥有in-context correction的能力，即如果说错了，给出矫正，ChatGPT能“听懂”错在哪儿了，并向正确
+的方向修正。in-context correction要比in-context learning难了太多，描述越详细清楚，ChatGPT回答得越好。
+要知道，越详细的描述，在预训练的文本里越难匹配到的。
+• 大模型（LLMs）推理面
+• 1. 为什么大模型推理时显存涨的那么多还一直占着？
+• 2. 大模型在gpu和cpu上推理速度如何？
+• 3. 推理速度上，int8和fp16比起来怎么样？
+• 4. 大模型有推理能力吗？
+• 5. 大模型生成时的参数怎么设置？</p>
+<h3 id="2">片段 2</h3>
+<p>？
+• 2. 大模型在gpu和cpu上推理速度如何？
+• 3. 推理速度上，int8和fp16比起来怎么样？
+• 4. 大模型有推理能力吗？
+• 5. 大模型生成时的参数怎么设置？
+• 6. 有哪些省内存的大语言模型训练/微调/推理方法？
+• 6.1 如何 估算模型所需的RAM？
+• 6.2 Fp16-mixed precision
+• 6.3 Int8-bitsandbytes
+• 6.4 LoRA
+• 6.5 Gradient Checkpointing
+• 6.6 Torch FSDP+CPU offload
+• 7. 如何让大模型输出合规化
+• 8. 应用模式变更
+• 9. 模型输出的分布比较稀疏，怎么处理？
+1. 首先，序列太长了，有很多Q/K/V；
+2. 其次，因为是逐个预测next token，每次要缓存K/V加速解码。
+• cpu推理速度约10token/s；
+• 单卡A6000和8核AMD的推理速度通常为 10:1。
+扫码加
+查看更多</p>
+<p>-- 1 of 6 --</p>
+<p>在询问ChatGPT互联网上并不存在内容的时候，能给出较好答案（如用ChatGPT学建模）；ChatGPT能通过信</p>
+<h3 id="3">片段 3</h3>
+<p>常为 10:1。
+扫码加
+查看更多</p>
+<p>-- 1 of 6 --</p>
+<p>在询问ChatGPT互联网上并不存在内容的时候，能给出较好答案（如用ChatGPT学建模）；ChatGPT能通过信
+息猜你心中的想法；你可以制定一个全新的游戏规则让ChatGPT和你玩，ChatGPT可以理解。
+5. 大模型生成时的参数怎么设置？
+生成模型预测调参建议：
+建议去调整下 top_p, num_beams, repetition_renalty, temperature, do_sample=True;
+数据生成有重复，调高repetition_renalty；
+生成任务表达单一的，样本也不多的，可适当调低 temperature，生成的样子跟训练集的比较像；如果要复现训
+练集的效果，temperature=0.01即可。
+以上是经验参数，具体调参根据任务而定，不是固定的。
+6. 有哪些省内存的大语言模型训练/微调/推理方法？
+举例来说，即使 RTX 3090 有着 24GB 的 RAM，是除了 A100 之外显存最大的显卡。但使用一块 RTX 3090 依
+然无法 fp32 精度训练最小号的 LLaMA-6B。
+• 参数解释：</p>
+<h3 id="4">片段 4</h3>
+<p>3090 有着 24GB 的 RAM，是除了 A100 之外显存最大的显卡。但使用一块 RTX 3090 依
+然无法 fp32 精度训练最小号的 LLaMA-6B。
+• 参数解释：
+top_p=0.9,</p>
+<h1 id="moderately-increase-the-probability-threshold-of-nucleus-sampling-to-increase-the">Moderately increase the probability threshold of nucleus sampling to increase the</h1>
+<p>quantity of candidate tokens and increase generation diversity.
+temperature=1.0,</p>
+<h1 id="the-previous-low-temperature-parameter-could-lead-to-a-severe-polarization-in-the">The previous low temperature parameter could lead to a severe polarization in the</h1>
+<p>probability distribution of generated words, which degenerates the generation
+strategy into greedy decoding.
+do_sample=True,</p>
+<h3 id="5">片段 5</h3>
+<p>ted words, which degenerates the generation
+strategy into greedy decoding.
+do_sample=True,</p>
+<h1 id="do_sample-parameter-is-set-to-false-by-default-after-setting-to-true-the">do_sample parameter is set to False by default. After setting to True, the</h1>
+<p>generation methods turn into beam-search multinomial sampling decoding strategy.
+no_repeat_ngram_size=6,</p>
+<h1 id="configure-the-probability-of-the-next-repeating-n-gram-to-0-to-ensure-that-there">Configure the probability of the next repeating n-gram to 0, to ensure that there</h1>
+<p>are no n-grams appearing twice. This setting is an empirical preliminary
+exploration.
+repetition_penalty=1.8,</p>
+<h3 id="6">片段 6</h3>
+<p>aring twice. This setting is an empirical preliminary
+exploration.
+repetition_penalty=1.8,</p>
+<h1 id="for-words-that-have-appeared-before-in-the-subsequent-prediction-process-we">For words that have appeared before, in the subsequent prediction process, we</h1>
+<p>reduce the probability of their reoccurrence by introducing the repetition_penalty
+parameter. This setting is an empirical preliminary exploration.
+• 动机：大模型（LLMs）现在是 NLP 领域的最主流方法之一，但是大模型的训练/微调/推理需要的内存也越来
+越多。
+• Memory-Efficient 的 LLMs 的训练/微调/推理方法</p>
+<p>-- 2 of 6 --</p>
+<p>6.1 如何 估算模型所需的RAM？
+首先，我们需要了解如何根据参数量估计模型大致所需的 RAM，这在实践中有很重要的参考意义。我们需要通</p>
+<h3 id="7">片段 7</h3>
+<p>/推理方法</p>
+<p>-- 2 of 6 --</p>
+<p>6.1 如何 估算模型所需的RAM？
+首先，我们需要了解如何根据参数量估计模型大致所需的 RAM，这在实践中有很重要的参考意义。我们需要通
+过估算设置 batch_size，设置模型精度，选择微调方法和参数分布方法等。
+接下来，我们用LLaMA-6B 模型为例估算其大致需要的内存。
+首先考虑精度对所需内存的影响：
+其次，考虑模型需要的 RAM 大致分三个部分：
+对于常用的 AdamW 来说，需要储存两倍的模型参数（用来储存一阶和二阶momentum）。
+除此之外，CUDA kernel 也会占据一些 RAM，大概 1.3GB 左右，查看方式如下。
+综上，int8 精度的 LLaMA-6B 模型部分大致需要 6GB+6GB+12GB+1.3GB = 25.3GB 左右。
+再根据LLaMA的架构（hidden_size = 4096, intermediate_size =11008, num_hidden_layers = 32,
+context_length = 2048）计算中间变量内存。
+每个 instance 需要：</p>
+<h3 id="8">片段 8</h3>
+<p>diate_size =11008, num_hidden_layers = 32,
+context_length = 2048）计算中间变量内存。
+每个 instance 需要：
+所以一张 A100（80GB RAM）大概可以在 int8 精度；batch_size = 50 的设定下进行全参数训练。
+查看消费级显卡的内存和算力：
+2023 GPU Benchmark and Graphics Card Comparison Chart：https://www.gpucheck.com/gpu-benchmark-
+graphics-card-comparison-chart
+6.2 Fp16-mixed precision
+• fp16
+• int8
+• LoRA
+• Gradient checkpointing
+• Torch FSDP
+• CPU offloading
+• fp32 精度，一个参数需要 32 bits, 4 bytes.
+• fp16 精度，一个参数需要 16 bits, 2 bytes.
+• int8 精度，一个参数需要 8 bits, 1 byte.
+• 模型参数
+• 梯度
+• 优化器参数</p>
+<h3 id="9">片段 9</h3>
+<p>s.
+• fp16 精度，一个参数需要 16 bits, 2 bytes.
+• int8 精度，一个参数需要 8 bits, 1 byte.
+• 模型参数
+• 梯度
+• 优化器参数
+• 模型参数：等于参数量<em>每个参数所需内存。
+• 对于 fp32，LLaMA-6B 需要 6B</em>4 bytes = 24GB内存
+• 对于 int8，LLaMA-6B 需要 6B<em>1 byte = 6GB
+• 梯度：同上，等于参数量</em>每个梯度参数所需内存。
+• 优化器参数：不同的优化器所储存的参数量不同。
+• fp32 的 LLaMA-6B，AdamW 需要 6B<em>8 bytes = 48 GB
+• int8 的 LLaMA-6B，AdamW 需要 6B</em>2 bytes = 12 GB</p>
+<blockquote>
+<p>torch.ones((1，1)).to("cuda")
+print_gpu_utilization()</p>
+<blockquote>
+<blockquote>
+<p>GPU memory occupied: 1343 MB
+(4096 +11008)<em> 2048 </em>32 * 1byte = 990MB</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>-- 3 of 6 --</p>
+<h3 id="10">片段 10</h3>
+<p>()</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>GPU memory occupied: 1343 MB
+(4096 +11008)<em> 2048 </em>32 * 1byte = 990MB</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>-- 3 of 6 --</p>
+<p>混合精度训练的大致思路是在 forward pass 和 gradient computation 的时候使用 fp16 来加速，但是在更新参数
+时使用 fp32。
+用 torch 实现：
+CUDA Automatic Mixed Precision examples：https://pytorch.org/docs/stable/notes/amp_examples.html
+torch fp16 推理：直接使用 model.half() 将模型转换为fp16.
+使用 Huggingface Transformers：在 TrainingArguments 里声明
+fp16=Truehttps://huggingface.co/docs/transformers/perf_train_gpu_one#fp16-training
+6.3 Int8-bitsandbytes</p>
+<h3 id="11">片段 11</h3>
+<p>://huggingface.co/docs/transformers/perf_train_gpu_one#fp16-training
+6.3 Int8-bitsandbytes
+Int8 是个很极端的数据类型，它最多只能表示 - 128～127 的数字，并且完全没有精度。
+为了在训练和 inference 中使用这个数据类型，bitsandbytes 使用了两个方法最大程度地降低了其带来的误差：
+Huggingface 在这篇文章中用动图解释了 quantization 的实现：https://huggingface.co/blog/hf-bitsandbytes-
+integration
+论文：
+LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale：https://arxiv.org/abs/2208.07339
+借助 Huggingface PEFT，使用 int8 训练 opt-6.5B 的完整流程：</p>
+<h3 id="12">片段 12</h3>
+<p>s at Scale：https://arxiv.org/abs/2208.07339
+借助 Huggingface PEFT，使用 int8 训练 opt-6.5B 的完整流程：
+https://github.com/huggingface/peft/blob/main/examples/int8_training/Finetune_opt_bnb_peft.ipynb
+6.4 LoRA
+Low-Rank Adaptation 是微调 LLMs 最常用的省内存方法之一。
+model.eval()
+model.half()
+1. vector-wise quantization
+2. mixed precision decompasition</p>
+<p>-- 4 of 6 --</p>
+<p>LoRA 发现再微调 LLMs 时，更新矩阵（update matrix）往往特别 sparse，也就是说 update matrix 是低秩矩
+阵。LoRA 的作者根据这一特点将 update matrix reparametrize 为两个低秩矩阵的积积 。
+其中，，A 和 B 的秩为 r，且 。
+如此一来，A+B 的参数量将大大小于 .</p>
+<h2 id="_3">使用建议</h2>
+<ul>
+<li>这些内容来自授权公开 PDF 的文本抽取结果，网页端会基于同一份静态索引做关键词检索。</li>
+<li>面试复习时建议先用网页 PDF 原文检索定位题目，再回到主 notes 学系统化答案。</li>
+<li>如果片段出现排版噪声，以原 PDF 语义为准，并优先整理成自己的回答模板。</li>
+</ul>
+</main>
+</body>
+</html>

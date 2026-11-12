@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>多模态 AI PM 能力清单：交互、评估、数据、成本与合规</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 00-roadmap/multimodal-pm-skills.md</span></div>
+<main>
+<h1 id="ai-pm">多模态 AI PM 能力清单：交互、评估、数据、成本与合规</h1>
+<blockquote>
+<p>写给谁：已对照 <a href="ai-pm-capability-model.html">AI 产品经理能力模型</a> 有基础自查，准备进入<strong>图像 / 音频 / 视频</strong>相关产品线，或 JD 明确写「多模态」的同学。
+目标：给出一份<strong>中立、可执行</strong>的补课清单——不是「会用多模态模型」的口号，而是你能写进 PRD、评测表、成本表与合规评审的具体能力。
+边界：本文是能力模型在多模态场景的<strong>特化清单</strong>，不替代五维总模型；岗位形态仍先看 <a href="ai-pm-job-types.html">岗位类型盘点</a>。</p>
+</blockquote>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q96（仅选题结构，正文为原创）。</p>
+<h2 id="pm">一、先对齐：什么叫「多模态 PM」</h2>
+<p>「多模态」在招聘文案里经常被用得很宽。产品侧建议用<strong>输入/输出是否跨模态</strong>来落地，而不是用模型名字自我安慰：</p>
+<table>
+<thead>
+<tr>
+<th>形态</th>
+<th>典型例子</th>
+<th>对 PM 的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单模态对话 + 偶尔附图</td>
+<td>客服里偶尔识图</td>
+<td>多模态是增强能力，评估与成本按「渗透率」单独算</td>
+</tr>
+<tr>
+<td>理解型多模态</td>
+<td>截图问答、文档/表格理解、视频内容理解</td>
+<td>重点在<strong>组合意图、跨模态一致性、延迟与失败态</strong></td>
+</tr>
+<tr>
+<td>生成型多模态</td>
+<td>文生图/视频、配音、口播成片</td>
+<td>重点在<strong>质量维度拆分、版权与标识、产能与排队</strong></td>
+</tr>
+<tr>
+<td>实时多模态</td>
+<td>语音通话、看画面边问边答</td>
+<td>重点在<strong>时序对齐、打断/接管、流式体验与成本爆炸</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>事实</strong>：主流云厂商的多模态计费，通常把图像/音视频折算进 token 或按时长/张计费，单价与纯文本同量级请求往往不在一个数量级（见文末 OpenAI / Anthropic 官方文档，截至 2026-08-06）。<br>
+<strong>建议</strong>：入职或立项第一周，先画出「主路径模态组合」与「单位任务成本量级」，再谈功能清单。</p>
+<p>公开面经里，视频向多模态岗常会深挖 Prompt、音画同步、模型调研与 POC（见 <a href="../04-interview/experiences/bilibili-multimodal-ai-pm-202607.html">B 站多模态视频 AI 产品面经</a>）。那是<strong>面试题形态</strong>；下文把它翻译成可自查的能力清单，不复述题面答案。</p>
+<h2 id="_1">二、总览：五块增量能力（对照五维模型）</h2>
+<p>多模态 PM 不是另起一套能力模型，而是在五维上叠加强制项：</p>
+<table>
+<thead>
+<tr>
+<th>增量能力</th>
+<th>主要落在能力模型哪一维</th>
+<th>一句话可执行标准</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨模态交互设计</td>
+<td>产品基本功</td>
+<td>能写清「多输入如何合成一个意图、失败时用户怎么恢复」</td>
+</tr>
+<tr>
+<td>多模态评估体系</td>
+<td>数据与评估</td>
+<td>能把「好」拆成单模态质量 + 跨模态一致性，并有可回归用例</td>
+</tr>
+<tr>
+<td>多模态数据闭环</td>
+<td>数据与评估 + 技术认知</td>
+<td>能设计采集 / 标注 / 回流字段，而不是只埋「点了赞」</td>
+</tr>
+<tr>
+<td>多模态成本与定价</td>
+<td>商业判断</td>
+<td>能按分辨率、时长、采样率估单位成本，并设降级开关</td>
+</tr>
+<tr>
+<td>多模态合规与风险</td>
+<td>伦理与合规</td>
+<td>能按模态列出标识、版权、造假、生物特征等评审项</td>
+</tr>
+</tbody>
+</table>
+<p>下面每块给：<strong>要会什么 → 最小可交付物 → 自查勾选</strong>。</p>
+<h2 id="_2">三、跨模态交互设计</h2>
+<h3 id="_3">要会什么</h3>
+<p>单模态产品常见路径是「输入框 / 上传一张图」。多模态产品里，用户可能同时丢：一句指令 + 参考图 + 一段口播 + 时间轴片段。PM 需要定义的是<strong>组合意图如何被理解、歧义如何澄清、部分模态失败时如何降级</strong>。</p>
+<h3 id="_4">最小可交付物</h3>
+<ol>
+<li><strong>意图合成表</strong>：列出主场景的输入组合（如「文本+图」「纯视频」「语音+画面」），每行写：期望行为、禁止行为、需用户确认的点。</li>
+<li><strong>失败态与接管</strong>：某一模态不可用（无麦、图损坏、视频超长）时的 UI 文案与人工/模板兜底；可参考 <a href="../02-pm-skills/prd-and-design/fallback-and-feedback-design.html">兜底与反馈设计</a>、<a href="../02-pm-skills/prd-and-design/agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准</a>。</li>
+<li><strong>时序与对齐约束</strong>（音视频向）：可接受的音画偏移阈值、超时策略、是否允许「拆开处理再合成」的 pipeline（产品侧先定阈值，再交给工程）。</li>
+</ol>
+<h3 id="_5">自查勾选</h3>
+<ul>
+<li>[ ] PRD 里写清了「多模态输入」而不只是「支持上传图片」</li>
+<li>[ ] 至少 3 个歧义 case（图文矛盾、口播与字幕冲突、用户只传图不传指令）有明确产品策略</li>
+<li>[ ] 有可演示的失败态，而不是只演示 Happy Path</li>
+</ul>
+<h2 id="_6">四、多模态评估体系</h2>
+<h3 id="_7">要会什么</h3>
+<p>纯文本评估可以围绕「对不对 / 好不好读」。多模态输出常要同时看：文本、视觉、音频，以及<strong>彼此是否一致</strong>（例如口播内容是否匹配画面、字幕是否跟嘴型大致对齐）。「好」必须拆开定义，否则算法和业务会对着两个指标吵架。</p>
+<h3 id="_8">最小可交付物</h3>
+<ol>
+<li><strong>维度拆解表</strong>（按产品形态裁剪）：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>测什么</th>
+<th>常见误用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单模态质量</td>
+<td>OCR/识别准不准、画面清晰度、音色自然度等</td>
+<td>用一个「综合分」掩盖短板</td>
+</tr>
+<tr>
+<td>跨模态一致性</td>
+<td>图文是否矛盾、音画是否同步、指令是否被执行</td>
+<td>只评生成好看，不评是否听从用户约束</td>
+</tr>
+<tr>
+<td>任务成功</td>
+<td>用户目标是否达成（剪辑完成、问题答对、成片可发）</td>
+<td>用模型 benchmark 替代业务成功</td>
+</tr>
+<tr>
+<td>体验与系统</td>
+<td>首帧/首包延迟、失败率、人工接管率</td>
+<td>离线分涨了就默认体验涨了</td>
+</tr>
+</tbody>
+</table>
+<ol start="2">
+<li><strong>评测集种子</strong>：每种主输入组合 ≥ N 条（N 由风险定，高风险场景宁可少而精），含标准答案或评分细则；方法论见 <a href="../02-pm-skills/model-evaluation/build-your-eval-set.html">如何搭建评测集</a>。</li>
+<li><strong>上线门槛</strong>：写清「哪几个维度不过就不能全量」——与 <a href="ai-pm-capability-model.html">能力模型 · 数据与评估</a> 的优秀线对齐。</li>
+</ol>
+<h3 id="_9">自查勾选</h3>
+<ul>
+<li>[ ] 「好」的定义可以让算法、设计、运营在一页纸上达成一致</li>
+<li>[ ] Badcase 能归因到「识别错 / 一致性差 / 延迟炸 / 用户意图歧义」中的至少一类</li>
+<li>[ ] 离线指标与在线业务指标有对照表，而不是默认等价</li>
+</ul>
+<h2 id="_10">五、多模态数据闭环</h2>
+<h3 id="_11">要会什么</h3>
+<p>文本产品常靠日志与点踩回流。多模态样本更重：存储贵、标注贵、隐私更敏感。PM 要设计的是<strong>采什么、谁标、标什么、回流到哪一层（Prompt / 规则 / 微调 / 供应商反馈）</strong>，而不是口号式「做数据飞轮」。冷启动手段见 <a href="../02-pm-skills/data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮</a>。</p>
+<h3 id="_12">最小可交付物</h3>
+<ol>
+<li><strong>事件字典</strong>：记录模态类型、分辨率/时长、用户编辑动作（裁剪、重生成、改 Prompt）、显式反馈、最终是否采用。</li>
+<li><strong>标注规范最小版</strong>：一致性怎么判、边界 case 谁裁决；避免「好看就标正」。</li>
+<li><strong>采样策略</strong>：全量存原始媒体通常不现实——定义抽样比例、高风险全量、低风险降采样。</li>
+</ol>
+<h3 id="_13">自查勾选</h3>
+<ul>
+<li>[ ] 上线清单里有「多模态回流字段」，不是上线后补埋点</li>
+<li>[ ] 标注成本进了季度预算，而不是默认「算法自己找数据」</li>
+<li>[ ] 涉及人脸、声纹、未成年人等内容时，采集前已过合规/个保评审入口</li>
+</ul>
+<h2 id="_14">六、多模态成本结构与商业取舍</h2>
+<h3 id="_15">要会什么</h3>
+<p><strong>事实（厂商公开文档，访问 2026-08-06）</strong>：</p>
+<ul>
+<li>Anthropic：图像按视觉 token 计费，大致随分辨率缩放；官方 Vision 文档给出按尺寸估算 token 的方法，再用模型输入单价折算成本。见 <a href="https://platform.claude.com/docs/en/build-with-claude/vision">Claude Vision</a>。</li>
+<li>OpenAI：图像输入计入上下文 token，并提供 <code>detail</code>（如 low/high）等影响清晰度与 token 消耗的参数；以官方 Images / Vision 指南与定价页为准（价格会变，估算前需重核）。</li>
+</ul>
+<p>视频与实时语音通常还会叠加时长、采样率、是否做抽帧/转写等工程选择——单价公式因供应商而异，PM 不必背死数字，但必须会问：「单位任务默认分辨率/时长是多少？降一级清晰度省多少、损多少效果？」</p>
+<h3 id="_16">最小可交付物</h3>
+<ol>
+<li><strong>单位任务成本卡</strong>：主路径一次成功调用的输入构成（文本 + 图/音/视）与量级估算；模板可复用 <a href="../02-pm-skills/cost-and-tech/llm-cost-101.html">成本测算入门</a>、<a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型框架</a>。</li>
+<li><strong>降级开关</strong>：低清预览 → 高清精修；先抽关键帧再全片；商业 API 够用 vs 需微调/自部署的分流条件（面经中的调研框架可作面试准备参考，落地时仍以你司 POC 指标为准）。</li>
+<li><strong>配额与定价含义</strong>：免费额度、积分、队列——生成类产品尤其要把「产能」当成产品能力，而不是纯运维问题；商业化模式见 <a href="../02-pm-skills/cost-and-tech/ai-pricing-and-monetization.html">AI 定价与商业化</a>。</li>
+</ol>
+<h3 id="_17">自查勾选</h3>
+<ul>
+<li>[ ] 能向老板讲清「日活 × 渗透率 × 单次成本」的粗账，而不是只报模型官网单价</li>
+<li>[ ] PRD 写了默认清晰度/时长上限与超限策略</li>
+<li>[ ] 成本超标时有产品侧可执行的降级，而不只是「让算法再优化一下」</li>
+</ul>
+<h2 id="_18">七、多模态合规与风险</h2>
+<h3 id="_19">要会什么</h3>
+<p>生成式服务若向境内公众提供文本/图片/音频/视频等内容，需对照《生成式人工智能服务管理暂行办法》等要求；图片/视频等深度合成内容还有标识与相关规定。产品清单总表见 <a href="../02-pm-skills/data-annotation/genai-compliance-checklist-cn.html">生成式 AI 合规设计清单</a>（<strong>本文不构成法律意见</strong>）。</p>
+<p>多模态场景下，建议按模态拆风险，避免只做「文本敏感词」：</p>
+<table>
+<thead>
+<tr>
+<th>模态</th>
+<th>常见产品风险（示例）</th>
+<th>PM 最少动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图像</td>
+<td>侵权素材、人脸滥用、虚假新闻配图</td>
+<td>输入来源与输出标识、举报与下架路径</td>
+</tr>
+<tr>
+<td>音频</td>
+<td>仿声诈骗、未授权音色</td>
+<td>音色授权链路、高风险场景人工复核</td>
+</tr>
+<tr>
+<td>视频</td>
+<td>深度伪造、音画合成误导</td>
+<td>显式/隐式标识、传播侧提示、重大题材升级</td>
+</tr>
+<tr>
+<td>跨模态组合</td>
+<td>「图文一致但整体虚假」</td>
+<td>一致性检测之外的内容安全与人工抽检</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_20">自查勾选</h3>
+<ul>
+<li>[ ] 立项材料里写清适用哪些公开规范（并经法务确认）</li>
+<li>[ ] 生成内容有标识与投诉入口，而不是上线后补</li>
+<li>[ ] 高风险动作（模仿真人、涉及未成年人等）有默认拒绝或强制确认策略</li>
+</ul>
+<h2 id="30">八、怎么用这份清单补课（30 天可执行版）</h2>
+<p>按 <a href="ai-pm-capability-model.html">能力模型</a> 的打分习惯，多模态方向建议「一次只补两块」：</p>
+<table>
+<thead>
+<tr>
+<th>周次</th>
+<th>动作</th>
+<th>完成定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 1 周</td>
+<td>画主路径模态组合 + 单位成本卡</td>
+<td>能口头讲清成本量级与降级开关</td>
+</tr>
+<tr>
+<td>第 2 周</td>
+<td>写一页「好」的拆解 + 20 条种子评测</td>
+<td>算法/设计能按同一表格打分</td>
+</tr>
+<tr>
+<td>第 3 周</td>
+<td>补失败态与意图歧义 case</td>
+<td>演示里至少有 2 个非 Happy Path</td>
+</tr>
+<tr>
+<td>第 4 周</td>
+<td>过一遍合规清单（图像/音/视频相关项）</td>
+<td>法务或合规接口人给出书面/纪要反馈</td>
+</tr>
+</tbody>
+</table>
+<p>若你投的是视频向应用岗，可把面经里的高频深挖点（Prompt、音画同步、模型 POC）当作<strong>面试演练提纲</strong>，用本文第三至六节的交付物当答法骨架——先有交付物，再讲故事。</p>
+<h2 id="_21">相关阅读</h2>
+<ul>
+<li><a href="ai-pm-capability-model.html">AI 产品经理能力模型</a></li>
+<li><a href="ai-pm-job-types.html">AI PM 岗位类型盘点</a></li>
+<li><a href="../02-pm-skills/model-evaluation/build-your-eval-set.html">如何搭建你的评测集</a></li>
+<li><a href="../02-pm-skills/cost-and-tech/llm-cost-101.html">AI 产品成本测算入门</a></li>
+<li><a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架</a></li>
+<li><a href="../02-pm-skills/data-annotation/genai-compliance-checklist-cn.html">生成式 AI 合规设计清单</a></li>
+<li><a href="../02-pm-skills/data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮</a></li>
+<li><a href="../02-pm-skills/prd-and-design/agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准</a></li>
+<li><a href="../04-interview/basics/multimodal-pm-capabilities.html">多模态 AI 产品的 PM，需要补哪些能力？</a>（面试口述骨架）</li>
+<li><a href="../04-interview/experiences/bilibili-multimodal-ai-pm-202607.html">B 站多模态视频 AI 产品面经</a>（面试题形态参考，非能力标准）</li>
+</ul>
+<h2 id="_22">参考资料</h2>
+<ul>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/vision">Vision - Claude API Docs</a> —— Anthropic 官方：图像视觉 token 与尺寸估算，2026-08-06 访问</li>
+<li><a href="https://platform.openai.com/docs/guides/images-vision">Images and vision - OpenAI API</a> —— OpenAI 官方：图像输入与 Vision 使用说明，2026-08-06 访问</li>
+<li><a href="https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm">生成式人工智能服务管理暂行办法</a> —— 国家互联网信息办公室，2026-08-06 访问</li>
+<li><a href="https://www.cac.gov.cn/2025-03/14/c_1743654684782215.htm">人工智能生成合成内容标识办法</a> —— 国家互联网信息办公室，2026-08-06 访问</li>
+<li>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q96；正文为 AIPM Wiki 原创撰写，未摘录原文表述</li>
+</ul>
+</main>
+</body>
+</html>

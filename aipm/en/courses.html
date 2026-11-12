@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Product Manager: Free Courses</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">en / courses.md</span></div>
+<main>
+<h1 id="ai-product-manager-free-courses">AI Product Manager: Free Courses</h1>
+<p>The best free courses for AI PM prep, grouped by topic. Start with this repository's own courses, which are written for practitioners and PMs, then use the external ones to fill gaps. Every external link was checked and returned HTTP 200. Free means free to access or free to audit.</p>
+<p>For the full free-course catalog by topic, see the repo's <a href="../../../courses.html">courses.md</a>.</p>
+<hr>
+<h2 id="start-here-this-repositorys-own-courses">Start here: this repository's own courses</h2>
+<ul>
+<li><strong><a href="../../../free_courses/ai_evals_for_everyone/index.html">AI Evals for Everyone</a></strong>: builds the exact skill the metrics round tests. Offline eval sets, LLM-as-judge, faithfulness, online monitoring, and how to define a quality bar. Do this one first; the evaluation round is the round that most predicts the hire.</li>
+<li><strong><a href="../../../free_courses/agentic_ai_crash_course/index.html">Agentic AI Crash Course</a></strong>: builds an intuition for what agents are, when to use one, and how they fail. Directly feeds the technical-literacy and agent-design questions.</li>
+<li><strong><a href="../../../courses.html">Applied GenAI and other courses (repo catalog)</a></strong>: the full grouped list of free courses maintained in this repo.</li>
+</ul>
+<h2 id="ai-foundations-for-pms-what-models-can-and-cannot-do">AI foundations for PMs (what models can and cannot do)</h2>
+<ul>
+<li><strong><a href="https://github.com/microsoft/generative-ai-for-beginners">Generative AI for Beginners (Microsoft)</a></strong>: 21 lessons covering LLMs, prompting, RAG, embeddings, and building apps. The best broad, free, hands-on grounding for a non-engineer PM. Builds end-to-end vocabulary.</li>
+<li><strong><a href="https://github.com/microsoft/AI-For-Beginners">AI for Beginners (Microsoft)</a></strong>: a 12-week curriculum on AI broadly (classic ML through neural nets). Use it to shore up the classic-ML-versus-LLM judgment.</li>
+<li><strong><a href="https://developers.google.com/machine-learning/crash-course">Machine Learning Crash Course (Google)</a></strong>: fast conceptual grounding in ML fundamentals, useful for the model-selection and metrics questions. Foundational anchor.</li>
+<li><strong><a href="https://www.deeplearning.ai/short-courses/">DeepLearning.AI short courses</a></strong>: 1-to-2 hour free courses on RAG, agents, evaluation, prompting, and function calling. Pick the ones matching your weak areas from <a href="questions.html">questions.md</a>. Builds targeted depth fast.</li>
+</ul>
+<h2 id="agents-the-fastest-growing-area-interviewers-probe">Agents (the fastest-growing area interviewers probe)</h2>
+<ul>
+<li><strong><a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners (Microsoft)</a></strong>: 11 lessons on agent design patterns, tool use, planning, and multi-agent systems. Builds the agent-product judgment the Sierra and OpenAI style loops test.</li>
+<li><strong><a href="https://huggingface.co/learn/agents-course">Hugging Face Agents Course</a></strong>: a hands-on course on building and evaluating agents, including tools, memory, and agent evaluation. Builds practical agent literacy.</li>
+<li><strong><a href="https://github.com/anthropics/courses">Anthropic Courses</a></strong>: free courses on prompt engineering, tool use, and building with models, straight from a frontier lab. Builds prompting and tool-use fluency.</li>
+<li>Pair with the repo's <a href="../../../paths/agent-builder.html">Agent Builder path</a> and <a href="../../../paths/harness-engineering.html">Harness Engineering path</a>.</li>
+</ul>
+<h2 id="evaluation-and-production">Evaluation and production</h2>
+<ul>
+<li><strong><a href="../../../free_courses/ai_evals_for_everyone/index.html">AI Evals for Everyone (this repo)</a></strong>: as above, the anchor course for the metrics round.</li>
+<li><strong><a href="https://www.deeplearning.ai/courses/">DeepLearning.AI catalog</a></strong>: browse for the current free short courses on evaluating and monitoring LLM apps and building RAG. Builds offline-and-online eval skills.</li>
+<li>Pair with the repo's <a href="../../../topics/production.html">Production topic</a> and <a href="../../../topics/evaluation.html">Evaluation topic</a>.</li>
+</ul>
+<h2 id="the-pm-craft-product-sense-metrics-execution">The PM craft (product sense, metrics, execution)</h2>
+<ul>
+<li><strong><a href="https://developers.google.com/machine-learning/managing-ml-projects">Managing Machine Learning Projects (Google)</a></strong>: Google's free guidance on scoping and running ML projects as a PM. Builds the ML-project-management and expectation-setting muscle.</li>
+<li><strong><a href="https://www.tryexponent.com/blog/product-sense-interview">Product Sense interview prep (Exponent)</a></strong>: the classic product-sense frame the AI product-sense round is built on top of. Free blog guide.</li>
+<li><strong><a href="https://pair.withgoogle.com/guidebook/">People + AI Guidebook (Google PAIR)</a></strong>: not a course but a structured, chapter-by-chapter guide to designing AI UX. Work through it like one; it directly powers the product-sense round.</li>
+</ul>
+<h2 id="how-to-sequence-the-courses">How to sequence the courses</h2>
+<ol>
+<li>If short on time, do only <strong>AI Evals for Everyone</strong> and <strong>Generative AI for Beginners</strong>, then read the <a href="resources.html">Anthropic agent guides in resources.md</a>.</li>
+<li>With more time, add <strong>AI Agents for Beginners</strong> or the <strong>Hugging Face Agents Course</strong>, plus 2 or 3 targeted <strong>DeepLearning.AI short courses</strong> on your weakest themes.</li>
+<li>Throughout, keep the <a href="https://pair.withgoogle.com/guidebook/">People + AI Guidebook</a> open for the design-UX questions.</li>
+</ol>
+<p>See the day-by-day sequencing in <a href="prep-plan.html">prep-plan.md</a>.</p>
+</main>
+</body>
+</html>

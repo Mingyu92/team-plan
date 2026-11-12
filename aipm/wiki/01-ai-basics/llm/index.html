@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大语言模型(LLM)</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/llm/README.md</span></div>
+<main>
+<h1 id="llm">大语言模型(LLM)</h1>
+<p>AI PM 的核心必修课:大模型的原理、能力边界、应用架构。</p>
+<h2 id="_1">目录</h2>
+<p><strong>原理篇</strong></p>
+<ul>
+<li><a href="how-llm-works.html">大模型是怎么"想"的:预测下一个 token 的直观解释</a></li>
+<li><a href="transformer-architecture.html">Transformer 架构:大模型的地基(PM 版)</a></li>
+<li><a href="context-window.html">上下文窗口:限制、成本与产品设计影响</a></li>
+<li><a href="hallucination.html">幻觉问题:成因与产品层面的缓解手段</a></li>
+</ul>
+<p><strong>应用篇</strong></p>
+<ul>
+<li><a href="what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="rag-evolution-naive-to-agentic.html">RAG 没死:死的是 Naive 固定流水线</a></li>
+<li><a href="long-context-vs-rag.html">长上下文 vs RAG:什么时候塞全库,什么时候检索</a></li>
+<li><a href="agentic-retrieval.html">Agentic Retrieval:检索如何变成 Agent 的工具</a></li>
+<li><a href="agentic-search-search-as-code.html">Agent-search 与 Search as Code:搜索栈如何可编程</a></li>
+<li><a href="production-rag-checklist.html">工业级 RAG 清单:混合检索、重排、评测与知识治理</a> —— 另含矛盾文档、隐性知识、「相关但没用」归因</li>
+<li><a href="nl2sql-for-ai-pm.html">NL2SQL:自然语言查库,为什么学术高分上不了生产</a></li>
+<li><a href="prompt-rag-finetuning.html">Prompt / RAG / 微调:三种让模型更懂你的方式怎么选</a></li>
+<li><a href="agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="mcp.html">MCP:给 Agent 接上外部世界的「USB-C」</a></li>
+<li><a href="agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li><a href="model-landscape.html">主流大模型盘点与选型思路(2026 年中)</a></li>
+</ul>
+<h2 id="_2">阅读建议</h2>
+<p>零基础按"原理篇 → 应用篇"顺序读。若正在做知识库/检索选型,建议路径:<code>what-is-rag</code> → <code>rag-evolution-naive-to-agentic</code> → <code>long-context-vs-rag</code> → <code>agentic-retrieval</code> →(<code>nl2sql-for-ai-pm</code> 或 <code>production-rag-checklist</code>)。模型盘点一文时效性强,选型前务必核对官方最新数据。</p>
+</main>
+</body>
+</html>

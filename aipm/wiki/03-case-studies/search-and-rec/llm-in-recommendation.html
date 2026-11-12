@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>推荐系统中大模型的实际落地位置</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/search-and-rec/llm-in-recommendation.md</span></div>
+<main>
+<h1 id="_1">推荐系统中大模型的实际落地位置</h1>
+<p><strong>分类</strong>:搜推
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_2">一、产品背景</h2>
+<p>「大模型要不要接管推荐」这类问题,容易把讨论拉成二选一:要么整条漏斗换生成模型,要么 LLM 只是聊天气泡。产业公开材料给出的答案更务实——<strong>LLM / 生成式模型很少整条替换经典推荐漏斗</strong>;更常见的是嵌进漏斗的特定层,或在电商场景做成<strong>导购 / 解释 / Agent 动作层</strong>。</p>
+<p>本篇不是单品传记,而是<strong>落地位置地图</strong>。默认框架应写成:</p>
+<blockquote>
+<p><strong>经典检索 / 推荐中台 + LLM 决策 / 解释 / Agent 层</strong>;另有一条工业线是 <strong>generative retrieval / 整页生成</strong> 进入召回或首页构建。</p>
+</blockquote>
+<p>两条叙事线不要混成同一产品形态:</p>
+<table>
+<thead>
+<tr>
+<th>叙事线</th>
+<th>典型场景</th>
+<th>公开证据更硬的代表</th>
+<th>北极星大致是什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>线 A:对话导购 + 解释 + Agent</strong></td>
+<td>电商站内问购、对比、盯价、代购</td>
+<td>Amazon Alexa for Shopping(Rufus 演进)</td>
+<td>转化、增量销售</td>
+</tr>
+<tr>
+<td><strong>线 B:生成式召回 / 整页生成</strong></td>
+<td>内容 / 社交 feed、首页行构造</td>
+<td>Pinterest PinRec;Netflix GenPage;Spotify Semantic IDs(研究偏重)</td>
+<td>engagement、延迟、跨任务表征</td>
+</tr>
+</tbody>
+</table>
+<p>开放 AI 搜索(如 Perplexity)与传统搜索的答案层防御(如 Google AI Mode)回答的是「先给答案还是先给蓝链」;电商助手回答的是「能不能促成下单」。推荐链路里的 LLM 落点,同时横跨这两种逻辑——有时是答案式解释,有时是召回候选生成,有时是可执行 Agent。写 PRD 时先分清自己在哪一层,比先选「用哪个大模型」更重要。</p>
+<h2 id="llm">二、核心功能拆解:按落地层看 LLM 做什么</h2>
+<h3 id="21">2.1 落地层总览</h3>
+<table>
+<thead>
+<tr>
+<th>落地层</th>
+<th>典型做什么</th>
+<th>公开证据强度</th>
+<th>代表与备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>对话导购 / 意图理解</strong></td>
+<td>自然语言问购、多轮澄清、搜索框「问题 vs 关键词」分流</td>
+<td>高</td>
+<td>Amazon:主搜索框问答、专用聊天</td>
+</tr>
+<tr>
+<td><strong>解释 / 决策辅助</strong></td>
+<td>品类/商详 AI Overview、评论摘要、多 SKU 对比、「Help Me Decide」</td>
+<td>高</td>
+<td>Amazon 搜推表面;不是核心排序替换</td>
+</tr>
+<tr>
+<td><strong>Agent 动作闭环</strong></td>
+<td>盯价、加购、Scheduled Actions、Buy for Me</td>
+<td>高</td>
+<td>Amazon agentic shopping</td>
+</tr>
+<tr>
+<td><strong>候选生成(generative retrieval)</strong></td>
+<td>用 Transformer 生成 item Semantic ID / 候选序列,补强或替换部分 ANN/双塔召回</td>
+<td>中高</td>
+<td>Pinterest PinRec;Spotify Semantic IDs 研究</td>
+</tr>
+<tr>
+<td><strong>排序侧增强</strong></td>
+<td>LLM 文本特征蒸馏、统一 retrieval+ranking、序列 foundation model</td>
+<td>中</td>
+<td>工程论文可见;「LLM 当实时精排」少见同级公开声明</td>
+</tr>
+<tr>
+<td><strong>冷启动 / 内容理解</strong></td>
+<td>文本/多模态 embedding → Semantic ID,提升未见 item 泛化</td>
+<td>中</td>
+<td>研究为主;生产常作召回输入而非对话 LLM</td>
+</tr>
+<tr>
+<td><strong>经典召回 / 精排主体</strong></td>
+<td>协同过滤、双塔、LTR、业务规则</td>
+<td>仍占主流(公开叙事 + 推测)</td>
+<td>Amazon 明示传统搜索/推荐仍在演进;LLM 是叠加体验</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-a-amazon">2.2 线 A:电商导购层(以 Amazon 为硬证据)</h3>
+<p>站内专文 <a href="amazon-alexa-shopping.html">Amazon Alexa for Shopping</a> 已拆过产品面与漏斗;此处只抽<strong>与推荐分工相关</strong>的结论,数字一律引用该文已有公司/IR 口径:</p>
+<ul>
+<li><strong>2024</strong> 推出 Rufus → <strong>2025</strong> 能力与财报口径挂钩 → <strong>2026-05-13</strong> 更名为 Alexa for Shopping(Rufus 能力 + Alexa+ 上下文)。</li>
+<li>公司/IR 口径:2025 年使用过的顾客 <strong>3 亿+</strong>;增量年化销售近 <strong>120 亿美元</strong>(incremental annualized sales,勿改写成全年 GMV);购物旅程中使用助手的顾客,完成购买可能性高 <strong>60%+</strong>。</li>
+<li>LLM 主要落在:主搜索框问答、聊天窗、搜索/商详 AI Overview、多商品对比、价格历史解释、Scheduled Actions、Buy for Me 等。</li>
+<li>与经典推荐的分工(该文明确):LLM 负责需求理解、对比叙述、个性化理由;<strong>召回与排序仍重度依赖</strong>既有商品索引、评论、价格、履约与推荐系统——「大模型是导购层,不是从零替换协同过滤」。</li>
+</ul>
+<p>一条可感知的转化链路是:模糊自然语言需求 → 意图判为「问题」→ 生成对比与推荐叙述 → 用户设盯价/加购条件 → Agent 执行并经用户确认。漏斗下半段的曝光与排序,公开材料并不宣称已由对话 LLM 接管。</p>
+<h3 id="23-b-feed">2.3 线 B:生成式召回与整页生成(内容 / feed)</h3>
+<p>电商对话助手把 LLM 放在<strong>决策与动作表面</strong>;内容平台的另一条线是把生成式能力压进<strong>召回或页面构造</strong>:</p>
+<ul>
+<li><strong>Pinterest PinRec</strong>(arXiv:2504.10507):工业级 generative retrieval,outcome-conditioned 生成以对齐 click/save 等多目标。论文报告线上约 <strong>+2% sitewide clicks</strong>、<strong>+4% search repins</strong> 等影响——以论文原文为准,<strong>勿外推全站 GMV</strong>。</li>
+<li><strong>Netflix GenPage</strong>(TechBlog,2026-06):用单一生成模型自回归构建整页 homepage(行 + 实体 + 布局),相对成熟多阶段系统有显著 engagement 提升,端到端 serving 延迟降低约 <strong>20%</strong>。这里 LLM 式生成更接近「整页编排」,而不只是单条 item 打分。</li>
+<li><strong>Spotify Semantic IDs</strong>(Research,2025-09):在 LLM 式生成框架下用 Semantic IDs 统一搜+推的 item 表征;任务专用 ID 难跨任务泛化,multi-task bi-encoder + RQ-KMeans 可折中。偏研究结论,<strong>未</strong>写成 Spotify 全量生产替换声明。</li>
+<li><strong>LIGER</strong>(arXiv:2411.18814):学术侧对比 generative vs dense sequential retrieval 并提出混合方案,强调冷启动——适合写「召回层技术方向」,<strong>不宜</strong>写成某 App 已上线事实。本次调研亦<strong>未</strong>找到 Instagram/TikTok 与 Amazon/Pinterest/Netflix 同级的「全站 LLM 精排」官方生产声明;若谈 Meta 生态,应落到研究并标明非生产确认。</li>
+</ul>
+<h3 id="24">2.4 两线对照:别用同一张产品草图</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>线 A(电商导购/Agent)</th>
+<th>线 B(生成式召回/整页)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户感知</td>
+<td>聊天、Overview、对比、盯价按钮</td>
+<td>feed/首页「更准/更快」,未必看到「大模型」</td>
+</tr>
+<tr>
+<td>LLM 主要产出</td>
+<td>自然语言解释 + 工具调用</td>
+<td>item ID 序列 / 行布局 / Semantic ID</td>
+</tr>
+<tr>
+<td>与经典系统关系</td>
+<td>叠加在检索与推荐中台之上</td>
+<td>补强或局部替换召回/页面组装阶段</td>
+</tr>
+<tr>
+<td>失败形态</td>
+<td>答错、误导购买、Agent 误操作</td>
+<td>候选质量掉点、延迟飙升、多目标失调</td>
+</tr>
+<tr>
+<td>KPI 语言</td>
+<td>转化、增量销售、加购/盯价成交</td>
+<td>clicks、repins、engagement、serving latency</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下区分「公开可见的高层架构」与「细节推测」。排序公式、特征交叉、广告库存与助手推荐的边界等,公开材料通常不完整。</p>
+</blockquote>
+<h3 id="31">3.1 电商导购侧(部分公开 + 推测)</h3>
+<ul>
+<li><strong>购物域定制 LLM + RAG(公开叙事)</strong>:Amazon Science 将 Rufus 描述为购物域定制 LLM + RAG(目录/评论/社区 Q&amp;A + Stores API)+ RL 反馈 + Inferentia/Trainium 推理;定位是回答问题与推荐,<strong>不是</strong>宣称替换全站协同过滤。</li>
+<li><strong>多模型路由(公开工程叙事)</strong>:AWS 博客提到自研购物 LLM + Bedrock 多模型路由,按质量/延迟/成本选模型;上下文可注入订单史或 tool 取数——支撑「导购层 + 工具调用」架构。</li>
+<li><strong>与经典推荐的分工(推测)</strong>:首页/相似商品等位置大概率仍由长期推荐模型主导;LLM 更常出现在高认知负荷节点(品类教育、多属性对比、模糊需求澄清)。详见站内 Alexa 案例的技术方案节。</li>
+<li><strong>Agent 层(部分可见)</strong>:Scheduled Actions、Buy for Me 等是带确认节点的 tool-calling;关键购买步骤仍由用户复核——公开产品行为支持这一判断。</li>
+<li><strong>模型来源混合路由(推测,非官方证实)</strong>:可能按任务类型在自研与外部模型间切换;延迟与成本约束决定能否进默认搜索框(参见站内<a href="../../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型框架</a>与 <a href="../../02-pm-skills/cost-and-tech/llm-cost-101.html">LLM 成本入门</a>)。</li>
+</ul>
+<h3 id="32">3.2 生成式召回 / 表征侧(工程论文 + 研究)</h3>
+<ul>
+<li><strong>Generative retrieval</strong>:模型直接生成候选 Semantic ID 或 token 序列,再映射回 item;可与 dense/ANN 召回并存(LIGER 一类混合叙事)。</li>
+<li><strong>整页自回归生成(Netflix GenPage 公开)</strong>:把「多阶段行推荐 + 布局」收成端到端生成,用 engagement 与 latency 验证,而不是用对话满意度验证。</li>
+<li><strong>排序侧「LLM 实时精排」(证据弱)</strong>:公开材料更多见到特征蒸馏、统一 retrieval+ranking、序列 foundation model 叙事;<strong>缺少</strong>与 PinRec/GenPage 同级的「全站实时 LLM 精排打分」一线 TechBlog。写排序层时宜偏特征/蒸馏/统一模型,并标<strong>推测</strong>。</li>
+<li><strong>广告与有机推荐边界(评估提醒)</strong>:Amazon 公开材料未把助手标成独立广告产品;答案里出现具体 ASIN 会改变品牌曝光,但「被说到」≠ Sponsored 库存——需单独建模,勿谈。</li>
+</ul>
+<h2 id="kpi-vs-engagement">四、商业模式与 KPI:转化线 vs engagement 线</h2>
+<h3 id="41">4.1 钱从哪来(公开能说清的部分)</h3>
+<ul>
+<li><strong>电商导购</strong>:助手对消费者通常免费,ROI 嵌在零售转化与履约里。Amazon 用「3 亿+ 顾客」「近 120 亿美元增量年化销售」「转化倾向高 60%+」自我证明——口径是公司/IR 披露,不是第三方估 DAU/GMV。</li>
+<li><strong>内容 / feed 生成式推荐</strong>:商业模式仍是广告或订阅时长;公开论文/博客验证的是 clicks、repins、engagement、latency,而不是把 lift 直接翻译成收入百分比。</li>
+<li><strong>不要混用北极星</strong>:把「引用信任」塞进电商助手,或把「增量销售」硬套到 Netflix 首页生成,都会写歪 PRD。开放 AI 搜索与电商助手的指标对照,可参考站内 <a href="../../04-interview/case-analysis/ai-search-north-star-metric.html">AI 搜索北极星指标</a> 与 Alexa 案例第四节。</li>
+</ul>
+<h3 id="42">4.2 指标体系速查</h3>
+<table>
+<thead>
+<tr>
+<th>落地层</th>
+<th>更该盯的指标</th>
+<th>常见误用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对话导购 / Overview</td>
+<td>助手渗透、进入商详、转化、退货是否恶化</td>
+<td>会话轮次当唯一成功</td>
+</tr>
+<tr>
+<td>Agent 动作</td>
+<td>盯价成交率、Scheduled Action 留存、代购完成率与撤销率</td>
+<td>只报任务发起量</td>
+</tr>
+<tr>
+<td>Generative retrieval</td>
+<td>召回覆盖、多目标(click/save)、线上 A/B 的 sitewide 指标</td>
+<td>把论文 lift 写成全站收入</td>
+</tr>
+<tr>
+<td>整页生成</td>
+<td>engagement + serving latency + 布局多样性约束</td>
+<td>只报延迟忽略内容质量</td>
+</tr>
+<tr>
+<td>经典精排主体</td>
+<td>原有 LTR / 业务 KPI</td>
+<td>未上线就宣称「已被 LLM 替换」</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>先画落点,再选模型。</strong> 问清 LLM 负责的是意图理解、解释、Agent、召回候选,还是(少见公开的)实时精排。Amazon 路径证明:保留强检索/推荐/履约中台,用生成式能力啃「说不清要什么 / 属性太多比不动」的摩擦,往往比「用大模型重做推荐」更可验证。</li>
+<li><strong>两条工业线不要抄错作业。</strong> 做电商就深挖决策节点与动作闭环(证据看 Alexa 案例);做 feed/首页才优先研究 generative retrieval 与整页生成(PinRec / GenPage)。把 Rufus 式聊天窗直接当成召回替换方案,或把 PinRec 的 click lift 当成电商 GMV 证明,都是错位。</li>
+<li><strong>KPI 与责任边界一起设计。</strong> 导购层成功看增量成交与是否误导;Agent 层必须有确认、可撤销与偏好可编辑;生成式召回成功看多目标与延迟,且论文指标不可外推收入。封闭账号上下文是护城河,也放大错误推荐与错误代购的伤害。</li>
+</ol>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="amazon-alexa-shopping.html">Amazon Alexa for Shopping:电商推荐里的大模型落地</a></li>
+<li><a href="ai-search-vs-traditional-search.html">AI 搜索 vs 传统搜索:交互范式与商业模式的双重颠覆</a></li>
+<li><a href="perplexity.html">Perplexity 案例拆解:AI 搜索的答案引擎范式</a></li>
+<li><a href="google-ai-mode.html">Google AI Overviews 与 AI Mode:传统搜索的答案层防御</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="../../04-interview/case-analysis/ai-search-north-star-metric.html">AI 搜索的北极星指标怎么定</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型框架</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/llm-cost-101.html">LLM 成本入门</a></li>
+</ul>
+<h2 id="_5">参考资料</h2>
+<ul>
+<li><a href="https://www.aboutamazon.com/news/retail/alexa-for-shopping-ai-assistant">Meet Alexa for Shopping, your personalized, agentic AI assistant on Amazon</a> — About Amazon;访问日期 2026-07-14</li>
+<li><a href="https://www.aboutamazon.com/news/retail/amazon-agentic-ai-gen-ai-shopping">How Amazon is using generative and agentic AI to transform the shopping experience</a> — About Amazon;含更名与转化倾向等公司口径;访问日期 2026-07-14</li>
+<li><a href="https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Fourth-Quarter-Results/">Amazon.com Announces Fourth Quarter Results</a> — Amazon IR;Rufus 3 亿+ 顾客、近 120 亿美元增量年化销售;访问日期 2026-07-14</li>
+<li><a href="https://www.amazon.science/blog/the-technology-behind-amazons-genai-powered-shopping-assistant-rufus">The technology behind Amazon's genAI-powered shopping assistant Rufus</a> — Amazon Science;购物域 LLM + RAG;访问日期 2026-07-14</li>
+<li><a href="https://aws.amazon.com/blogs/machine-learning/how-rufus-scales-conversational-shopping-experiences-to-millions-of-amazon-customers-with-amazon-bedrock/">How Rufus scales conversational shopping experiences… with Amazon Bedrock</a> — AWS ML Blog;多模型路由;访问日期 2026-07-14</li>
+<li><a href="https://arxiv.org/abs/2504.10507">PinRec: Outcome-Conditioned, Multi-Token Generative Retrieval…</a> — arXiv;约 +2% sitewide clicks、+4% search repins;访问日期 2026-07-14</li>
+<li><a href="https://netflixtechblog.com/genpage-towards-end-to-end-generative-homepage-construction-at-netflix-77146fba8a08">GenPage: Towards End-to-End Generative Homepage Construction at Netflix</a> — Netflix TechBlog;serving 延迟约 -20%;访问日期 2026-07-14</li>
+<li><a href="https://research.atspotify.com/2025/9/semantic-ids-for-generative-search-and-recommendation">Semantic IDs for Generative Search and Recommendation</a> — Spotify Research;访问日期 2026-07-14</li>
+<li><a href="https://arxiv.org/abs/2411.18814">LIGER: Unifying Generative and Dense Retrieval…</a> — arXiv;混合召回与冷启动研究;访问日期 2026-07-14</li>
+</ul>
+</main>
+</body>
+</html>

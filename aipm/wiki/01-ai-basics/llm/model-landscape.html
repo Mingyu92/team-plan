@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>主流大模型盘点与选型思路(2026 年中)</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/llm/model-landscape.md</span></div>
+<main>
+<h1 id="2026">主流大模型盘点与选型思路(2026 年中)</h1>
+<blockquote>
+<p><strong>信息状态</strong>：动态快照｜<strong>最后核验</strong>：2026-07</p>
+<p><strong>数据截至 2026 年 7 月</strong>,来自 Anthropic、OpenAI、Google、DeepSeek、阿里云等官方文档。大模型行业发布节奏是"数周级别",请把本文当作一次快照,实际选型前务必去官方页面核对最新数字(见文末链接)。</p>
+</blockquote>
+<p>"我们该用哪个模型"常没有标准答案——<strong>没有最好的模型,只有最合适的模型</strong>。本文先给一份 2026 年 7 月的盘点,再给一套不会过时的选型方法。</p>
+<h2 id="_1">三大闭源旗舰对比</h2>
+<table>
+<thead>
+<tr>
+<th>厂商</th>
+<th>型号</th>
+<th>定位</th>
+<th>上下文窗口</th>
+<th>参考价格(输入/输出,每百万 token)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic</td>
+<td>Claude Fable 5</td>
+<td>最强旗舰,面向长时间自主运行的 Agent</td>
+<td>1M tokens</td>
+<td>$10 / $50</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Opus 4.8</td>
+<td>复杂编程与企业级任务主力</td>
+<td>1M tokens</td>
+<td>$5 / $25</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Sonnet 5</td>
+<td>速度与智能平衡,默认选择</td>
+<td>1M tokens</td>
+<td>$2/$10(2026-08-31 前引导价,后为 $3/$15)</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>Claude Haiku 4.5</td>
+<td>最快,近旗舰智能</td>
+<td>200K tokens</td>
+<td>$1 / $5</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>GPT-5.5</td>
+<td>旗舰通用模型</td>
+<td>1M tokens(API)</td>
+<td>$5 / $30</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>GPT-5.4</td>
+<td>主力生产型号</td>
+<td>1M tokens</td>
+<td>$2.50 / $15</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td>GPT-5.4-mini</td>
+<td>高性价比</td>
+<td>400K tokens</td>
+<td>$0.75 / $4.50</td>
+</tr>
+<tr>
+<td>Google</td>
+<td>Gemini 3.5 Flash</td>
+<td>官方标注最智能的稳定旗舰(注意命名含 Flash)</td>
+<td>1M tokens</td>
+<td>$1.50 / $9</td>
+</tr>
+<tr>
+<td>Google</td>
+<td>Gemini 3.1 Pro</td>
+<td>复杂推理/超长文档</td>
+<td>最高 1M tokens(模型卡口径)</td>
+<td>$2/$12(≤20万 token)、$4/$18(超出);注:API 侧截至 2026-07 仍以 -preview 端点提供,适用 Pre-GA 条款</td>
+</tr>
+<tr>
+<td>Google</td>
+<td>Gemini 3 Flash(预览)</td>
+<td>高性价比全能</td>
+<td>1M tokens</td>
+<td>$0.50 / $3</td>
+</tr>
+</tbody>
+</table>
+<p>提醒:Opus 4.7 起使用新分词器,相同文本产生的 token 数比旧版多约 30%,换算成本要留意;Gemini 3.5 Flash 虽名字带"Flash",却是官方定位的综合最强稳定旗舰,选型不能只看名字。</p>
+<h2 id="_2">开源与中国模型对比</h2>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>厂商</th>
+<th>定位</th>
+<th>上下文窗口</th>
+<th>价格 / 开放方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DeepSeek V4 Pro</td>
+<td>DeepSeek</td>
+<td>开源旗舰 MoE(1.6T 总参数/49B 激活)</td>
+<td>1M tokens 输入,384K 输出</td>
+<td>$0.435 / $0.87(每百万 token)</td>
+</tr>
+<tr>
+<td>DeepSeek V4 Flash</td>
+<td>DeepSeek</td>
+<td>轻量版,同架构</td>
+<td>1M tokens</td>
+<td>$0.14 / $0.28</td>
+</tr>
+<tr>
+<td>Qwen3.7-Max</td>
+<td>阿里云</td>
+<td>闭源 API 旗舰,强 Agent/编程能力</td>
+<td>1M tokens</td>
+<td>列表价 $2.50 / $7.50(常有促销)</td>
+</tr>
+<tr>
+<td>Qwen3.7-Plus</td>
+<td>阿里云</td>
+<td>多模态,高性价比</td>
+<td>1M tokens(含 256K 思维链预算)</td>
+<td>约 $0.4 / $1.6</td>
+</tr>
+<tr>
+<td>Llama 4 Scout/Maverick</td>
+<td>Meta</td>
+<td>开源可商用 MoE,原生多模态</td>
+<td>Scout 最高 10M tokens</td>
+<td>免费下载自部署,成本取决于托管方案</td>
+</tr>
+<tr>
+<td>Llama 5</td>
+<td>Meta</td>
+<td>最新旗舰,600B+ 参数</td>
+<td>—</td>
+<td>自定义社区许可,非 OSI 认证开源</td>
+</tr>
+<tr>
+<td>Kimi K2.6</td>
+<td>Moonshot(月之暗面)</td>
+<td>中国开源旗舰 MoE(1T 总参数/32B 激活)</td>
+<td>256K tokens</td>
+<td>开放权重(Modified MIT),价格约为同水平闭源模型的 1/5</td>
+</tr>
+</tbody>
+</table>
+<p>要点:①"开源"程度差异很大,同一家公司的旗舰不一定开源(Qwen3.7-Max 闭源、Llama 5 用限制性许可),选型前需确认许可条款;②中国模型价格优势明显,常是同能力档位海外模型的几分之一到十几分之一;③标称的超长上下文(如 10M)未必等于"有效可用"的上下文,不是唯一指标。</p>
+<h2 id="_3">选型维度</h2>
+<ul>
+<li><strong>能力</strong>:不要只看榜单排名(存在被针对性优化的风险),用自己的真实业务场景建小型评测集更可靠。</li>
+<li><strong>成本</strong>:真实成本 = 单价 × 单次消耗量 × 频率。输出 token 通常比输入贵 5-6 倍,思考过程也计费;提示词缓存、批处理能显著降本;开放权重模型可自建推理,把"按 token 付费"换成"按算力付费"。</li>
+<li><strong>延迟</strong>:同厂商通常有旗舰/轻量两套体系,实时对话产品延迟权重高于离线批处理任务。</li>
+<li><strong>生态</strong>:是否有成熟 SDK/Agent 框架、是否支持 MCP、能否多云部署避免锁定;中文场景下国产模型在语感和本土知识上通常有优势。</li>
+<li><strong>合规</strong>:数据能否留境内、能否私有化部署(涉密/金融场景常是唯一选项)、供应链/地缘政治风险、开源许可条款(是否允许商用、有无规模上限)。</li>
+</ul>
+<h2 id="_4">"没有最好只有最合适"的方法论</h2>
+<ol>
+<li>用"旗舰/中端/轻量"档位而非具体型号名字做决策框架——名字每隔几周就变,分层逻辑是稳定的。</li>
+<li>建自己的评测集,几十条真实案例配人工评分,比任何公开榜单更能反映"适不适合我们"。</li>
+<li>算总拥有成本,把工程集成、多模型路由、私有化运维都计入,不能只看 API 单价表。</li>
+<li>考虑多模型路由:简单任务给便宜快速的轻量模型,复杂任务给旗舰模型。</li>
+<li>避免单一厂商锁定,保留架构上的可替换性。</li>
+<li>定期回看官方页面——价格和上下文窗口随时会变,决策前必核对最新数字,不要依赖包括本文在内的过时资料。</li>
+</ol>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="prompt-rag-finetuning.html">Prompt / RAG / 微调:三种让模型更懂你的方式怎么选</a></li>
+<li><a href="agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="../glossary.html">AI 术语速查表</a></li>
+</ul>
+<h2 id="_6">参考资料</h2>
+<ul>
+<li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Pricing - Claude Platform Docs</a> — Anthropic 官方文档,2026-07 访问</li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/models/overview">Models overview - Claude Platform Docs</a> — Anthropic 官方文档,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/pricing">Pricing | OpenAI API</a> — OpenAI 官方文档,2026-07 访问</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/models">Models | Gemini API | Google AI for Developers</a> — Google 官方文档,2026-07 访问</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini API 官方定价页</a> — Google 官方文档,2026-07 访问</li>
+<li><a href="https://api-docs.deepseek.com/quick_start/pricing">Models &amp; Pricing | DeepSeek API Docs</a> — DeepSeek 官方文档,2026-07 访问</li>
+<li><a href="https://www.alibabacloud.com/help/en/model-studio/model-pricing">Alibaba Cloud Model Studio model pricing</a> — 阿里云官方文档,2026-07 访问</li>
+<li><a href="https://ai.meta.com/blog/llama-4-multimodal-intelligence/">The Llama 4 herd</a> — Meta 官方博客,2026-07 访问</li>
+<li><a href="https://huggingface.co/moonshotai/Kimi-K2.6">moonshotai/Kimi-K2.6 · Hugging Face</a> — Moonshot AI 官方模型页,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

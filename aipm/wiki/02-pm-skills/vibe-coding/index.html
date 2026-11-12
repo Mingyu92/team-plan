@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vibe Coding:AI PM 亲手做原型</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/vibe-coding/README.md</span></div>
+<main>
+<h1 id="vibe-codingai-pm">Vibe Coding:AI PM 亲手做原型</h1>
+<p>不用会写代码,也能用 AI 编程工具把想法做成能点、能跑的原型——这项能力正在从"加分项"变成 AI PM 的核心竞争力之一。</p>
+<h2 id="_1">目录</h2>
+<ul>
+<li><a href="what-is-vibe-coding.html">Vibe Coding 是什么:AI PM 该不该自己写代码</a> —— 概念溯源、与传统写代码/低代码平台的区别、能做与不该做的边界</li>
+<li><a href="tool-landscape.html">Vibe Coding 工具盘点与选型(2026 年中)</a> —— 编程 Agent / 全栈生成 / 设计落地 / 工作流平台四分类对比</li>
+<li><a href="from-idea-to-demo.html">从一句话需求到能跑的原型:AI PM 的 Vibe Coding 实战方法论</a> —— 完整工作流、迭代式提示技巧、案例走查、何时交给工程师</li>
+</ul>
+<h2 id="_2">阅读建议</h2>
+<p>先读第一篇搞清楚"这是什么、我该不该做",再看第二篇按场景选工具,最后跟着第三篇的方法论和案例动手做出自己的第一个原型。</p>
+</main>
+</body>
+</html>

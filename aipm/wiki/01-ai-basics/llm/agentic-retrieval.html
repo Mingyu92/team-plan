@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agentic Retrieval:检索如何变成 Agent 的工具</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/llm/agentic-retrieval.md</span></div>
+<main>
+<h1 id="agentic-retrieval-agent">Agentic Retrieval:检索如何变成 Agent 的工具</h1>
+<p><a href="rag-evolution-naive-to-agentic.html">《RAG 没死:死的是 Naive 固定流水线》</a>把"检索"从"向量数据库"里解放出来,指出真正过时的是"固定切块 → 固定 Top-K → 固定拼上下文"这套僵化流水线。本文接着往下拆一个更具体的产品问题:<strong>当检索不再是写死的前置步骤,而是模型自己决定要不要用、用哪个的工具之后,系统到底该长什么样?</strong></p>
+<h2 id="_1">一句话说清</h2>
+<p><strong>Naive 检索是模型还没理解任务,就已经被安排好了要查什么、查几条;Agentic 检索是模型先理解任务,再决定查什么、怎么查、查一次够不够、要不要接着查。</strong> 差别不在"用不用向量库",而在"谁、什么时候决定检索策略"。</p>
+<h2 id="grep-vs">检索工具箱:不是 grep vs 向量的战争</h2>
+<p>生产系统里,"检索"从来不是单一技术,而是一整个工具箱,每种工具解决的问题都不一样:</p>
+<table>
+<thead>
+<tr>
+<th>检索工具</th>
+<th>适合找什么</th>
+<th>典型弱点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>grep / 关键词搜索</td>
+<td>已知文件结构、精确符号、字面字符串</td>
+<td>无法理解语义关联、跨文件跳跃弱</td>
+</tr>
+<tr>
+<td>向量语义检索</td>
+<td>改写问法、模糊需求、同义表达</td>
+<td>专有名词、精确编号、数字容易漂</td>
+</tr>
+<tr>
+<td>BM25 全文检索</td>
+<td>型号、工单号、报错码等字面命中</td>
+<td>语义跳跃、同义改写差</td>
+</tr>
+<tr>
+<td>SQL / NL2SQL</td>
+<td>指标、库存、订单等可计算问题</td>
+<td>需要权限治理与 Text-to-SQL 准确率</td>
+</tr>
+<tr>
+<td>API / 工具实时查询</td>
+<td>新闻、股价、天气等新鲜外部信息</td>
+<td>依赖工具可用性,调用成本随任务增长</td>
+</tr>
+<tr>
+<td>文件系统搜索</td>
+<td>目录结构明确、需要定位到具体文件</td>
+<td>无结构信息时退化成穷举</td>
+</tr>
+<tr>
+<td>网页搜索</td>
+<td>开放域、时效性强的公开信息</td>
+<td>噪音大,需要额外的可信度与去重策略</td>
+</tr>
+</tbody>
+</table>
+<p>这张表想说明的是:<strong>"该用 grep 还是向量"不是一道非此即彼的选型题,而是任务动态决定的路由问题。</strong> Agentic 检索的核心能力不是"用了更高级的检索技术",而是模型能像人一样先判断"这个问题该去哪找",再挑对应的工具,必要时组合多种工具、多轮补查。这也是<a href="../../04-interview/basics/rag-multi-retrieval-paths.html">《RAG 系统有哪几种检索路径?》</a>里"多路召回 + 融合"思路在 Agent 语境下的延伸——只是决定"开哪几路"的不再是提前写死的规则,而是模型本身。</p>
+<h2 id="coding-agent-grep-faq">场景权衡:Coding Agent 偏 Grep,知识库 FAQ 偏混合检索</h2>
+<p>同样是"检索",不同场景里最优解完全不同,原因不是技术优劣,而是任务结构本身的差异:</p>
+<ul>
+<li><strong>Coding Agent 常年偏爱 grep / 文件系统检索</strong>:代码库有明确的目录结构、符号名、引用关系,精确字符串匹配往往比语义相似更可靠——一个函数名打错一个字母,向量检索未必能救回来,grep 一定能。Claude Code、Codex 等主流编码 Agent 的默认检索路径都以 grep/glob 类工具为主,向量代码索引作为补充而非替代,这正是评论区常提到的"场景权衡",不是"grep 淘汰了向量"。</li>
+<li><strong>知识库 FAQ / 客服问答常年偏爱混合检索(向量 + BM25)</strong>:用户提问形态多变——同一个问题可能有十种问法,但也常夹杂精确的工单号、型号、法条编号。单靠语义检索会在专有名词上漂,单靠关键词会在改写问法上漏,混合检索 + 重排是这类场景性价比最高的起点,细节见<a href="long-context-vs-rag.html">《长上下文 vs RAG》</a>里的决策树。</li>
+</ul>
+<p>判断标准很朴素:<strong>任务对象是"结构明确、需要精确定位"还是"表达多变、需要语义理解",决定了默认该偏向哪一类检索,而不是哪种技术更"新"。</strong></p>
+<h2 id="web-agent-rag">多用户 Web Agent 为什么仍常离不开传统 / 混合 RAG</h2>
+<p>一个容易被忽略的场景分流:面向多用户、按权限隔离数据的 Web 产品(企业知识库助手、多租户 SaaS),即使全面转向 Agentic 架构,底层证据获取往往仍是传统或混合 RAG,而不是让模型完全自由地"想查哪查哪"。原因有三层,都不是技术能力问题:</p>
+<ol>
+<li><strong>权限必须在"进入模型上下文之前"过滤</strong>:多租户场景下,谁能看到哪些数据是访问控制问题,不能指望模型在自由检索时"自觉不看不该看的";检索层做好权限过滤,是 Agent 自主决策的前提,不是可以事后补的细节。</li>
+<li><strong>延迟和成本要对多用户可预测</strong>:面向真实用户的产品有 SLA,固定或半固定的检索路径响应时间和调用成本更容易预估;完全交给模型自主规划检索轮次,意味着延迟和账单都变成开放变量。</li>
+<li><strong>行为一致性是产品体验的一部分</strong>:同一类问题每次给出结构相近的答案,比"有时候查一轮、有时候查三轮"更符合用户预期,尤其是标准化程度高的客服、知识库场景。</li>
+</ol>
+<p>结论不是"这类场景用不上 Agentic 检索",而是<strong>"检索策略的自主权"要按场景分级授予</strong>——多轮工具调用、动态选路更适合放在内部工具、探索性研究类产品里,面向多用户的核心问答链路,更适合把 Agentic 决策收窄到"混合检索 + 轻量路由"这个更可控的范围。</p>
+<h2 id="agent-search-search-as-code">Agent-search / Search as Code 要点(概览)</h2>
+<p>再往前一步,当"检索目标"从"知识库"扩展到"整个网络",检索本身也开始变得可编程。Perplexity 在 2026-06 发布的 <strong>Search as Code(SaC)</strong> 架构提出:传统搜索把"输入一句查询 → 跑一套写死的管线 → 返回结果集"当成黑盒,这对完成多形态任务的 Agent 是一种刚性约束,会造成三类失败——<strong>上下文过粗</strong>(要精确信息却只能拿到宽召回结果,或反过来)、<strong>无法注入领域知识调整策略</strong>(模型明明知道该怎么查,但接口只暴露几个查询参数)、<strong>控制流低效且污染上下文</strong>(需要 fan-out、去重、聚合等非线性操作时,被迫拆成一轮一轮模型可见的调用,又慢又占上下文)。</p>
+<p>SaC 的应对方式是把搜索栈拆成<strong>模型控制面 + 沙箱执行 + Agentic Search SDK</strong> 三层:模型不再"调用搜索 API",而是生成代码,在沙箱里直接组装检索、排序、过滤、fan-out 等原子原语,按任务现场拼出一条专属检索管线。这与"把 search API 塞进一个 shell 让模型写脚本调"不是一回事——关键差别在于 SDK 本身要把搜索栈拆到足够原子的粒度,而不是把一个整体接口原样包一层代码壳。这套思路和 WANDR 等"宽检索"评测暴露出的能力边界,详见专文<a href="agentic-search-search-as-code.html">《Agent-search 与 Search as Code:搜索栈如何可编程》</a>。</p>
+<h2 id="pm">PM 设计清单</h2>
+<p>不论落在哪个场景,给 Agent 接检索工具时,几条设计要点基本是共同必需项:</p>
+<table>
+<thead>
+<tr>
+<th>设计点</th>
+<th>要解决什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工具白名单</td>
+<td>明确哪些检索/工具可用、哪些禁用,不是"接得越多越好"</td>
+</tr>
+<tr>
+<td>调用预算</td>
+<td>设最大检索轮次/调用次数上限,防止简单问题也跑一整套多轮检索</td>
+</tr>
+<tr>
+<td>证据引用</td>
+<td>答案要能追溯到具体检索结果,便于用户核实、也便于排查 badcase</td>
+</tr>
+<tr>
+<td>失败降级</td>
+<td>检索不到、工具超时、权限不足时怎么办——老实说不知道,还是退回更保守的路径</td>
+</tr>
+<tr>
+<td>可观测轨迹</td>
+<td>记录每一步查了什么、用了哪个工具、拿到什么结果,否则出错难排查</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ai-pm">给 AI PM 的判断框架</h2>
+<ol>
+<li><strong>先问任务结构,再选检索工具</strong>:结构明确、要精确定位用 grep/关键词;表达多变、要语义理解用向量;要看数算指标走 SQL/NL2SQL——工具箱思路优先于"该不该上 Agent"。</li>
+<li><strong>自主检索的授权范围要分场景收紧</strong>:内部研究类工具可以给模型更大自由度;面向多用户的核心问答链路,优先把检索收窄到混合 RAG + 轻量路由。</li>
+<li><strong>可编程搜索是能力上限,不是默认起点</strong>:大多数产品用不到 SaC 级别的自定义检索管线,先把<a href="production-rag-checklist.html">生产级检索清单</a>做扎实,再考虑是否需要往可编程方向升级。</li>
+<li><strong>把"检索"当成 Agent 众多工具之一来设计</strong>,而不是单独的子系统——工具白名单、调用预算、失败降级这几件事,和给 Agent 接其他工具时的思路是一致的,详见<a href="agent-basics.html">Agent 入门</a>的失败模式清单。</li>
+</ol>
+<h2 id="_2">相关阅读</h2>
+<ul>
+<li><a href="rag-evolution-naive-to-agentic.html">RAG 没死:死的是 Naive 固定流水线</a></li>
+<li><a href="long-context-vs-rag.html">长上下文 vs RAG:什么时候塞全库,什么时候检索</a></li>
+<li><a href="agentic-search-search-as-code.html">Agent-search 与 Search as Code:搜索栈如何可编程</a></li>
+<li><a href="nl2sql-for-ai-pm.html">NL2SQL:自然语言查库,为什么学术高分上不了生产</a></li>
+<li><a href="production-rag-checklist.html">生产级 RAG 落地清单</a></li>
+<li><a href="agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li>面试题:<a href="../../04-interview/basics/rag-multi-retrieval-paths.html">RAG 系统有哪几种检索路径?分别适合什么场景?</a></li>
+</ul>
+<h2 id="_3">参考资料</h2>
+<ul>
+<li><a href="https://www.llamaindex.ai/blog/rag-is-dead-long-live-agentic-retrieval">Naive RAG is dead, agentic retrieval is the future</a> — LlamaIndex 官方博客,提出 <code>auto_routed</code> 等按查询类型动态路由的检索模式,2026-07 访问</li>
+<li><a href="https://research.perplexity.ai/articles/rethinking-search-as-code-generation">Rethinking Search as Code Generation</a> — Perplexity 官方研究文章,2026-06-01 发布,提出 Search as Code 架构与刚性搜索三类失败模式,2026-07 访问</li>
+<li><a href="https://developers.openai.com/api/docs/guides/tools-file-search">File search</a> — OpenAI 官方文档,Responses API 内置的托管检索工具,采用语义 + 关键词混合检索,2026-07 访问</li>
+<li><a href="https://www.anthropic.com/news/contextual-retrieval">Introducing Contextual Retrieval</a> — Anthropic 工程博客,2024-09-19 发布,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>头部通用助手的差异化定位对比</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/chatbot-assistant/assistant-positioning-comparison.md</span></div>
+<main>
+<h1 id="_1">头部通用助手的差异化定位对比</h1>
+<p><strong>分类</strong>:对话助手（横向对比）
+<strong>体验时间</strong>:2026 年 7 月</p>
+<blockquote>
+<p>本文只谈<strong>定位与差异化</strong>：各家在「通用助手」赛道上占哪一块心智、用什么完成定义说服用户。订阅档位、广告 CPM、API 收入拆解等货币化细节，见 <a href="assistant-monetization-paths.html">助手类产品的商业化路径</a>。规模数字一律沿用六篇单品案例已有表述，不新造 MAU / 收入。</p>
+</blockquote>
+<h2 id="_2">一、产品背景：赛道地图</h2>
+<p>2026 年中，「通用对话助手」已不再是同质化聊天框竞赛。海外与国内头部产品都在回答同一个问题：<strong>用户为什么选你，而不是另一个对话框？</strong> 答案很少是「模型参数更大」，而是完成定义、分发杠杆与目标用户分层的组合。</p>
+<p>可把赛道粗画成一张六格地图（产品叙事来自各篇单品拆解，非官方统一口径）：</p>
+<table>
+<thead>
+<tr>
+<th>产品</th>
+<th>主定位一句话</th>
+<th>心智锚点</th>
+<th>分发/生态杠杆</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ChatGPT</td>
+<td>广度优先的通用工作台</td>
+<td>「什么都能问、都能办」</td>
+<td>全球规模本身；功能面最广</td>
+</tr>
+<tr>
+<td>Claude</td>
+<td>深度优先的知识工作协作</td>
+<td>「交得出可审稿的活」</td>
+<td>专业订阅与企业治理叙事</td>
+</tr>
+<tr>
+<td>豆包</td>
+<td>分发驱动的国民助手 → 办公生产力</td>
+<td>「先装进字节内容流」</td>
+<td>抖音等内容生态导入</td>
+</tr>
+<tr>
+<td>千问</td>
+<td>对话入口抢交易履约</td>
+<td>「一句话说完就能下单」</td>
+<td>淘宝 / 闪购等履约中台</td>
+</tr>
+<tr>
+<td>Kimi</td>
+<td>长文本定锚 → Agent 交付</td>
+<td>「能吃长材料、能出文件」</td>
+<td>弱分发；押模型与 Agent 产品</td>
+</tr>
+<tr>
+<td>元宝</td>
+<td>腾讯生态自然语言入口</td>
+<td>「信源在腾讯、活也能交」</td>
+<td>公众号/视频号 + 多 App 接入</td>
+</tr>
+</tbody>
+</table>
+<p><strong>规模量级（仅复述单品文已写数字，便于定位对照）</strong>：</p>
+<ul>
+<li>ChatGPT：OpenAI 披露周活约 <strong>9 亿</strong>（2026 年 2–3 月）；媒体口径下 App 全球月活突破 <strong>10 亿</strong>（2026 年 6 月）。</li>
+<li>豆包 / 千问：QuestMobile 2026 年一季度 App 月活约 <strong>3.45 亿</strong> / <strong>1.66 亿</strong>；同口径下 DeepSeek 约 1.27 亿。</li>
+<li>Kimi：QuestMobile 等媒体转引口径下，App 月活从 2025Q1 约 <strong>2165 万</strong> 回落至年末约 <strong>903 万</strong>，2026Q1 约 <strong>834 万</strong>量级——叙事已从「拼月活」切到 Agent。</li>
+<li>元宝：腾讯活动窗口口径曾报 DAU 超 <strong>5000 万</strong>、MAU <strong>1.14 亿</strong>；QuestMobile 称春节后 DAU 约 <strong>900 万</strong>——两套口径不可硬算留存，但足以说明「活动峰值 ≠ 日常定位」。</li>
+</ul>
+<p>读这张图时有三条边界：</p>
+<ol>
+<li><strong>海外三分天下</strong>（ChatGPT 规模/广度、Claude 深度协作、Gemini 生态嵌入）与<strong>国内三分哲学</strong>（豆包分发规模、千问交易履约、Kimi 能力/Agent）不是同一套坐标系，但「完成定义」可以跨区对照。</li>
+<li>元宝与豆包/千问同属「大厂生态入口」，但元宝公开主叙事是<strong>免费 Agent + 生态协同</strong>，尚未形成可与豆包订阅、千问淘宝打通同级的货币化主故事（详见 monetization 文）。</li>
+<li>同一用户完全可以多开：广度探索用 ChatGPT、交卷用 Claude/Kimi、购物用千问、刷内容时顺手开豆包/元宝——定位竞争经常是<strong>场景占位</strong>，不是零和取代。</li>
+</ol>
+<h2 id="_3">二、核心功能：各家定位轴</h2>
+<p>功能清单越长越容易写成「大家都有搜索、记忆、Agent」。对 PM 更有用的是抽出<strong>定位轴</strong>——产品反复强化的那一两件事。</p>
+<h3 id="1">1. 完成定义轴：答案 / 交卷 / 订单 / 入口</h3>
+<table>
+<thead>
+<tr>
+<th>完成定义</th>
+<th>代表产品</th>
+<th>用户认为「做完了」是什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>万能入口里的答案与任务</td>
+<td>ChatGPT</td>
+<td>搜到、写完、订好、甚至在浏览器里代操作——覆盖面优先</td>
+</tr>
+<tr>
+<td>可编辑、可交付的知识工作产物</td>
+<td>Claude</td>
+<td>Artifacts / Cowork 把「聊完」变成「deck/文档/仓库改动可合并」</td>
+</tr>
+<tr>
+<td>可下载的 Office / 网站 / 报告</td>
+<td>Kimi</td>
+<td>OK Computer → Office → Swarm / Claw：出活形态即产品边界</td>
+</tr>
+<tr>
+<td>免费拿到 PPT/Word/Excel 等文件</td>
+<td>元宝</td>
+<td>Hy3 协同下的免费 Agent 文件交付；强化「有事先问」</td>
+</tr>
+<tr>
+<td>对话内走完交易闭环</td>
+<td>千问</td>
+<td>选品 → 下单 → 物流/售后尽量留在阿里生态</td>
+</tr>
+<tr>
+<td>高频日常问答 + 触顶后的办公 Agent</td>
+<td>豆包</td>
+<td>免费层养规模；专家/办公任务等生产力能力成为付费理由</td>
+</tr>
+</tbody>
+</table>
+<p>ChatGPT 案例里把产品策略概括为「承接几乎所有数字任务的入口」；Claude 则刻意少做功能堆叠，多写「交卷」。两条路在功能表上看都有 Research、Memory、Agent，但<strong>默认成功标准不同</strong>：一个优化覆盖面与入口心智，一个优化长任务可靠性与交付物质量。</p>
+<p>Kimi 与 Claude 在「交卷」上接近，差异在路径：Kimi 早期用 <strong>20 万 / 200 万字</strong>上下文把「能吃长材料」做成品牌定锚，再在月活收缩后把 KPI 切到 Agent；Claude 从一开始就把叙事绑在知识工作者与企业可治理 Agent 上。元宝也卖文件交付，但公开强调<strong>全部免费</strong>，完成定义服务于生态激活，而不是会员墙。</p>
+<p>千问的完成定义最「非助手」：成功不是聊得久，而是订单与复购。单品文已提示其人均使用次数低于豆包（约 19.8 次 vs 约 54.8 次）——这不自动等于产品失败，而是任务型交易入口的正常形态。</p>
+<h3 id="2-vs">2. 用户分层轴：大众入口 vs 生产力尖峰</h3>
+<ul>
+<li><strong>ChatGPT</strong>：Free → 重度个人 → 企业，用档位阶梯消化全分层（细节见 monetization 文）；产品上同时装消费级探索与专业工具（Search、Agent、Codex、Atlas 等）。</li>
+<li><strong>Claude</strong>：心智更窄——重度知识工作者、开发者、需要 SSO/连接器管控的团队；公开叙事几乎不见消费级广告。</li>
+<li><strong>豆包</strong>：免费层覆盖泛娱乐与日常问答的大众；付费层明确指向复杂办公与高频 Agent（专业版叙事）。</li>
+<li><strong>千问</strong>：大众消费与出行需求用户；春节免单练的是「授权 + 首单」肌肉记忆，而非会员心智。</li>
+<li><strong>Kimi</strong>：从学生/读长文档白领，转向开发者与需要端到端交付物的生产力用户；对话仍可获客，Agent 才是战略重心。</li>
+<li><strong>元宝</strong>：个人用户 + 腾讯多场景触达；社交实验（元宝派）存在，但单品文提醒勿等同于已验证的社交留存。</li>
+</ul>
+<h3 id="3-app-vs">3. 分发轴：超级 App 惯性 vs 能力口碑</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>产品</th>
+<th>定位含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内容/信息流分发</td>
+<td>豆包</td>
+<td>规模先于收费；「为何能先到 3 亿月活」的答案在字节通道</td>
+</tr>
+<tr>
+<td>交易履约分发</td>
+<td>千问</td>
+<td>对话成为淘宝/闪购需求的第一句话</td>
+</tr>
+<tr>
+<td>内容信源 + 多 App 能力落地</td>
+<td>元宝</td>
+<td>公众号/视频号供给 + QQ 音乐/会议/评论区等接入；归因量化仍多未披露</td>
+</tr>
+<tr>
+<td>弱分发、强能力叙事</td>
+<td>Kimi</td>
+<td>砍买量后不以绝对用户数为目标；用 Agent 交付换付费与 API 心智</td>
+</tr>
+<tr>
+<td>全球品牌与功能广度</td>
+<td>ChatGPT</td>
+<td>分发优势部分来自品类开创者地位与持续功能扩张</td>
+</tr>
+<tr>
+<td>专业口碑与企业渠道</td>
+<td>Claude</td>
+<td>更少拼 DAU，更多拼「敢不敢把文件夹和连接器交给它」</td>
+</tr>
+</tbody>
+</table>
+<p>一句话：<strong>有超级分发时，定位往往写成「入口」；没有时，定位必须写成「别人做不到的完成定义」。</strong></p>
+<h3 id="4">4. 对照速览（给面试/评审用）</h3>
+<table>
+<thead>
+<tr>
+<th>定位轴</th>
+<th>ChatGPT</th>
+<th>Claude</th>
+<th>豆包</th>
+<th>千问</th>
+<th>Kimi</th>
+<th>元宝</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主叙事</td>
+<td>广度工作台</td>
+<td>深度协作</td>
+<td>分发规模→办公额度</td>
+<td>对话即履约</td>
+<td>长文本→Agent</td>
+<td>生态入口+免费交付</td>
+</tr>
+<tr>
+<td>默认战场</td>
+<td>全任务覆盖</td>
+<td>知识工作交卷</td>
+<td>内容生态内的国民助手</td>
+<td>消费与本地生活</td>
+<td>研究/办公交付物</td>
+<td>腾讯内容与多场景</td>
+</tr>
+<tr>
+<td>差异化硬通货</td>
+<td>规模+功能面</td>
+<td>一致性/低幻觉/可治理</td>
+<td>分发+频次</td>
+<td>商品与履约中台</td>
+<td>长上下文心智+Agent 阶梯</td>
+<td>生态信源+免费 Agent</td>
+</tr>
+<tr>
+<td>刻意不做/弱化</td>
+<td>（相对）深度单一赛道</td>
+<td>广告化全民入口</td>
+<td>（相对）交易闭环深度</td>
+<td>（阶段性）订阅主叙事</td>
+<td>流量军备竞赛</td>
+<td>（公开侧）会员墙</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">三、技术方案推测：能力叙事如何支撑定位</h2>
+<blockquote>
+<p>以下为基于六篇单品文公开表现的<strong>横向推测</strong>，各厂商均未完整公开内部架构；技术细节以单品文为准，此处只谈「叙事—架构」对应关系。</p>
+</blockquote>
+<p>定位不是 PR 口号，它会反向塑造工程取舍：</p>
+<ol>
+<li><strong>广度优先（ChatGPT）</strong> → 需要模型路由（即时 vs 深度推理）、Search/RAG 产品化、Agent/浏览器 computer-use、Memory 用户级检索注入，以及不断扩展的连接器表面。砍掉与核心收入策略不匹配的线（如单品文所述 Sora 关停）也是广度战略的一部分：入口要宽，但资源要回收到「企业/推理/编程」主轴。</li>
+<li><strong>深度协作（Claude）</strong> → Artifacts 人机共编状态、Projects 项目级材料隔离、Cowork 与 Claude Code 同构 Agent 骨架、Effort 把算力预算旋钮化、Skills/MCP 服务企业治理。技术叙事服务「交卷 + 可审计权限」，而不是「再多一个插件」。</li>
+<li><strong>分发后的生产力分层（豆包）</strong> → 办公任务/专家模式与模型分档（如 2.1 Pro vs Turbo）、额度与高峰队列；商品卡场景则更像意图分类 + 内容/商品检索。架构服务于「免费摸得到、重度会触顶」。</li>
+<li><strong>交易 Agent（千问）</strong> → 意图路由（闲聊 vs 生活服务）、槽位填充式选品、订单/支付/售后 API 翻译；成本结构里 Token 之外还有补贴与履约协同。技术成功标准靠近下单率，而非会话时长。</li>
+<li><strong>Agent 原生交付（Kimi）</strong> → 长窗口与工具读文件混合、规划—工具调用循环、Swarm 的协调器 + 上下文分片、Office 渲染管线、Claw 类常驻运行时。成功标准是文件/网站能否直接开会或部署。</li>
+<li><strong>生态 RAG + 免费文件 Agent（元宝）</strong> → 腾讯内容索引与来源约束（推测为检索增强）、任务编排 + 文件渲染、快慢思考路由；公开确认 Hy3（MoE、256K 等）与元宝 Agent 协同，但限额与 computer-use 边界仍多未披露。</li>
+</ol>
+<p>对 PM 的推论：<strong>先写清完成定义，再反推该重仓路由、RAG、交易 API 还是文件 Agent——而不是先堆能力再找定位。</strong></p>
+<h2 id="_5">四、商业模式（点到为止）</h2>
+<p>六家的货币化哲学与定位同构，但本文<strong>不展开价档、广告单价或收入拆解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>产品</th>
+<th>与定位绑定的变现假设（一句话）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ChatGPT</td>
+<td>全分层订阅 + 低价档探索广告/购物意图</td>
+</tr>
+<tr>
+<td>Claude</td>
+<td>专业额度阶梯 + API/企业合同；淡化广告</td>
+</tr>
+<tr>
+<td>豆包</td>
+<td>免费保规模，订阅卖办公/专家算力额度；并行交易导流</td>
+</tr>
+<tr>
+<td>千问</td>
+<td>对话促成订单，价值落在电商生态而非会员 ARPU</td>
+</tr>
+<tr>
+<td>Kimi</td>
+<td>对话获客，Agent/Code 吃额度池；弱买量后靠生产力付费</td>
+</tr>
+<tr>
+<td>元宝</td>
+<td>公开侧免费优先；生态协同与云/API 等路径待核验</td>
+</tr>
+</tbody>
+</table>
+<p>展开对比（档位设计、广告与购物、API 与企业合同、订阅 vs 交易取舍）见 → <a href="assistant-monetization-paths.html">助手类产品的商业化路径:订阅、广告、还是 API</a>。</p>
+<h2 id="pm">五、PM 视角的启示：定位选择框架</h2>
+<p>面试或立项时，可用下面四问把「我们也做个助手」收成可辩护的定位：</p>
+<h3 id="1_1">1. 你的完成定义是哪一种？</h3>
+<p>先写用户故事的验收句：是「答对了」、是「文件能直接用」、是「订单已支付」，还是「在宿主 App 里少点三次」？ChatGPT/Claude、千问、Kimi/元宝的分歧，首先是验收句分歧。功能表可以相似，验收句不能模糊。</p>
+<h3 id="2">2. 你的不对称资产是分发、履约，还是能力口碑？</h3>
+<ul>
+<li>有内容分发 → 更像豆包：入口心智 + 后期用稀缺算力收费。</li>
+<li>有交易履约 → 更像千问：北星用订单/复购，接受更低使用频次。</li>
+<li>有社交/内容信源网 → 更像元宝：先定义内容/能力/关系三张网的指标，再谈是否收费。</li>
+<li>都没有 → 更像 Kimi/Claude：必须把差异化写成可感知完成定义（长材料、交卷、可治理 Agent），并接受 MAU 不是主 KPI。</li>
+</ul>
+<h3 id="3">3. 免费层养什么？付费墙卡在哪段边际成本上？</h3>
+<p>定位决定墙的位置：卡在「聊天」会打穿分发基本盘；卡在「长跑 Agent / 高档模型 / 交易闭环」才与成本结构一致。具体价表留给 monetization 文；此处只需在 PRD 里写清：<strong>免费层的成功标准可以不是付费转化</strong>（留存、频次、生态跳转、首单习惯等）。</p>
+<h3 id="4_1">4. 用「完成定义」切产品矩阵，而不是用模型名字切。</h3>
+<p>Claude 的 Chat / Cowork / Code、Kimi 的对话模式 vs Agent 模式、ChatGPT 的对话 vs Agent vs Codex，背后模型高度重叠，但用户心智不同。国内团队与其先争论「要不要再做一个 App」，不如先问：答案、交卷、订单、系统操控是否各自有清晰入口——腾讯用元宝与 WorkBuddy/Marvis 拆入口，本身就是矩阵定位课（见 <a href="workbuddy-vs-marvis.html">WorkBuddy 与 Marvis</a>）。</p>
+<h3 id="_6">可复用的一句话策略</h3>
+<blockquote>
+<p><strong>通用助手的差异化 = 完成定义 × 不对称资产 × 免费层使命。</strong><br>
+模型评测排名是入场券；定位是告诉用户「在什么场景、以什么标准，应该打开你而不是别人」。</p>
+</blockquote>
+<h2 id="_7">相关阅读</h2>
+<ul>
+<li><a href="chatgpt.html">ChatGPT 案例拆解</a></li>
+<li><a href="claude-anthropic.html">Claude 案例拆解:知识工作协作的深度优先路线</a></li>
+<li><a href="doubao.html">豆包案例拆解:3 亿月活之后如何收费</a></li>
+<li><a href="qwen.html">千问案例拆解:对话入口抢交易履约</a></li>
+<li><a href="kimi.html">Kimi 案例拆解:从长文本卖点到 Agent 产品化</a></li>
+<li><a href="yuanbao.html">元宝（腾讯元宝）案例拆解</a></li>
+<li><a href="assistant-monetization-paths.html">助手类产品的商业化路径:订阅、广告、还是 API</a>（Issue #62，货币化展开）</li>
+<li><a href="workbuddy-vs-marvis.html">WorkBuddy 与 Marvis:腾讯的两条 Agent 产品线</a></li>
+<li><a href="../../04-interview/product-design/competitive-differentiation.html">市面上已有成熟竞品,你的产品核心优势是什么?</a></li>
+<li><a href="../../04-interview/case-analysis/analyze-a-good-ai-product.html">如何分析一个优秀的 AI 产品</a></li>
+<li><a href="../../04-interview/basics/agent-vs-chatbot.html">Chatbot 和 Agent 有什么区别?</a></li>
+</ul>
+<h2 id="_8">参考资料</h2>
+<p>本文为二次综述，事实与数字均来自同目录六篇单品案例及其参考资料；不另引入未在六篇中出现的规模或收入数字。单品文主要来源包括各产品官方定价/帮助中心、QuestMobile 2026 年一季度 AI 应用洞察、以及各篇已列官方博客与公开报道（访问月均为 2026-07）。</p>
+</main>
+</body>
+</html>

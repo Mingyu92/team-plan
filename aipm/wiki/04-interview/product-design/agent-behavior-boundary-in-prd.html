@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>怎么在 PRD 里写清楚 Agent 的行为边界？</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/product-design/agent-behavior-boundary-in-prd.md</span></div>
+<main>
+<h1 id="prd-agent">怎么在 PRD 里写清楚 Agent 的行为边界？</h1>
+<p><strong>难度</strong>:⭐⭐ 常规
+<strong>出现频率</strong>:高,Agent / AI PRD / 工具调用类面试常见</p>
+<blockquote>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q72；正文为本库原创，未摘录该 PDF 答案原文。细节与模板以正课为准。</p>
+</blockquote>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否把「能力边界」(答什么 / 不答什么)和「行为边界」(能动什么 / 做到哪必须停)分开讲,不混成一张空表</li>
+<li>能否把边界写成<strong>可验收条目</strong>(工具白名单、确认节点、完成证据、预算上限),而不是「要小心」「要合规」</li>
+<li>能否说明硬边界落在工具鉴权与产品状态机,Prompt Spec / Eval Spec 如何咬合,而不是只靠 System Prompt</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>:有工具、会改外部状态时,PRD 里的 Agent 行为边界 = 团队共同认可的<strong>授权合同</strong>——写清允许调用什么、完成靠什么证据、风险动作何时必须停、失败怎么退、预算触顶怎么办;形容词不算边界。</p>
+<p>先和「能力边界」划清线(正课两张表并存):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>能力边界 / 不承诺清单</th>
+<th>Agent 行为边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管什么</td>
+<td>对用户承诺的场景范围</td>
+<td>对系统动作的授权范围</td>
+</tr>
+<tr>
+<td>典型问题</td>
+<td>答什么、拒什么、已知失败模式</td>
+<td>可调哪些工具、写到哪必须确认、预算与出口</td>
+</tr>
+<tr>
+<td>缺了会怎样</td>
+<td>预期漂移、幻觉硬撑</td>
+<td>越权调用、误发/误付、静默烧额度</td>
+</tr>
+</tbody>
+</table>
+<h3 id="prd">答题展开:PRD 里固定六块(浓缩自正课)</h3>
+<p>不必背状态机全文;面试官要听的是你能不能把下面六块说成<strong>可验收写法</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>块</th>
+<th>面试口径(可验收)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务目标与完成证据</td>
+<td>「完成」≠ 模型说「好了」;写清工具回执 / 业务校验 / 人确认里哪几条必须满足</td>
+</tr>
+<tr>
+<td>允许的工具 / 资源</td>
+<td>白名单(工具名、读写级别、租户与数据范围)+ 单独黑名单</td>
+</tr>
+<tr>
+<td>风险分级与默认策略</td>
+<td>只读可自动;可逆写入要可预览/可撤销;付款、删除、外发、改权限等默认<strong>先确认</strong></td>
+</tr>
+<tr>
+<td>必须停下来的节点</td>
+<td>金额阈值、批量上限、置信度不足、策略冲突、预算用尽——每条对应唯一下一步</td>
+</tr>
+<tr>
+<td>失败与降级出口</td>
+<td>重试 / 降级 / 转人工 / 暂停;禁止「静默继续烧额度」</td>
+</tr>
+<tr>
+<td>预算上限</td>
+<td>模型轮数、工具次数、时延、费用——触顶即 <code>blocked</code> 或交接,并说明已完成/未完成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vs">弱写法 vs 可验收写法(面试加分点)</h3>
+<table>
+<thead>
+<tr>
+<th>弱写法</th>
+<th>可验收写法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>「高风险操作要小心」</td>
+<td>「单笔 ≥ ¥X 或批量 ≥ N 条的写操作:展示对象/范围/后果后,当前用户确认才执行」</td>
+</tr>
+<tr>
+<td>「可以调用内部 API」</td>
+<td>「仅 <code>ticket.read</code> / <code>ticket.draft_reply</code>;禁止 <code>ticket.close</code>、<code>refund.create</code>」</td>
+</tr>
+<tr>
+<td>「失败就重试」</td>
+<td>「仅对幂等只读超时重试 ≤ 2 次;非幂等写操作不自动重试,进入人工确认」</td>
+</tr>
+<tr>
+<td>「注意成本」</td>
+<td>「单任务模型调用 ≤ 8 轮或费用 ≤ ¥Y,先到先停,并向用户说明进度」</td>
+</tr>
+</tbody>
+</table>
+<p>数字用业务定阈值即可;面试报的是<strong>结构</strong>,不是普适红线。</p>
+<h3 id="prompt-spec-eval-spec">和 Prompt Spec / Eval Spec 怎么咬合</h3>
+<ul>
+<li><strong>Prompt Spec</strong>:自然语言重申「不得绕过确认、不得扩大工具范围」——但这是软约束。</li>
+<li><strong>硬边界</strong>:工具服务端鉴权 + 产品状态机(确认态、取消后不得重放副作用)。只写在 Prompt 里等于把授权交给模型临场发挥。</li>
+<li><strong>Eval Spec</strong>:准备「诱导越权 / 跳过确认 / 预算耗尽」类用例;轨迹违规可设为一票否决(细节见 Agent 评测正课)。</li>
+</ul>
+<p><strong>产品场景举例</strong>(客服 Agent 可写草稿):允许读工单与生成回复草稿;关闭工单、发起退款进「先确认」;单任务工具调用触顶则转人工并带上下文——能力边界仍单独写「不承诺法律裁决 / 不做最终赔付承诺」。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"这和能力边界清单有什么区别?能不能合并成一张表?"
+  → 能放在同一章,但职责不同:能力边界管对用户的场景承诺;行为边界管对系统动作的授权。合并成「注意安全」一句等于两张都没写。</li>
+<li><strong>追问 2</strong>:"边界写进 System Prompt 够不够?"
+  → 不够。Prompt 可重申规则,真正拦越权靠工具鉴权、参数校验与确认态;Prompt 被诱导绕过时,服务端仍应拒绝。</li>
+<li><strong>追问 3</strong>:"怎么验收行为边界有没有写清楚 / 有没有生效?"
+  → PRD 侧:六块是否可测;Eval 侧:越权与跳过确认是否一票否决;线上:轨迹日志能否关联任务、工具、确认人与完成证据。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/prd-and-design/ai-prd-guide.html">AI 产品 PRD 怎么写:与传统 PRD 的核心差异</a>(本题正课:Agent 行为边界 / Prompt Spec / Eval Spec)</li>
+<li><a href="../../02-pm-skills/ai-product-operations/agent-product-design.html">Agent 产品生产化:从会执行到可负责地完成任务</a>(任务卡、工具契约、风险分级)</li>
+<li><a href="../../02-pm-skills/prd-and-design/agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准:用户何时该信、何时该介入</a></li>
+<li><a href="../../02-pm-skills/ai-product-operations/agent-evaluation-and-observability.html">Agent 评测与可观测性:从最终答案追到完整轨迹</a></li>
+<li><a href="../../02-pm-skills/ai-product-operations/guardrails-and-agent-security.html">AI 安全与 Agent 权限:把「能做什么」变成可治理的边界</a></li>
+<li><a href="../../01-ai-basics/prompt-engineering/system-prompt-and-prompt-ops.html">系统提示词设计与 Prompt 工程化:把玄学变工程</a></li>
+<li><a href="../../02-pm-skills/prd-and-design/fallback-and-feedback-design.html">兜底、反馈与预期管理:AI 产品的交互设计三件套</a></li>
+<li><a href="../basics/agentic-workflows.html">什么是 Agentic Workflows?</a></li>
+</ul>
+<h2 id="_5">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/engineering/building-effective-agents">Building effective agents</a> —— Anthropic 工程文章(Workflow vs Agent),截至 2026-08-06 访问</li>
+<li><a href="https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/">A practical guide to building AI agents</a> —— OpenAI 官方指南,截至 2026-08-06 访问</li>
+<li><a href="https://developers.openai.com/api/docs/guides/function-calling">Function calling</a> —— OpenAI 开发者文档,截至 2026-08-06 访问</li>
+</ul>
+</main>
+</body>
+</html>

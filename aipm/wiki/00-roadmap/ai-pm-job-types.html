@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI PM 岗位类型盘点:大模型 / 应用 / 平台 / 行业</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 00-roadmap/ai-pm-job-types.md</span></div>
+<main>
+<h1 id="ai-pm">AI PM 岗位类型盘点:大模型 / 应用 / 平台 / 行业</h1>
+<blockquote>
+<p>"AI 产品经理"是一个笼统的说法,实际岗位形态差异很大——在 Anthropic 做模型行为评估,和在一家电商公司做智能客服,虽然都叫 AI PM,但日常工作、能力要求、入行难度完全不同。这篇文章把 AI PM 拆成四类:<strong>大模型厂商 PM、AI 应用 PM、AI 平台(基础设施)PM、行业(垂直)AI PM</strong>,帮你判断自己适合哪一类、该往哪个方向准备。</p>
+</blockquote>
+<p>文中涉及的公司、岗位、产品信息均于 2026 年 7 月通过官方招聘页 / 官方博客核实,具体来源见文末「参考资料」。</p>
+<p>除四类岗位外,本文后半补充两个横切视角:<strong>ToC / ToB 对「代码深度」的要求差异</strong>,以及<strong>金融 / 教育 / 医疗垂直岗</strong>在买家、成功标准与日常工作上的差别(岗位视角;产品机制见 vertical 案例)。选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q7 / Q90–92;正文为本库原创,<strong>不摘录</strong>该 PDF 答案。</p>
+<h2 id="_1">总览对比表</h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>核心职责</th>
+<th>典型公司(2026-07)</th>
+<th>能力侧重</th>
+<th>入行难度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>大模型厂商 PM</td>
+<td>定义模型训练/评估/安全/API 的产品化优先级</td>
+<td>Anthropic、OpenAI、Google DeepMind;国内:DeepSeek、百度(文心)、阿里(通义)、字节(豆包)、月之暗面(Kimi)</td>
+<td>深度技术认知、评估方法论、与研究团队协作能力</td>
+<td>★★★★★ 最高</td>
+</tr>
+<tr>
+<td>AI 应用 PM</td>
+<td>把模型能力包装成用户可用的产品/功能</td>
+<td>Perplexity、Cursor;国内:抖音、美团、小米、理想汽车、蚂蚁等公司内嵌 AI 功能的团队</td>
+<td>用户体验设计、Prompt 工程基础、成本与效果的权衡意识</td>
+<td>★★★ 中等,转型友好度最高</td>
+</tr>
+<tr>
+<td>AI 平台(基础设施)PM</td>
+<td>为开发者/企业提供构建 AI 应用的底层能力</td>
+<td>Databricks、Snowflake、AWS(Bedrock);国内:云厂商的大模型服务平台</td>
+<td>最强的技术深度 + 企业级(B端)产品经验</td>
+<td>★★★★★ 最高,且要求复合背景</td>
+</tr>
+<tr>
+<td>行业(垂直)AI PM</td>
+<td>把 AI 能力和具体行业知识、合规要求深度结合</td>
+<td>Harvey(法律)、Abridge / Hippocratic AI(医疗)、Sierra(客服);国内:科大讯飞(教育/医疗/司法/汽车)、畅捷通(中小企业 Agent)、海信(智能家电)</td>
+<td>行业知识 &gt; 泛化 AI 认知,合规与领域安全设计能力</td>
+<td>★★★★ 较高,但行业背景可替代部分 AI 门槛</td>
+</tr>
+</tbody>
+</table>
+<p>下面逐类展开。</p>
+<h2 id="pm">一、大模型厂商 PM</h2>
+<p><strong>做什么</strong>:这是离模型本身最近的 AI PM,工作内容包括定义预训练/后训练(RLHF、post-training)的产品优先级、设计模型评估体系、把研究团队的能力转化为可发布的产品特性、平衡模型的安全边界与体验、维护开发者 API 生态。</p>
+<p><strong>真实岗位形态</strong>(2026-07 各公司官网仍在招聘的岗位,可以看出这一类内部还会再细分):</p>
+<ul>
+<li>Anthropic:官网列出的 PM 岗位包括 "Product Manager, Compute Platform"(算力平台)、"Product Manager, Safeguards"(安全防护,专门处理稀有但严重的滥用风险)、"Research Product Manager, Model Behaviors"(模型行为研究)、"Web Product Manager"(Claude.ai 网页产品)。这说明即便同属"模型厂商 PM",内部也分化出偏研究、偏安全、偏基础设施、偏消费产品等不同方向。</li>
+<li>OpenAI:官网岗位包括 "Product Manager, Enterprise"、"Product Manager, Integrity"(诚信与滥用防护)、"Product Manager, Countries &amp; Governments"(政企合规场景)等,普遍要求计算机科学/工程/数学等技术背景。</li>
+<li>Google DeepMind:Gemini 相关 PM 岗位包括 "Product Manager, Gemini API Models"(面向开发者的模型发布)、"Senior Product Manager, Gemini Post Training"(把用户需求转化为训练优先级和评估标准)、"Product Manager, Gemini App"(消费者应用产品定义)。</li>
+<li>国内:DeepSeek 在 2026 年 6 月完成首轮外部融资后启动大规模扩招,产品部门开放"AI 产品经理""AI 产品运营""Agent 智能体产品经理"等岗位,同时在"模型数据策略"方向开放"通用 Agent 数据产品经理""专业领域数据产品经理(小语种、医学、法律等)"等细分岗位——这也说明大模型厂商 PM 正在向"数据策略产品经理"这种更细分的形态延伸。百度(文心)、阿里(通义)、字节跳动(豆包)、月之暗面(Kimi)等公司也均有对应的大模型产品团队。</li>
+</ul>
+<p><strong>能力侧重</strong>:五个能力维度里,「技术认知」和「数据与评估能力」的要求最高,通常需要能直接参与训练数据、评估指标层面的讨论,而不仅仅是需求翻译。</p>
+<p><strong>入行难度</strong>:最高。核心研究相关岗位通常要求较深的技术背景或多年经验(如 OpenAI 岗位普遍要求 10 年以上产品或相关行业经验),校招/应届生更容易进入的是消费产品向或数据策略向的细分岗位。</p>
+<h2 id="ai-pm_1">二、AI 应用 PM</h2>
+<p><strong>做什么</strong>:在模型能力之上构建终端用户可用的产品——可能是完全 AI 原生的产品(如 AI 搜索、AI 编程助手),也可能是把 AI 能力嵌入到已有产品里(如电商导购、智能客服、车机语音助手)。这是目前岗位数量增长最快、也是传统 PM 转型最容易切入的一类。</p>
+<p><strong>真实岗位形态</strong>:</p>
+<ul>
+<li>Perplexity 设有专门的 Associate Product Manager(APM)项目,面向应届或转型不久的候选人,强调"和工程、设计、数据科学团队协作打造 AI 工具",不要求算法研究背景。</li>
+<li>国内大厂普遍把 AI 能力作为存量产品的增量功能来招募 PM:字节跳动 2026 校招 AI 相关岗位中包含"电商 AI 产品经理";本仓库收录的多篇 <a href="../04-interview/experiences/index.html">面经</a> 也印证了这一类岗位的真实形态,例如抖音 AI PM、美团 AI 客服 PM 实习、小米 AI PM、理想汽车 AI PM、蚂蚁 AI 客服 PM、B 站多模态 AI PM 等,均属于"在已有业务里做 AI 功能"的应用型岗位。</li>
+</ul>
+<p><strong>能力侧重</strong>:用户体验设计和产品基本功是主战场,技术认知只需要达到「及格线」——理解模型能力边界、会做基础 Prompt 调优、知道效果和成本的权衡即可,不需要参与模型训练层面的决策。</p>
+<p><strong>入行难度</strong>:四类里对传统 PM 最友好的一类。这类岗位数量最多、招聘口径也更贴近传统产品经理的能力模型,是大多数转型者的第一站,具体行动计划可参考 <a href="transition-guide.html">传统 PM 转型 AI PM 指南</a>。</p>
+<h2 id="ai-pm_2">三、AI 平台(基础设施)PM</h2>
+<p><strong>做什么</strong>:服务对象不是终端消费者,而是"想用 AI 能力构建产品的开发者和企业"——包括模型托管服务、微调/训练平台、Agent 开发框架、向量数据库、评估工具链等。这类 PM 本质是 B 端/开发者产品经理,只是产品对象换成了 AI 能力。</p>
+<p><strong>真实岗位形态</strong>:Databricks 官网的 "Staff Product Manager, AI Platform" 岗位描述里,职责包括"定义客户如何在 Databricks 上构建、训练、部署和监控 AI/ML 系统""与工程团队共同做深度技术决策""定义 AI 平台功能的定价、打包和商业化策略",要求 5 年以上平台/基础设施类产品经验,理想情况下有 ML/AI、数据或云服务背景。Snowflake、AWS(Bedrock)等云厂商也有对应的大模型托管与 AI 平台产品线,处于同一竞争格局中。</p>
+<p><strong>能力侧重</strong>:四类里对「技术认知」和「商业判断」要求最高的组合——既要懂技术深度(训练/推理/评估的工程细节),又要有成熟的企业级产品定价和打包经验。</p>
+<p><strong>入行难度</strong>:最高,且要求复合背景。这类岗位很少作为"AI 转型第一站",更常见的路径是"先有多年 B 端/基础设施产品经验,再叠加 AI 认知",或者反过来"先在模型厂商/云厂商做过 AI 产品,再转向平台方向"。</p>
+<h2 id="ai-pm_3">四、行业(垂直)AI PM</h2>
+<p><strong>做什么</strong>:把 AI 能力和某个具体行业的知识、工作流、合规要求深度绑定,做出"通用大模型做不到"的垂直体验。这类岗位的核心壁垒往往不是模型能力本身,而是行业数据、行业安全架构和行业渠道。</p>
+<p><strong>真实岗位形态</strong>:</p>
+<ul>
+<li>法律行业:Harvey 是这一类最典型的代表,官方数据显示其在 2026 年 3 月完成 11 亿美元估值融资,年化收入(ARR)约 1.9 亿美元,已覆盖多数 AmLaw 100 律所。</li>
+<li>医疗行业:Abridge(临床对话记录与病历生成)、Hippocratic AI(患者侧护理与陪伴 Agent)是医疗垂直 AI 的代表,两者都强调针对医疗场景的专属安全架构,而不是直接套用通用大模型。</li>
+<li>客服行业:Sierra 专注企业级客服 Agent,是垂直 Agent 类产品的代表之一。</li>
+<li>国内:科大讯飞明确把教育、医疗、司法、汽车列为其大模型的四大行业主战场——例如面向教育场景的"步骤级批改、错因定位"能力,面向医疗场景的"AI 慢病管理、AI 病历生成"等;畅捷通面向中小微企业推出了"畅龙虾"AI Agent 平台,定位 7×24 小时自主工作的"AI 员工";海信等家电企业也在招募 AI PM,聚焦智能家电场景下的 AI 能力嵌入。</li>
+</ul>
+<p><strong>能力侧重</strong>:行业知识的重要性通常高于泛化的 AI 前沿认知——懂法律工作流、懂医疗合规、懂教育场景的人,往往比"只懂大模型但不懂行业"的人更有竞争力。合规与领域安全设计能力(如医疗数据隐私、教育场景未成年人保护)也是核心要求。</p>
+<p><strong>入行难度</strong>:较高,但路径更多元。如果你有对应行业的从业背景(比如做过法律、医疗、教育行业的产品或业务),AI 认知反而可以作为"加分项"补齐,而不必先具备大模型厂商级别的技术深度。</p>
+<p>下文两节是横切视角:同一类「应用 / 平台 / 垂直」里,ToC 与 ToB、以及金融 / 教育 / 医疗之间,日常能力要求仍会再分叉。</p>
+<h2 id="toc-tob">五、ToC / ToB:你需要多深的「代码能力」</h2>
+<p>「AI PM 要不要会写代码」争论不断,是因为把<strong>不同产品类型</strong>混成了一道是非题。更有用的问法是:你的产品离模型与工程有多近,日常评审里有多少决策依赖你读懂接口、日志、评测脚本或编排配置。</p>
+<p>这与 <a href="transition-guide.html">转型指南</a> 里「不必先学会写代码才能做 AI PM」不矛盾——多数岗位<strong>不要求</strong>你写生产级后端或替代工程师;差别在于:有的岗离工程远,Demo 级就够;有的岗离工具调用 / 数据管线很近,完全看不懂会在需求阶段埋雷。能力尺子仍见 <a href="ai-pm-capability-model.html">能力模型 · 技术认知</a>。</p>
+<h3 id="_2">按产品类型对号入座(常见模式,非唯一正解)</h3>
+<table>
+<thead>
+<tr>
+<th>档位</th>
+<th>典型岗位形态</th>
+<th>「代码深度」大致到哪</th>
+<th>日常怎么用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L0 产品侧表达</td>
+<td>ToC 对话助手、内容生成、轻度嵌入功能</td>
+<td>会用产品 / <a href="../02-pm-skills/vibe-coding/index.html">Vibe Coding</a> / 低代码搭可演示 Demo;能讲清 Prompt、失败兜底与成本权衡</td>
+<td>主战场是体验、增长与内容安全;工程细节交给研发</td>
+</tr>
+<tr>
+<td>L1 读懂协作语言</td>
+<td>中重度 ToC AI 功能、带检索/工具的业务助手</td>
+<td>能读接口契约、错误码与埋点;能跟评测集 / Badcase 表;必要时写 SQL 或改配置做验收</td>
+<td>参与方案取舍,但仍不背生产代码</td>
+</tr>
+<tr>
+<td>L2 原型与编排</td>
+<td>ToB Agent、企业内部工作流自动化、多工具协作产品</td>
+<td>能搭通「工具调用 + 权限 + 状态机」的可运行原型;读懂编排 / workflow 配置;知道数据从哪进、副作用落在哪</td>
+<td>需求阶段就能暴露越权、重试、审计缺口</td>
+</tr>
+<tr>
+<td>L3 工程共审</td>
+<td>AI 平台 / 基础设施、模型托管与评估工具链</td>
+<td>能参与训练/推理/评估链路的技术评审;理解定价与容量背后的系统约束(见上文「平台 PM」)</td>
+<td>话语权来自工程深度 + 企业级打包经验</td>
+</tr>
+</tbody>
+</table>
+<p><strong>粗映射(请用 JD 再校准,不要按公司名气硬套):</strong></p>
+<ul>
+<li><strong>ToC 对话 / AIGC 应用 PM</strong>:多数落在 L0–L1。市场上岗位量最大的一类;「能用低代码或 AI 编程工具验证想法」通常足够,不要求贡献生产代码。</li>
+<li><strong>ToB Agent / 企业工作流 PM</strong>:更常要 L2。产品对象是工具权限、多步协作、租户隔离与审计留痕——PM 若完全读不懂调用链,容易把「能聊」写成「能改世界状态」却漏掉确认闸门。组织里谁拍板选型,见 <a href="ai-pm-team-org-and-roles.html">团队怎么建 · 选型话语权</a>。</li>
+<li><strong>平台 / 基础设施 PM</strong>:偏 L3,且通常以多年 B 端或云经验为前提(见第三节)。</li>
+<li><strong>大模型厂商 PM</strong>:深度往往在<strong>评估、数据与行为规格</strong>,不一定等于「会写服务端」;但离研究与训练越近,对指标与实验设计的技术认知要求越高(见第一节)。</li>
+</ul>
+<h3 id="_3">自检一句</h3>
+<p>问自己:上周一次技术评审里,你是在翻译「用户要什么」,还是已经在讨论「这个工具该不该暴露、失败如何回滚、评测怎么拦住」?后者占比越高,越该主动补 L1→L2,而不是焦虑「会不会刷题写代码」。验岗时也可对照 <a href="spot-fake-ai-pm-jobs.html">识别伪 AI 岗</a>——伪岗往往既不碰效果标准,也不碰任何工程协作语言。</p>
+<h2 id="ai-pm_4">六、金融 / 教育 / 医疗:垂直 AI PM 怎么差</h2>
+<p>同属「行业垂直 AI PM」,三个方向的<strong>买家、成功标准、不可妥协约束</strong>不同。下面按<strong>岗位视角</strong>对比;产品机制请下钻对应案例,避免把客服式「解决率」套到所有垂类。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>金融 AI PM</th>
+<th>教育 AI PM</th>
+<th>医疗 AI PM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>典型买家 / 用户</td>
+<td>银行、保险、券商内部业务线 + 风控/合规;或持牌机构对客渠道</td>
+<td>学区 / 学校采购 + 教师;学生是使用者但常不是付费决策者</td>
+<td>医院 / 科室 / 执业医师;部分 C 端健康产品另算,监管口径不同</td>
+</tr>
+<tr>
+<td>成功更常长什么样</td>
+<td>在可审计前提下提升人效或风险识别;上线要过模型/数据治理与业务验收</td>
+<td><strong>学会迁移</strong>发生 + 真实采纳;开通账号 ≠ 用起来 ≠ 学到了</td>
+<td>临床可信与安全有效;若构成医疗器械/诊疗辅助,还要过注册与变更管控</td>
+</tr>
+<tr>
+<td>日常多和谁对齐</td>
+<td>合规、内审、信息安全、业务 owner</td>
+<td>教研 / 学科专家、教师成功、隐私与未成年人保护</td>
+<td>临床专家、注册/质量(RA/QA)、信息科与伦理相关角色</td>
+</tr>
+<tr>
+<td>能力侧重</td>
+<td>流程嵌入、权限与留痕、幻觉/越权的业务代价</td>
+<td>学习科学指标、课堂工作流、反「直接给答案」捷径</td>
+<td>证据与不确定性呈现、宣称边界、模型更新是否触发再评价</td>
+</tr>
+<tr>
+<td>和「互联网应用 AI PM」最大差别</td>
+<td>「快迭代试错」空间更小;口径与审计往往先于增长故事</td>
+<td>效果验证周期长,且分发成功不等于产品成功</td>
+<td>监管路径可能长于功能排期;地理与准入本身是产品决策</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ai-pm_5">金融:和互联网 AI PM 差在「谁能签字上线」</h3>
+<p>金融向岗位的核心差异通常不是「会不会调更大的模型」,而是:<strong>错误代价进入资金、声誉与监管问责</strong>,产品决策默认假设「要能被内审和外部检查讲清楚」。</p>
+<p>岗位上你会更多时间花在:数据能否出境 / 是否必须私有化或专有云(选型约束见 <a href="../02-pm-skills/cost-and-tech/model-selection-framework.html">模型选型决策框架</a>);提示与工具是否可能给出投资建议或越权操作;每次自动动作有没有人闸门与审计字段。合规清单可对照 <a href="../02-pm-skills/data-annotation/genai-compliance-checklist-cn.html">国内 GenAI 合规检查清单</a> 与 <a href="../02-pm-skills/data-annotation/data-compliance.html">数据合规红线</a>。</p>
+<p>本库金融垂类长案例仍在 <a href="../03-case-studies/vertical/index.html">vertical 选题建议</a>(如 Bloomberg 类 Terminal Agent);在成文之前,可先用高合规工作流案例校准语感——<a href="../03-case-studies/vertical/harvey-legal-ai.html">Harvey 法律垂直</a> 强调可审计工作流而非一次会话关闭;<a href="../03-case-studies/vertical/ai-customer-service.html">智能客服</a> 则展示「结果可计费」与监督者拦截,金融场景往往还要再叠模型风险管理与持牌口径。</p>
+<h3 id="_4">教育:难在成效与采纳,护城河很少是基座模型</h3>
+<p>教育 AI PM 的日常焦虑通常是两层叠在一起:</p>
+<ol>
+<li><strong>效果难短期验证</strong>:「聊得开心」不等于「下一次独立做对」;需要反作弊式主指标,而不是只报交互次数。</li>
+<li><strong>有权限 ≠ 会用</strong>:采购与账号开通只是漏斗顶;交互位置、主动辅导、教师工作流往往比换模型更能拉动采纳。</li>
+</ol>
+<p>产品侧启示见 <a href="../03-case-studies/vertical/khanmigo.html">Khanmigo 案例</a>:主结果锚定 next-item correctness(独立学习迁移),并公开复盘「约 15% 有权限学生真正使用」如何倒逼交互重设计。岗位含义是——你要能定义 <strong>access → engage → learn transfer</strong>,并能在护栏(泄题、学科正确、认知参与)与主指标之间做上线取舍;护城河更接近<strong>课堂工作流 + 学习数据治理 + 与教师角色的互补设计</strong>,而不是「独家大模型」。</p>
+<p>国内教育 / 学习机等方向面试与交付形态,可对照面经 <a href="../04-interview/experiences/iflytek-pm-202511.html">科大讯飞产品经理</a>(偏 ToB 交付与落地排障)。</p>
+<h3 id="_5">医疗:先分清「是不是器械路径」,再谈功能排期</h3>
+<p>医疗 AI PM 相对互联网岗,多出来的不是多写几句免责声明,而是尽早回答:<strong>你的预期用途算不算诊疗辅助 / 医疗器械软件?</strong> 答案会改写整条路线图。</p>
+<ul>
+<li><strong>若走向器械注册</strong>:在中国,辅助临床决策、病灶识别 / 性质判定等人工智能医用软件,分类与注册资料要求以药监部门现行规则与指导原则为准;辅助决策类常见按较高管理类别路径推进,并涉及算法研究、数据质控、临床评价等材料(见文末 NMPA / 器审相关公开文件)。PM 要提前规划的是:<strong>宣称边界、适应症/适用范围、数据与标注质控、模型升级是否触发变更、多中心验证排期</strong>——这些往往比「多一个对话技能」更决定能不能卖进医院。</li>
+<li><strong>若走临床知识 / 决策支持、且以执业身份与证据设计为主</strong>(不一定等同于你所在司法辖区的器械注册结论):岗位重心会转向<strong>信任 UI 与证据责任</strong>——引用之外还要呈现证据能承受多大权重,并管理地理可用性与准入。见 <a href="../03-case-studies/vertical/openevidence.html">OpenEvidence 案例</a>(EvidenceGrade、执业核验、区域限制等产品决策)。</li>
+</ul>
+<p>无论哪条路径,医疗岗几乎都会长期保留人在回路,并把「不确定性产品化」写成核心功能,而不是上线后的附录。幻觉与高风险拒答的产品层手段,另见 <a href="../01-ai-basics/llm/hallucination.html">幻觉问题</a>。</p>
+<h3 id="_6">怎么用这张表选垂类岗</h3>
+<ul>
+<li>有持牌机构 / 强合规业务背景 → 金融或同构的高合规 ToB(法律等)往往更顺。</li>
+<li>有教研、教师成功或儿童产品经验 → 教育垂类可把「成效指标设计」做成差异化履历。</li>
+<li>有临床、器械质量或医院信息化经验 → 医疗垂类;没有也行,但要证明你懂<strong>宣称与监管日历</strong>,而不只是通用 Chatbot 增长。</li>
+<li>三者都没有时,仍建议先从上文「AI 应用 PM」切入,再用 vertical 案例补行业语感,而不是一上来押注「金融/医疗 AI PM」标题。</li>
+</ul>
+<h2 id="_7">怎么选适合自己的方向</h2>
+<ol>
+<li>先用 <a href="ai-pm-capability-model.html">AI 产品经理能力模型</a> 给自己五个维度打分——技术认知和评估能力弱、但产品基本功扎实,大概率更适合 AI 应用 PM;如果你本身有深厚的行业背景(法律、医疗、教育、制造等),行业垂直 AI PM 是更顺的路径。</li>
+<li>没有相关经验的转型者,建议从 AI 应用 PM 切入,门槛最低、和传统 PM 经验的重合度最高,参考 <a href="transition-guide.html">传统 PM 转型 AI PM 指南</a> 的 3 个月计划;再用第五节判断自己该补到 L0 还是 L2。</li>
+<li>大模型厂商 PM 和 AI 平台 PM 通常需要更长的积累周期(技术深度、B 端经验),更适合作为"第二步"目标,而不是转型第一站。</li>
+<li>不要只看公司名气,要看具体岗位描述里写的职责——同一家公司内部,"消费产品 PM"和"模型行为研究 PM"可能是完全不同的能力要求;垂类岗再对照第六节的买家与成功标准。</li>
+<li>Offer 前用 <a href="spot-fake-ai-pm-jobs.html">识别伪 AI 岗</a> 做二次过滤:标题很垂类、实际只催交付且碰不到效果 / 合规 / 评测,转型收益会被摊薄。</li>
+</ol>
+<h2 id="_8">相关阅读</h2>
+<ul>
+<li><a href="ai-pm-capability-model.html">AI 产品经理能力模型</a></li>
+<li><a href="transition-guide.html">传统 PM 转型 AI PM 指南</a></li>
+<li><a href="spot-fake-ai-pm-jobs.html">如何识别「挂羊头卖狗肉」的 AI PM 岗位</a></li>
+<li><a href="ai-pm-team-org-and-roles.html">AI 产品团队怎么建：角色、分工与选型话语权</a></li>
+<li><a href="getting-started.html">AI 产品经理入门路径</a></li>
+<li><a href="../02-pm-skills/model-evaluation/index.html">模型与产品效果评估</a></li>
+<li><a href="../02-pm-skills/cost-and-tech/index.html">成本测算与技术协作</a></li>
+<li><a href="../02-pm-skills/vibe-coding/index.html">Vibe Coding</a> —— ToC / 转型者用低代码与 AI 编程验证想法</li>
+<li>垂直案例:<a href="../03-case-studies/vertical/khanmigo.html">Khanmigo(教育)</a>、<a href="../03-case-studies/vertical/openevidence.html">OpenEvidence(医疗)</a>、<a href="../03-case-studies/vertical/harvey-legal-ai.html">Harvey(法律高合规)</a>、<a href="../03-case-studies/vertical/ai-customer-service.html">智能客服</a>、<a href="../03-case-studies/vertical/index.html">vertical 索引</a></li>
+<li>面经案例:<a href="../04-interview/experiences/bytedance-kol-agent-pm-202607.html">字节跳动 KOL Agent PM</a>、<a href="../04-interview/experiences/meituan-ai-pm-intern-202607.html">美团 AI PM 实习</a>、<a href="../04-interview/experiences/iflytek-pm-202511.html">科大讯飞 产品经理</a>、<a href="../04-interview/experiences/changjietong-ai-pm-202607.html">畅捷通 AI 产品经理</a>、<a href="../04-interview/experiences/hisense-ai-pm-202607.html">海信集团 AI 产品</a></li>
+</ul>
+<h2 id="_9">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/careers/jobs">Jobs \ Anthropic</a> — Anthropic 官方招聘页,列出 Compute Platform、Safeguards、Research Product Manager 等岗位,2026-07 访问</li>
+<li><a href="https://openai.com/careers/product-manager-enterprise/">Product Manager, Enterprise | OpenAI</a> — OpenAI 官方招聘详情页,2026-07 访问</li>
+<li><a href="https://deepmind.google/careers/">Careers at Google DeepMind</a> — Google DeepMind 官方招聘页,2026-07 访问</li>
+<li><a href="https://www.google.com/about/careers/applications/jobs/results/130228712753767110-product-manager-gemini-api-models-deepmind">Product Manager, Gemini API Models, DeepMind — Google Careers</a> — Google 官方招聘详情页,2026-07 访问</li>
+<li><a href="https://www.databricks.com/company/careers/product/staff-product-manager-ai-platform-8427940002">Staff Product Manager, AI Platform - Databricks</a> — Databricks 官方招聘详情页,2026-07 访问</li>
+<li><a href="https://www.perplexity.ai/hub/associate-product-manager">Perplexity Associate Product Manager Program</a> — Perplexity 官方 APM 项目介绍页,2026-07 访问</li>
+<li><a href="https://www.harvey.ai/blog/harvey-raises-at-dollar11-billion-valuation-to-scale-agents-across-law-firms-and-enterprises">Harvey Raises at $11 Billion Valuation to Scale Agents Across Law Firms and Enterprises</a> — Harvey 官方博客,2026-07 访问</li>
+<li><a href="https://companies.caixin.com/2026-06-26/102458093.html">DeepSeek计划所有部门的规模扩大1倍 融资后大举招聘</a> — 财新网报道,2026-07 访问</li>
+<li><a href="https://www.gov.cn/zhengce/zhengceku/202405/content_6950906.htm">国家药监局关于规范医疗器械产品分类界定工作的公告</a> — 中国政府网转载,分类界定工作程序与依据,2026-08-06 访问</li>
+<li><a href="https://www.caivd-org.cn/m/article.asp?id=15904">人工智能辅助检测医疗器械（软件）临床评价注册审查指导原则（2023年第38号）</a> — 转载国家药监局器审中心指导原则摘要(辅助检测类、管理类别等),具体申报以现行官方文本为准,2026-08-06 访问</li>
+<li>选题启发:磊叔 / AIRay1015《关于 AI 产品经理的 100 个问题》Q7、Q90、Q91、Q92(飞书专题);第五节、第六节为原创岗位框架,<strong>未摘录</strong>该 PDF 答案正文</li>
+</ul>
+</main>
+</body>
+</html>

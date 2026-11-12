@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>生产 RAG 排障指南</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 06_工程实践/02_生产RAG排障指南.md</span></div>
+<main>
+<h1 id="rag">生产 RAG 排障指南</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>RAG 答错了怎么定位？</li>
+<li>如何区分检索问题和生成问题？</li>
+<li>为什么看起来召回了文档，答案还是错？</li>
+<li>如何设计 RAG 评估和线上反馈？</li>
+<li>生产 RAG 常见失败模式有哪些？</li>
+</ul>
+<hr>
+<h2 id="rag-pipeline">外部图解：生产 RAG Pipeline</h2>
+<p><img alt="NVIDIA：RAG ingest / query pipeline" src="https://developer-blogs.nvidia.com/wp-content/uploads/2023/12/rag-pipeline-ingest-query-flow-b.png"></p>
+<blockquote>
+<p>图源：<a href="https://developer.nvidia.com/blog/rag-101-demystifying-retrieval-augmented-generation-pipelines/">NVIDIA Blog - RAG 101</a>。这张图把离线 ingest 和在线 query 分开，适合定位 RAG 故障发生在哪一段。</p>
+</blockquote>
+<hr>
+<h2 id="_2">一句话原则</h2>
+<p>RAG 排障不要直接怪模型，要按链路拆：</p>
+<pre><code class="language-text">问题理解 -&gt; 检索召回 -&gt; 排序 -&gt; 上下文组装 -&gt; 生成 -&gt; 引用校验
+</code></pre>
+<p>每一层都有独立失败模式。</p>
+<hr>
+<h2 id="1-rag">1. RAG 失败分类</h2>
+<table>
+<thead>
+<tr>
+<th>失败类型</th>
+<th>表现</th>
+<th>主要原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>没召回</td>
+<td>正确文档不在 Top-K</td>
+<td>chunk、embedding、query rewrite 问题</td>
+</tr>
+<tr>
+<td>召回错</td>
+<td>Top-K 都是不相关文档</td>
+<td>关键词歧义、权限过滤、索引污染</td>
+</tr>
+<tr>
+<td>排序错</td>
+<td>正确文档在后面</td>
+<td>缺 rerank 或 rerank 模型不适配</td>
+</tr>
+<tr>
+<td>上下文脏</td>
+<td>太多噪声塞进 prompt</td>
+<td>Top-K 太大、chunk 太长</td>
+</tr>
+<tr>
+<td>生成错</td>
+<td>证据正确但总结错</td>
+<td>prompt、模型能力、格式约束</td>
+</tr>
+<tr>
+<td>引用错</td>
+<td>答案和引用不匹配</td>
+<td>citation 绑定不严</td>
+</tr>
+<tr>
+<td>不该答却答</td>
+<td>证据不足仍然编</td>
+<td>缺拒答策略和置信阈值</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2">2. 排障流程</h2>
+<h3 id="step-1">Step 1：看正确文档有没有被召回</h3>
+<p><strong>排障细节：</strong> 如果正确文档没有进入 Top-K，先不要调生成 prompt。应检查文档是否被接入、解析是否丢字段、chunk 是否切断答案、embedding 是否更新、权限过滤是否误杀、query 是否缺少关键词。这个阶段的目标是证明“证据能被找到”，否则后面 rerank 和生成都无从优化。</p>
+<p>指标：</p>
+<ul>
+<li>Recall@5</li>
+<li>Recall@10</li>
+</ul>
+<p>如果没召回：</p>
+<ul>
+<li>检查 query 是否需要 rewrite</li>
+<li>检查 chunk 是否切碎了关键信息</li>
+<li>检查 embedding 是否适合语言和领域</li>
+<li>检查关键词检索是否能补上专有名词</li>
+</ul>
+<h3 id="step-2">Step 2：看正确文档排第几</h3>
+<p>指标：</p>
+<ul>
+<li>MRR</li>
+<li>NDCG</li>
+</ul>
+<p>如果召回了但排后面：</p>
+<ul>
+<li>加 reranker</li>
+<li>用 RRF 融合 BM25 和向量检索</li>
+<li>对标题、section_path 加权</li>
+<li>针对业务术语做 query expansion</li>
+</ul>
+<h3 id="step-3">Step 3：看上下文是否干净</h3>
+<p>指标：</p>
+<ul>
+<li>Context Precision</li>
+<li>噪声 chunk 比例</li>
+</ul>
+<p>如果上下文太脏：</p>
+<ul>
+<li>降低 Top-K</li>
+<li>缩短 chunk</li>
+<li>rerank 后再截断</li>
+<li>对相同文档做去重</li>
+</ul>
+<h3 id="step-4">Step 4：看生成是否忠于证据</h3>
+<p><strong>排障细节：</strong> 如果证据已经正确进入上下文但答案仍错，要检查 prompt 是否要求引用、证据是否过长、多个证据是否冲突、关键证据是否排在中间或末尾、模型是否被系统指令或用户指令带偏。常见修复包括证据去重、把关键句提前、要求逐条引用、降低 temperature、增加拒答规则和使用更强模型处理最终生成。</p>
+<p>指标：</p>
+<ul>
+<li>Faithfulness</li>
+<li>Citation Accuracy</li>
+</ul>
+<p>如果证据对但答案错：</p>
+<ul>
+<li>prompt 强制“只基于证据”</li>
+<li>加引用检查</li>
+<li>不足时拒答</li>
+<li>用更强模型生成</li>
+<li>用 LLM-as-judge 做后验校验</li>
+</ul>
+<hr>
+<h2 id="3-chunk">3. Chunk 常见问题</h2>
+<h3 id="chunk">Chunk 太小</h3>
+<p>表现：</p>
+<ul>
+<li>召回片段缺上下文</li>
+<li>模型看不到完整条件</li>
+<li>引用碎片化</li>
+</ul>
+<p>解决：</p>
+<ul>
+<li>增加 overlap</li>
+<li>保留标题路径</li>
+<li>按语义段落切</li>
+</ul>
+<h3 id="chunk_1">Chunk 太大</h3>
+<p>表现：</p>
+<ul>
+<li>召回不精准</li>
+<li>上下文噪声多</li>
+<li>token 成本高</li>
+</ul>
+<p>解决：</p>
+<ul>
+<li>按标题、段落、表格单独切</li>
+<li>对 FAQ 用问答对作为 chunk</li>
+<li>对代码和日志单独策略</li>
+</ul>
+<hr>
+<h2 id="4-query-rewrite">4. Query Rewrite 什么时候有用</h2>
+<p>适合：</p>
+<ul>
+<li>用户问题太短</li>
+<li>多轮对话有指代</li>
+<li>问题抽象</li>
+<li>需要拆多跳</li>
+</ul>
+<p>不适合：</p>
+<ul>
+<li>错误码</li>
+<li>接口名</li>
+<li>精确产品型号</li>
+<li>日志关键字</li>
+</ul>
+<p>规则：</p>
+<blockquote>
+<p>Rewrite 不能丢掉原始关键词。生产里通常原 query 和 rewrite query 一起检索。</p>
+</blockquote>
+<hr>
+<h2 id="5-hybrid-search">5. Hybrid Search 为什么重要</h2>
+<p>向量检索擅长语义相似，但不擅长：</p>
+<ul>
+<li>错误码</li>
+<li>版本号</li>
+<li>API 名称</li>
+<li>人名</li>
+<li>产品编号</li>
+<li>日志片段</li>
+</ul>
+<p>BM25 擅长精确匹配，但不擅长同义改写。</p>
+<p>所以生产默认建议：</p>
+<pre><code class="language-text">Dense Retrieval + BM25 + RRF + Rerank
+</code></pre>
+<hr>
+<h2 id="6">6. 权限过滤怎么做</h2>
+<p>不要只在 prompt 里说“不能回答没权限内容”。</p>
+<p>正确做法：</p>
+<ol>
+<li>检索前按租户、部门、标签过滤</li>
+<li>召回后再次过滤</li>
+<li>引用里只展示可见来源</li>
+<li>日志脱敏</li>
+</ol>
+<p>如果权限过滤错了，RAG 会变成数据泄露系统。</p>
+<hr>
+<h2 id="7">7. 线上反馈闭环</h2>
+<p>日志至少记录：</p>
+<ul>
+<li>query</li>
+<li>rewritten query</li>
+<li>retrieved chunks</li>
+<li>rerank scores</li>
+<li>final context</li>
+<li>answer</li>
+<li>citations</li>
+<li>user feedback</li>
+<li>latency</li>
+<li>token cost</li>
+</ul>
+<p>失败样本进入队列：</p>
+<table>
+<thead>
+<tr>
+<th>失败</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无答案</td>
+<td>补知识库</td>
+</tr>
+<tr>
+<td>召回错</td>
+<td>调 chunk / embedding / hybrid</td>
+</tr>
+<tr>
+<td>生成错</td>
+<td>改 prompt / 模型 / judge</td>
+</tr>
+<tr>
+<td>引用错</td>
+<td>改 citation 绑定</td>
+</tr>
+<tr>
+<td>用户不满意</td>
+<td>标注偏好数据</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_3">常见误区</h2>
+<h3 id="1top-k">误区 1：Top-K 越大越好</h3>
+<p>Top-K 太大会引入噪声，让模型更容易答错。</p>
+<h3 id="2_1">误区 2：检索到了文档就不会幻觉</h3>
+<p>模型可能误读证据，也可能忽略证据。</p>
+<h3 id="3embedding">误区 3：Embedding 换强模型一定解决问题</h3>
+<p>很多问题来自 chunk、权限、rerank 和 query rewrite。</p>
+<h3 id="4rag">误区 4：RAG 评估只看答案</h3>
+<p>必须把检索层和生成层拆开评估。</p>
+<hr>
+<h2 id="_4">面试延伸</h2>
+<p><strong>Q：RAG 答错了你怎么排查？</strong></p>
+<blockquote>
+<p>我会先看正确证据是否进入 Top-K，再看排序，再看上下文噪声，最后看生成是否忠于证据。对应指标是 Recall@K、MRR、Context Precision、Faithfulness 和 Citation Accuracy。</p>
+</blockquote>
+<p><strong>Q：为什么 Hybrid Search 比纯向量检索稳？</strong></p>
+<blockquote>
+<p>因为企业问题里有大量错误码、接口名、版本号和专有名词，BM25 对这些更稳；向量检索补语义改写，两者融合能提高召回鲁棒性。</p>
+</blockquote>
+<p><strong>Q：如何避免 RAG 泄露无权限文档？</strong></p>
+<blockquote>
+<p>权限必须在检索系统层实现，按租户和标签过滤，不能只靠 prompt 约束模型。</p>
+</blockquote>
+<hr>
+<h2 id="runbook">生产排障 Runbook</h2>
+<p>线上 RAG 出错时，建议按固定 runbook 处理，而不是临时猜：</p>
+<pre><code class="language-text">1. 复现 query，固定用户身份和权限
+2. 查看 rewrite query
+3. 查看 dense / BM25 各自 Top-K
+4. 查看 fusion 和 rerank 后排序
+5. 查看 ACL filter 前后数量
+6. 查看最终 prompt 中的 context
+7. 查看模型答案是否忠于证据
+8. 给失败打标签，进入优化队列
+</code></pre>
+<p>失败标签建议：</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>含义</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>knowledge_missing</td>
+<td>知识库没有答案</td>
+<td>补文档、补 FAQ</td>
+</tr>
+<tr>
+<td>parse_failed</td>
+<td>文档解析失败</td>
+<td>修解析器、表格/OCR</td>
+</tr>
+<tr>
+<td>chunk_bad</td>
+<td>chunk 切分不合理</td>
+<td>改 chunk 策略</td>
+</tr>
+<tr>
+<td>retrieval_miss</td>
+<td>正确证据没召回</td>
+<td>调 embedding/BM25/rewrite</td>
+</tr>
+<tr>
+<td>rerank_bad</td>
+<td>召回了但排序靠后</td>
+<td>调 reranker 或训练数据</td>
+</tr>
+<tr>
+<td>context_noise</td>
+<td>上下文噪声太多</td>
+<td>降 Top-K、压缩证据</td>
+</tr>
+<tr>
+<td>generation_unfaithful</td>
+<td>模型没按证据答</td>
+<td>改 prompt、加引用校验</td>
+</tr>
+<tr>
+<td>acl_error</td>
+<td>权限过滤错误</td>
+<td>修 metadata 和 filter</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="rag_1">RAG 评估集怎么构建</h2>
+<p>生产 RAG 的评估集不应该只有“问题-答案”，最好包含证据：</p>
+<pre><code class="language-json">{
+  &quot;question&quot;: &quot;模型 API 超时怎么排查？&quot;,
+  &quot;gold_answer&quot;: &quot;...&quot;,
+  &quot;gold_chunk_ids&quot;: [&quot;ops_001&quot;, &quot;gateway_014&quot;],
+  &quot;must_cite&quot;: true,
+  &quot;tenant&quot;: &quot;internal&quot;,
+  &quot;difficulty&quot;: &quot;multi-hop&quot;
+}
+</code></pre>
+<p>评估维度：</p>
+<ul>
+<li><strong>Retrieval Recall@K</strong>：gold chunk 是否被召回。</li>
+<li><strong>MRR/NDCG</strong>：正确证据排序是否靠前。</li>
+<li><strong>Faithfulness</strong>：答案是否被证据支持。</li>
+<li><strong>Citation Accuracy</strong>：引用是否真实对应答案。</li>
+<li><strong>Refusal Accuracy</strong>：无证据或无权限时是否拒答。</li>
+<li><strong>Latency/Cost</strong>：质量提升是否值得成本。</li>
+</ul>
+<hr>
+<h2 id="_5">面试回答模板</h2>
+<p>如果被问“RAG 线上效果差怎么办”，可以这样回答：</p>
+<blockquote>
+<p>我不会先改模型，而是先拆链路。第一看正确证据在不在知识库，第二看有没有被 dense/BM25 召回，第三看 fusion/rerank 后有没有进入上下文，第四看模型是否忠于证据。每层都有对应指标和日志，定位后再决定补文档、调 chunk、换 embedding、加 rerank、改 prompt 或做权限修复。</p>
+</blockquote>
+<p>这个回答能体现你理解 RAG 是系统工程，而不是一个向量库 demo。</p>
+<hr>
+<h2 id="_6">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2005.11401">arxiv.org/abs/2005.11401</a></td>
+</tr>
+<tr>
+<td>Dense Passage Retrieval for Open-Domain Question Answering (Karpukhin et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2004.04906">arxiv.org/abs/2004.04906</a></td>
+</tr>
+<tr>
+<td>Self-RAG: Learning to Retrieve, Generate, and Critique (Asai et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2310.11511">arxiv.org/abs/2310.11511</a></td>
+</tr>
+<tr>
+<td>Corrective RAG (Yan et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2401.15884">arxiv.org/abs/2401.15884</a></td>
+</tr>
+<tr>
+<td>RAGAS: Automated Evaluation of Retrieval Augmented Generation (Es et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.15217">arxiv.org/abs/2309.15217</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 NVIDIA Blog</td>
+<td><a href="https://developer.nvidia.com/blog/rag-101-demystifying-retrieval-augmented-generation-pipelines/">RAG 101: Demystifying Retrieval-Augmented Generation Pipelines</a></td>
+<td>生产 RAG pipeline 的工程拆解</td>
+</tr>
+<tr>
+<td>📖 LangChain Docs</td>
+<td><a href="https://docs.smith.langchain.com/evaluation">RAG evaluation concepts</a></td>
+<td>线上 trace 和 RAG 评估入口</td>
+</tr>
+<tr>
+<td>📖 LlamaIndex Docs</td>
+<td><a href="https://docs.llamaindex.ai/en/stable/understanding/evaluating/evaluating/">Evaluating RAG applications</a></td>
+<td>RAG 检索和生成评估实践</td>
+</tr>
+<tr>
+<td>📖 Anthropic Research</td>
+<td><a href="https://www.anthropic.com/research/prompt-injection-defenses">Prompt injection defenses</a></td>
+<td>RAG/Agent 场景下的提示注入风险</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

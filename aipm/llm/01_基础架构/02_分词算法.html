@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分词算法（Tokenization）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 01_基础架构/02_分词算法.md</span></div>
+<main>
+<h1 id="tokenization">分词算法（Tokenization）</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>BPE、WordPiece、SentencePiece 的区别？</li>
+<li>为什么不直接按字/词切分？</li>
+<li>词表大小如何权衡？</li>
+<li>BBPE vs BPE？中文分词有什么特殊处理？</li>
+<li>Tokenization 对 LLM 性能有什么实际影响？</li>
+</ul>
+<hr>
+<h2 id="_2">一、为什么需要子词分词？</h2>
+<h3 id="_3">三种粒度对比</h3>
+<pre><code>句子：&quot;我喜欢吃北京烤鸭&quot;
+
+字符级切分：
+[&quot;我&quot;, &quot;喜&quot;, &quot;欢&quot;, &quot;吃&quot;, &quot;北&quot;, &quot;京&quot;, &quot;烤&quot;, &quot;鸭&quot;]
+词表：~5000 （中文字符+标点+英文大小写）
+优点：词表最小，无OOV
+缺点：序列最长（本句8 tokens），每个token语义信息极少
+
+词级切分：
+[&quot;我&quot;, &quot;喜欢&quot;, &quot;吃&quot;, &quot;北京烤鸭&quot;]
+词表：~50万+（中文词量巨大）
+优点：序列最短，每个token语义丰富
+缺点：词表爆炸，OOV（未登录词）严重，&quot;武汉热干面&quot;不在词表里就得拆成字
+
+子词切分（Subword）：
+[&quot;我&quot;, &quot;喜欢&quot;, &quot;吃&quot;, &quot;北京&quot;, &quot;烤&quot;, &quot;鸭&quot;]
+词表：~32K-100K
+优点：高频词保持完整（&quot;喜欢&quot;），低频词拆成子词（&quot;北京烤鸭&quot;→&quot;北京&quot;+&quot;烤&quot;+&quot;鸭&quot;）
+</code></pre>
+<p>子词分词 = <strong>高频短语保持词级</strong> + <strong>低频词用可复用子词单元组合</strong>，兼顾了词表和序列长度。</p>
+<hr>
+<h2 id="bpebyte-pair-encoding">二、BPE（Byte Pair Encoding）</h2>
+<p><strong>细化理解：</strong> BPE 的直觉是从字符或字节开始，反复合并语料中最常见的相邻片段。高频词会逐渐变成较长 token，低频词仍能由较短片段拼出来，因此可以兼顾词表规模和 OOV 问题。它的工程优势是简单、可控、适合大规模训练；缺点是合并规则只看频次，不理解语义边界，所以数字、代码和跨语言文本可能出现不理想切分。</p>
+<p><strong>使用模型</strong>：GPT-2/3/4、RoBERTa、LLaMA 等。</p>
+<h3 id="_4">训练算法</h3>
+<pre><code>输入：语料库，目标词表大小 V
+输出：BPE 合并规则列表
+
+1. 初始化：将所有词拆成字符序列，每词末尾加 &lt;/w&gt;
+   例如：&quot;low low lower newest widest&quot; →
+   l o w &lt;/w&gt; l o w &lt;/w&gt; l o w e r &lt;/w&gt; n e w e s t &lt;/w&gt; w i d e s t &lt;/w&gt;
+
+2. 统计所有相邻符号对的出现频率
+
+3. 重复（直到词表达到 V）：
+   a. 找出频率最高的符号对 (A, B)
+   b. 将 (A, B) 合并为 AB，加入词表
+   c. 更新语料：将所有 A B 替换为 AB
+   d. 重新统计频率
+
+4. 输出：合并规则列表（用于推理时对新文本做同样合并）
+</code></pre>
+<h3 id="_5">完整示例</h3>
+<pre><code>初始字符序列 + 频率：
+  l o w &lt;/w&gt;  (×5)
+  l o w e s t &lt;/w&gt;  (×2)
+  n e w e s t &lt;/w&gt;  (×6)
+  w i d e s t &lt;/w&gt;  (×3)
+
+迭代 1：频率最高 = (e, s) → 合并为 &quot;es&quot;，词表 +1
+迭代 2：频率最高 = (es, t) → 合并为 &quot;est&quot;，词表 +1
+迭代 3：频率最高 = (est, &lt;/w&gt;) → 合并为 &quot;est&lt;/w&gt;&quot;，词表 +1
+迭代 4：频率最高 = (l, o) → 合并为 &quot;lo&quot;，词表 +1
+迭代 5：频率最高 = (lo, w) → 合并为 &quot;low&quot;，词表 +1
+...
+最终词表包含：l, o, w, e, s, t, n, i, d, es, est, lo, low, low&lt;/w&gt;, est&lt;/w&gt;, ...
+
+推理时对 &quot;lowest&quot; 分词：
+  从字符开始 → l o w e s t
+  应用合并规则：lo + w → low
+                e + s → es
+                es + t → est
+  结果：[&quot;low&quot;, &quot;est&quot;]
+</code></pre>
+<h3 id="bbpebyte-level-bpe">BBPE（Byte-Level BPE）</h3>
+<p>GPT-2 引入的改进：<strong>在字节级操作</strong>。256 个可能的字节值作为初始"字母表"，任何 Unicode 字符都被编码为 UTF-8 字节序列。</p>
+<pre><code>&quot;你好&quot; → UTF-8 字节 → [0xE4, 0xBD, 0xA0, 0xE5, 0xA5, 0xBD]
+</code></pre>
+<p>BPE 合并在这些字节上执行，而非字符。完全消除了 OOV 问题——任何 Unicode 文本都可由 256 个字节表示。</p>
+<hr>
+<h2 id="wordpiece">三、WordPiece</h2>
+<p><strong>使用模型</strong>：BERT 及变体。</p>
+<h3 id="bpe">与 BPE 的核心区别</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>BPE</th>
+<th>WordPiece</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>合并标准</td>
+<td>频率最高的符号对</td>
+<td>最大化语言模型似然增益</td>
+</tr>
+<tr>
+<td>数学上</td>
+<td>贪心最大频率</td>
+<td>贪心最大互信息</td>
+</tr>
+<tr>
+<td>子词标记</td>
+<td>无</td>
+<td><code>##</code> 前缀表示非开头子词</td>
+</tr>
+</tbody>
+</table>
+<h3 id="wordpiece_1">WordPiece 的合并标准</h3>
+<p>给定两个子词 A 和 B，WordPiece 选择使以下比值最大的对：</p>
+<pre><code>score(A, B) = count(A, B) / (count(A) × count(B))
+</code></pre>
+<p>这衡量了 A 和 B <strong>共现的统计显著程度</strong>——不是"出现得多不多"，而是"在一起出现的程度是否远超随机"。</p>
+<pre><code>例子：
+
+&quot;un&quot; 和 &quot;able&quot; 的共现：
+  count(&quot;un&quot;, &quot;able&quot;) = 10000  （&quot;unable&quot;出现了 10000 次）
+  count(&quot;un&quot;) = 50000
+  count(&quot;able&quot;) = 20000
+  score = 10000 / (50000 × 20000) ≈ 10⁻⁵  （低！&quot;un&quot;和&quot;able&quot;各自都很常见）
+
+&quot;un&quot; 和 &quot;believ&quot; 的共现：
+  count(&quot;un&quot;, &quot;believ&quot;) = 500  （&quot;unbelievable&quot;出现了 500 次）
+  count(&quot;un&quot;) = 50000
+  count(&quot;believ&quot;) = 800  （&quot;believ&quot;几乎只在&quot;unbelievable&quot;中出现）
+  score = 500 / (50000 × 800) ≈ 1.25 × 10⁻⁵  （也低，但比上一对略高）
+
+实际中 WordPiece 会选择使整体语料似然提升最大的合并。
+</code></pre>
+<h3 id="wordpiece_2">WordPiece 的分词过程</h3>
+<pre><code>输入：&quot;unbelievable&quot;
+
+1. 从第一个字符开始，找词表中能匹配的最长子串
+   词表中有 &quot;un&quot; → 匹配 → 继续
+2. 从剩余部分 &quot;believable&quot; 找最长匹配
+   词表中没有 &quot;believable&quot; → 缩短
+   词表中没有 &quot;believabl&quot; → 继续缩短
+   词表中有 &quot;##believ&quot; → 匹配（## 表示非开头子词）
+3. 从剩余部分 &quot;able&quot; 找最长匹配
+   词表中有 &quot;##able&quot; → 匹配
+4. 剩余为空 → 完成
+
+结果：[&quot;un&quot;, &quot;##believ&quot;, &quot;##able&quot;]
+</code></pre>
+<hr>
+<h2 id="sentencepiece">四、SentencePiece</h2>
+<p><strong>使用模型</strong>：T5、LLaMA、Qwen、Mistral 等。</p>
+<h3 id="_6">核心创新：不依赖预分词</h3>
+<p>BPE 和 WordPiece 都需要先按<strong>空格/标点</strong>将文本切成词（pre-tokenization），这在中文、日文等无语空格分隔的语言中是个问题。SentencePiece <strong>直接从原始文本学习</strong>，将空格视为普通字符之一。</p>
+<pre><code>英文 &quot;Hello world&quot; →
+  BPE 预分词：[&quot;Hello&quot;, &quot;world&quot;] → &quot;Hello&quot; → &quot;H&quot; &quot;e&quot; &quot;l&quot; &quot;l&quot; &quot;o&quot;
+  SentencePiece：直接 &quot;H&quot; &quot;e&quot; &quot;l&quot; &quot;l&quot; &quot;o&quot; &quot;▁&quot; &quot;w&quot; &quot;o&quot; &quot;r&quot; &quot;l&quot; &quot;d&quot;
+  （▁ 表示空格，是普通字符）
+
+中文 &quot;你好世界&quot; →
+  BPE 预分词：需要先做中文分词 → 依赖外部分词器
+  SentencePiece：直接 &quot;你&quot; &quot;好&quot; &quot;世&quot; &quot;界&quot;
+  （无需预分词！）
+</code></pre>
+<h3 id="unigram-sentencepiece">Unigram 语言模型（SentencePiece 的主力算法）</h3>
+<pre><code>训练流程：
+
+1. 初始化一个大词表（包含所有可能的子词候选，通常 ~100 万）
+
+2. 用 EM 算法估计每个子词的 unigram 概率 P(x_i)
+
+3. 对每个子词计算：如果把它从词表中删除，语料整体似然损失多少？
+   损失 = -log P(用剩余子词重新分词) + log P(当前分词)
+
+4. 删除损失最小的 20% 子词（对整体似然影响最小的）
+
+5. 重复步骤 2-4，直到词表缩减到目标大小
+</code></pre>
+<p><strong>Unigram 的优势</strong>：输出每个分词的<strong>概率</strong>，可以在训练时做<strong>子词采样</strong>（subword regularization）——不总选最优分词，而是按概率随机采样一个分词结果，起到数据增强作用。</p>
+<h3 id="bpe-vs-unigram-sentencepiece">BPE vs Unigram（同为 SentencePiece 支持的算法）</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>BPE</th>
+<th>Unigram</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练方向</td>
+<td>从底向上（合并）</td>
+<td>从顶向下（删减）</td>
+</tr>
+<tr>
+<td>训练速度</td>
+<td>快</td>
+<td>慢（需要多轮 EM）</td>
+</tr>
+<tr>
+<td>推理速度</td>
+<td>快（确定性规则）</td>
+<td>快（Viterbi 解码）</td>
+</tr>
+<tr>
+<td>子词采样</td>
+<td>不支持</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>最终质量</td>
+<td>好</td>
+<td>略好（理论上更优）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_7">五、词表大小的权衡</h2>
+<p><strong>细化理解：</strong> 词表越大，平均序列长度通常越短，但 embedding 和 LM head 参数会增加，低频 token 也更难训练充分；词表越小，模型输入序列更长，attention 与 KV Cache 成本上升。多语言模型还要考虑不同语言的 token tax：某些语言被切得更碎，同样语义会消耗更多上下文预算，这会影响公平性和实际使用成本。</p>
+<pre><code>小词表 (8K-16K):
+  优点：Embedding 层参数少（16K × 768 ≈ 12M 参数），训练/推理快
+  缺点：每个 token 表示极短文本片段，序列变长，语义信息稀疏
+
+中词表 (32K-64K):
+  优点：平衡序列长度和参数开销，高频词完整保留
+  缺点：低频词和专有名词仍可能被拆得太碎
+  代表：LLaMA (32K)、Mistral (32K)、Qwen (152K)
+
+大词表 (100K-250K):
+  优点：序列短，多语言和代码覆盖好
+  缺点：Embedding 层参数大（200K × 4096 ≈ 819M 参数），训练慢
+  代表：Qwen (152K)、Gemma (256K)
+
+极端案例：
+  纯中文 BPE (200K+)：容纳更多完整中文词
+  多语言 BPE (250K+)：每种语言的高频词都在词表中
+</code></pre>
+<p><strong>实践建议</strong>：多语言模型通常需要 100K+ 的词表来公平覆盖各语言；纯英文模型 32K-50K 即可。</p>
+<hr>
+<h2 id="llm">六、分词对 LLM 的实际影响</h2>
+<h3 id="1-token-tax">1. "Token Tax"——不同语言的分词效率差异</h3>
+<pre><code>同一句话的 token 数：
+  英文：&quot;The weather is nice today&quot; → ~6 tokens
+  中文：&quot;今天天气不错&quot; → ~6 tokens（SentencePiece对中文还算友好）
+  但某些非英语语言的分词效率显著更低
+
+这就是多语言模型中某些语言&quot;更贵&quot;的原因——同样的语义需要更多 token。
+</code></pre>
+<h3 id="2">2. 空格和数字的处理</h3>
+<pre><code>数字 &quot;12345&quot; 的常见分词：
+  GPT-2: [&quot;123&quot;, &quot;45&quot;]  → 不可预测的拆分
+  GPT-3.5+: 每个数字独立 → [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;]
+
+数字被拆成单个数字时，LLM 做数学计算的难度大幅增加
+这就是 CoT + calculator 对数学问题有效的原因之一
+</code></pre>
+<h3 id="3-token">3. 特殊 Token</h3>
+<p><strong>工程细节：</strong> 特殊 token 是模型协议的一部分，例如 BOS/EOS、system/user/assistant 分隔符、工具调用边界、填充符和图像占位符。训练、微调、推理模板必须保持一致，否则模型可能把角色标记当普通文本，或者在多轮对话中混淆指令层级。面试中可以把 chat template 看成 tokenizer 与应用协议之间的桥。</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>含义</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;s&gt;</code> / <code>&lt;bos&gt;</code></td>
+<td>序列开始</td>
+<td>初始 hidden state 的起点</td>
+</tr>
+<tr>
+<td><code>&lt;/s&gt;</code> / <code>&lt;eos&gt;</code></td>
+<td>序列结束</td>
+<td>生成终止信号</td>
+</tr>
+<tr>
+<td><code>&lt;unk&gt;</code></td>
+<td>未知 token</td>
+<td>回退（现代分词器基本不用了）</td>
+</tr>
+<tr>
+<td><code>&lt;pad&gt;</code></td>
+<td>填充</td>
+<td>batch 内补齐到相同长度</td>
+</tr>
+<tr>
+<td><code>&lt;|user|&gt;</code> <code>&lt;|assistant|&gt;</code></td>
+<td>角色标记</td>
+<td>Chat 模板的结构化角色边界</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_8">七、面试延伸</h2>
+<p><strong>Q：词表大小怎么选？</strong></p>
+<blockquote>
+<p>太小（&lt;16K）：序列过长，语义稀疏，尤其对于中文等字符丰富的语言体验差。太大（&gt;250K）：Embedding 层参数爆炸，低频子词的 Embedding 训练不充分，容易欠拟合。32K-64K 是单语言模型的 sweet spot，100K-152K 是多语言模型的常见选择。Qwen 使用 152K 词汇表，在中文和多语言能力上表现突出。</p>
+</blockquote>
+<p><strong>Q：中文分词有什么特殊处理？</strong></p>
+<blockquote>
+<p>SentencePiece 不需要特殊处理（直接在字序列上做 BPE/Unigram）；BPE 类分词器通常先按字符切分中文，再在字符序列上做合并。但中文"词"的概念模糊（"北京大学"是一个词还是"北京"+"大学"？），现代做法一般不过度纠结语言学上的"词"，让 BPE 从数据中自己学习合理的切分单元。Qwen 等中文模型的词表专门扩充了中文常用字和子词。</p>
+</blockquote>
+<p><strong>Q：BBPE 和 BPE 的区别？</strong></p>
+<blockquote>
+<p>BBPE（Byte-Level BPE）在字节级操作，256 个字节值作为初始词表。任何 Unicode 字符都被编码为 UTF-8 字节序列后进行 BPE 合并。这完全消除了 OOV（任意 Unicode 都在 256 字节范围内），GPT-2 是第一个大规模应用此方案的工作。代价是：非拉丁字母的文本（如中文）在字节级序列更长，训练 BPE 合并需要更多数据。</p>
+</blockquote>
+<p><strong>Q：为什么不同模型的同段文本 token 数差异很大？</strong></p>
+<blockquote>
+<p>取决于词表大小、训练语料的语言分布和分词器类型。同一个句子在 LLaMA (32K 词表) 和 Qwen (152K 词表) 下的 token 数可能差 30-50%。评估模型的 token 效率时，应该用同一分词器做比较。这也是为什么 benchmark 常比较的是"同等 token 预算下的性能"。</p>
+</blockquote>
+<p><strong>Q：Tokenizer 会导致哪些安全隐患？</strong></p>
+<blockquote>
+<p>① <strong>SolidGoldMagikarp 问题</strong>：某些从未在训练数据中出现但存在于词表中的 token，可能导致模型输出异常（因为这些 token 的 Embedding 从未被训练更新）；② <strong>glitch token</strong>：某些 token 序列触发不稳定的生成行为；③ <strong>分词不一致</strong>：同一实体在不同上下文被切成不同子词，导致模型无法一致地理解。</p>
+</blockquote>
+<hr>
+<h2 id="_9">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BPE</td>
+<td>Neural Machine Translation of Rare Words with Subword Units (Sennrich et al., ACL 2016)</td>
+<td><a href="https://arxiv.org/abs/1508.07909">arxiv.org/abs/1508.07909</a></td>
+</tr>
+<tr>
+<td>WordPiece</td>
+<td>Japanese and Korean Voice Search (Schuster &amp; Nakajima, ICASSP 2012)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>SentencePiece</td>
+<td>SentencePiece: A simple and language independent subword tokenizer (Kudo &amp; Richardson, EMNLP 2018)</td>
+<td><a href="https://arxiv.org/abs/1808.06226">arxiv.org/abs/1808.06226</a></td>
+</tr>
+<tr>
+<td>BBPE</td>
+<td>Language Models are Unsupervised Multitask Learners (Radford et al., 2019) — GPT-2</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_10">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 YouTube</td>
+<td><a href="https://www.youtube.com/watch?v=zduSFxRajkE">Let's build the GPT Tokenizer</a></td>
+<td>Andrej Karpathy 手把手从零构建 BPE 分词器（英文，~2h）</td>
+</tr>
+<tr>
+<td>📖 Hugging Face Course</td>
+<td><a href="https://huggingface.co/learn/llm-course/chapter6/5">Byte-Pair Encoding tokenization</a></td>
+<td>明确讲 BPE 训练与分词过程</td>
+</tr>
+<tr>
+<td>📖 Hugging Face Docs</td>
+<td><a href="https://huggingface.co/docs/tokenizers/index">Tokenizers</a></td>
+<td>Rust tokenizers 工具链，适合理解训练、编码、解码和 special tokens</td>
+</tr>
+<tr>
+<td>📖 OpenAI Cookbook</td>
+<td><a href="https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken">How to count tokens with tiktoken</a></td>
+<td>API 成本估算、上下文长度估算和 tokenizer 差异对比</td>
+</tr>
+<tr>
+<td>📖 SentencePiece GitHub</td>
+<td><a href="https://github.com/google/sentencepiece">google/sentencepiece</a></td>
+<td>SentencePiece 官方实现，适合看 Unigram/BPE 的真实训练参数</td>
+</tr>
+<tr>
+<td>📖 Tiktoken GitHub</td>
+<td><a href="https://github.com/openai/tiktoken">openai/tiktoken</a></td>
+<td>OpenAI tokenizer 工具，适合工程中做 token 统计与 prompt budget</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

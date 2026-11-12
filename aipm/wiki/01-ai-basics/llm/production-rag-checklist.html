@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工业级 RAG 清单:混合检索、重排、评测与知识治理</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/llm/production-rag-checklist.md</span></div>
+<main>
+<h1 id="rag">工业级 RAG 清单:混合检索、重排、评测与知识治理</h1>
+<p>"接个向量库,跑通一个 Demo"和"这套检索系统能稳定支撑生产流量"之间,中间隔着一整条容易被低估的工程与治理链路。Demo 阶段大多只验证了"问题问得标准、知识库很干净"这一种情况;生产环境要面对切片切坏了、文档过期了、权限混了、评测样本不够代表真实分布等一堆"非理想情况"。本文把这条链路拆成可核对的清单,接着<a href="rag-evolution-naive-to-agentic.html">《RAG 没死:死的是 Naive 固定流水线》</a>往细节走。</p>
+<h2 id="demo">从 Demo 到生产的缺口清单</h2>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>Demo 阶段常见做法</th>
+<th>生产阶段要多做的事</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>切片(Chunking)</td>
+<td>固定字数硬切</td>
+<td>按文档结构(标题/段落/表格)切,避免语义单元被截断</td>
+</tr>
+<tr>
+<td>元数据</td>
+<td>不带或只带文件名</td>
+<td>补充来源、版本、时间、权限标签,支撑过滤与溯源</td>
+</tr>
+<tr>
+<td>权限</td>
+<td>全库统一可见</td>
+<td>检索前按用户/租户过滤,而非生成后再遮蔽</td>
+</tr>
+<tr>
+<td>更新</td>
+<td>一次性导入,不再变</td>
+<td>明确的增量更新、失效剔除机制,避免"新文档查不到、旧文档删不掉"</td>
+</tr>
+<tr>
+<td>评测</td>
+<td>抽几个问题人工看看</td>
+<td>有覆盖高频+长尾+边界 case 的评测集,能持续跑回归</td>
+</tr>
+<tr>
+<td>引用</td>
+<td>不展示来源</td>
+<td>附带可点击的原文出处,是用户信任和排查问题的基础</td>
+</tr>
+<tr>
+<td>降级</td>
+<td>检索不到就让模型自由发挥</td>
+<td>明确"查不到就说不知道"还是"转人工"的兜底路径</td>
+</tr>
+</tbody>
+</table>
+<p>这张清单里最容易被跳过的往往不是技术难度最高的一项,而是"元数据"和"更新机制"——它们在 Demo 里显得无关紧要,却是生产环境里权限、时效性问题的根源。</p>
+<h2 id="bm25">混合检索:向量 + BM25 是及格线,不是加分项</h2>
+<p>单独的向量语义检索有一个稳定的弱点:对专有名词、型号、工单号这类需要"字面精确命中"的查询不敏感。生产级检索的及格线,是<strong>向量语义检索 + BM25 关键词检索的混合召回</strong>,而不是只优化一条向量索引的召回率。</p>
+<p>Anthropic 在《Introducing Contextual Retrieval》中给出了一组可引用的方法论数据:在检索前为每个文本块补充"上下文说明"(Contextual Embeddings),再叠加同样带上下文的 BM25(Contextual BM25)进行混合检索,能把 Top-20 检索的失败率降低约 <strong>49%</strong>;在此基础上再加一层重排序,失败率能再降低到约 <strong>67%</strong>。这组数字来自 2024-09 发布的方法论文,不是随模型迭代实时更新的动态指标,复现效果取决于具体知识库和查询分布,但它验证的方向是明确的:<strong>混合检索 + 重排,在多数场景下比单独打磨一种检索方式的投入产出比更高</strong>。完整的路径对照见<a href="../../04-interview/basics/rag-multi-retrieval-paths.html">《RAG 系统有哪几种检索路径?》</a>。</p>
+<h2 id="rerank-top-k">Rerank 与 Top-K 裁剪:精度和成本的杠杆</h2>
+<p>多路召回解决的是"覆盖",重排序(Rerank)解决的是"精度"——先用低成本的方式召回足够多的候选,再用更贵但更准的模型把真正相关的候选排到前面,最后只把 Top-K 喂给生成模型。这里有两笔账要提前算清楚:</p>
+<ul>
+<li><strong>Top-K 太大</strong>:生成阶段的输入变长,成本和延迟都上升,还可能引入"中间遗忘"风险,细节见<a href="long-context-vs-rag.html">《长上下文 vs RAG》</a>。</li>
+<li><strong>Top-K 太小</strong>:召回的证据不够,复杂问题答不全,却更容易被误判成"生成模型能力不够"而不是"证据给少了"。</li>
+</ul>
+<p>Rerank 模型本身也是一次额外调用,要计入端到端延迟和成本预算,不是"免费加上去更保险"的选项。一个常见的落地策略是:简单查询走轻量重排或直接跳过,只有召回候选数量大、歧义高的查询才启用完整的重排链路。</p>
+<h2 id="_1">评测:检索召回与答案质量要分开看</h2>
+<p>"RAG 准不准"从来不是一个单一指标,而是要按环节拆开评测:检索环节看有没有把相关材料找回来,生成环节看模型有没有基于给定材料答好。把两者混在一起评测,排查问题时会经常出现"明明检索到了对的材料,却把锅甩给生成模型"或者反过来的误判。具体的分环节指标和评测集构建方法,见面试题<a href="../../04-interview/basics/rag-kb-accuracy-evaluation.html">《如何评估 RAG 知识库的准确率?》</a>。</p>
+<p>生产阶段还需要一件 Demo 阶段基本不做的事:维护一个<strong>持续增长的坏例集(Badcase Set)</strong>。上线后的真实用户问题、被用户反馈"答非所问"的案例,都应该定期回流进评测集,而不是只用上线前一次性构建的样本反复跑。评测集构建的完整流程可参考<a href="../../02-pm-skills/model-evaluation/build-your-eval-set.html">《从零建设评测集》</a>。</p>
+<h2 id="_2">知识治理:谁维护、什么时候过期、权限怎么隔离</h2>
+<p>检索链路调得再好,知识库本身治理跟不上,答案照样会错。上线前至少要拍板三件事:</p>
+<ol>
+<li><strong>谁维护文档</strong>:每一类知识库文档要有明确的责任人,而不是"技术团队负责导入,内容对不对没人管"。</li>
+<li><strong>过期策略</strong>:文档失效后是自动下线、打标"已过期仅供参考",还是需要人工确认替换——没有策略的默认结果通常是"旧文档一直混在检索结果里"。</li>
+<li><strong>权限与租户隔离</strong>:多租户场景下,检索必须在"进入 Prompt 之前"就按用户身份过滤掉无权限查看的内容,不能指望模型看到了敏感内容后"自觉不说"。</li>
+</ol>
+<p>这三件事是底线。企业知识库上线后,还会稳定撞上三类"文档侧"问题:矛盾文档、隐性知识空白、以及检索分数高但对用户没用。下面三节把它们拆开写——它们往往被误诊成"模型不够聪明"或"向量检索要换",根因却多半在治理与切片。入门原理仍见<a href="what-is-rag.html">《什么是 RAG》</a>;线上案例怎么归因、回流,见<a href="../../02-pm-skills/model-evaluation/badcase-analysis.html">《Badcase 分析方法论》</a>。</p>
+<h2 id="_3">矛盾文档治理:别把冲突留给模型仲裁</h2>
+<p>企业语料里同时存在"现行政策 / 去年政策 / 草稿 / 部门私改版"是常态。混合检索把几段都召回来,生成模型没有组织权威信息,只能按字面相关度拼答案——于是出现"引用了真文档,结论却是错的"。</p>
+<p>这类失败<strong>不是检索 miss</strong>,而是冲突解析缺失。PM 侧可落地的治理顺序:</p>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>做什么</th>
+<th>为什么有效</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>权威源清单</td>
+<td>每类事实只认定一个"主源"(如法务定稿政策、产品正式 Release Note)</td>
+<td>先减少可被召回的冲突面</td>
+</tr>
+<tr>
+<td>版本与时效元数据</td>
+<td>入库强制带 <code>version</code>、<code>valid_from</code>/<code>valid_until</code>、<code>is_latest</code>、<code>supersedes</code></td>
+<td>检索时硬过滤过期/被替代版本,而不是靠 Prompt 提醒</td>
+</tr>
+<tr>
+<td>入库前冲突工单</td>
+<td>同主题多源并存时,阻断自动全量入库,派给业务 Owner 裁定</td>
+<td>冲突在索引前消掉,比生成后再"让模型判断谁对"便宜得多</td>
+</tr>
+<tr>
+<td>查询时冲突可见</td>
+<td>若必须保留多版本(合规留痕),答案侧标明"存在多版本/以 X 为准",并附引用</td>
+<td>把不确定性交给用户与业务,而不是静默合成</td>
+</tr>
+</tbody>
+</table>
+<p>落地纪律只有一条:<strong>冲突裁决是业务动作,不是模型能力</strong>。技术可以做矛盾扫描、权威加权、元数据过滤,但"以哪份为准"必须有 Owner 签字。没有这套治理时,调大 Top-K 或换更强模型,通常只会更自信地混用旧条款。</p>
+<h2 id="_4">隐性知识:先显性化,再入库</h2>
+<p>第二个常见缺口:公开 Wiki 互相打架,真正能拍板的流程、例外规则、口头约定却在骨干员工脑子里。此时如果只做"把现有文档向量化",RAG 会把过时书面材料检索得很好,却答不出一线真正在用的做法。</p>
+<p>治理优先级建议是<strong>先显性化、后大规模入库</strong>,而不是先上线再指望反馈自动补齐:</p>
+<ol>
+<li><strong>划定高频决策清单</strong>:从客服工单、一线答疑、审批例外里抽出"每周反复被问、但文档没有或互相矛盾"的 20–50 条事实/流程。</li>
+<li><strong>业务访谈写成可检索单元</strong>:每条至少包含适用条件、标准动作、例外、失效条件、责任人;写成短文档或结构化条目,而不是长篇口述纪要直接切块。</li>
+<li><strong>与矛盾文档治理并轨</strong>:显性化过程中发现与旧文档冲突的,走上一节的冲突工单,禁止新旧并存且无标记。</li>
+<li><strong>再进入索引与评测</strong>:新条目带 Owner 与时效元数据后入库,并立刻做成评测用例——否则下次改流程时无法回归。</li>
+</ol>
+<p>隐性知识显性化是产品和业务的活,工程只能提供模板、入库流水线和冲突扫描。跳过这一步直接"全量扫盘进向量库",短期 Demo 好看,上线后会稳定产出"看起来很专业、一线说根本不是这么干的"答案。</p>
+<h2 id="_5">「看起来相关但没用」:相关性 ≠ 可用性</h2>
+<p>用户吐槽"检索到了,但没用",在日志里常表现为:召回分数不低、引用片段主题也对,端到端答案却答非所问或不可执行。这和<a href="what-is-rag.html">《什么是 RAG》</a>里"答非所问先拆检索还是生成"是同一类排查题,需要再细拆一层——<strong>语义相关 ≠ 对解题有用</strong>。</p>
+<p>常见根因与对应动作:</p>
+<table>
+<thead>
+<tr>
+<th>根因</th>
+<th>典型症状</th>
+<th>PM / 工程动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>切片去语境</td>
+<td>片段写着"本季度增长 3%",缺公司/产品/时间</td>
+<td>按结构切片;给块补文档标题、章节、实体等上下文(Contextual Retrieval 一类做法,见文末 Anthropic 方法论文)</td>
+</tr>
+<tr>
+<td>主题相邻、证据不足</td>
+<td>召回了同主题科普/背景,没有可执行条款或数字</td>
+<td>评测不要只看"是否同主题",要标"是否含解题所需字段";重排目标改为可用性而非纯相似度</td>
+</tr>
+<tr>
+<td>权限/租户滤后空心</td>
+<td>有权限的块不够用,无权限的块其实才有答案</td>
+<td>在 Prompt 前过滤;对用户呈现"权限不足"与"知识库未覆盖"两种降级,勿混为一谈</td>
+</tr>
+<tr>
+<td>矛盾/过期块混入</td>
+<td>相关且可读,但是旧版或冲突版</td>
+<td>走矛盾文档治理;坏例归因记为"数据/治理"而非"模型"</td>
+</tr>
+<tr>
+<td>生成未用好证据</td>
+<td>材料够用,答案跑偏或漏约束</td>
+<td>查 Prompt/忠实度;分环节评测见面试题<a href="../../04-interview/basics/rag-kb-accuracy-evaluation.html">《如何评估 RAG 知识库的准确率?》</a></td>
+</tr>
+</tbody>
+</table>
+<p>排查时建议把这类 case 单独打标签进坏例集,例如 <code>relevant_but_useless</code>,并在归因树里优先走"检索问题 / 数据问题",而不是默认"换模型"。收集、归因、分发、验证的闭环,直接套用<a href="../../02-pm-skills/model-evaluation/badcase-analysis.html">《Badcase 分析方法论》</a>——尤其不要只优化 Recall@K:召回了主题相邻块,离线检索指标可能还涨,线上有用性却掉。</p>
+<h2 id="_6">什么时候该往上升级</h2>
+<p>混合检索 + 重排把及格线做扎实之后,再考虑是否需要升级到更复杂的架构,而不是反过来:</p>
+<ul>
+<li><strong>知识库小、几乎不更新</strong>:可以评估是否直接全量塞进长上下文,权衡见<a href="long-context-vs-rag.html">《长上下文 vs RAG》</a>。</li>
+<li><strong>任务出现多步骤、多分支判断</strong>(有时查一次够,有时要查两次、跨文档综合):该升级到 Agentic 检索,让模型自己决定检索策略,而不是死磕更精细的固定流水线,参考<a href="rag-evolution-naive-to-agentic.html">《RAG 没死:死的是 Naive 固定流水线》</a>。</li>
+<li><strong>问题的答案在表格/指标里,不在文档片段里</strong>:该走结构化检索 / NL2SQL,而不是把表格数据硬切成文本块塞进向量库,参考<a href="nl2sql-for-ai-pm.html">《NL2SQL:自然语言查库,为什么学术高分上不了生产》</a>。</li>
+</ul>
+<h2 id="graphrag">GraphRAG:可选的增强,不是必经的升级</h2>
+<p>GraphRAG(用大模型从文档中抽取实体关系、构建知识图谱再检索)常被包装成"RAG 的下一代标准形态",但更准确的定位是:<strong>它解决的是一类特定问题——"全局性、跨文档综合"的宏观问题(比如"这批文档整体在讲什么主题"),而不是所有 RAG 场景的通用升级</strong>。Microsoft Research 在官方博客中明确指出,GraphRAG 的收益要和图索引构建的前期成本一起权衡,更适合"需要理解数据全局结构、且值得为此支付索引成本"的场景。国内评测讨论也已经指出,GraphRAG 在具体任务上的表现各有优劣,并非无条件优于混合检索。对大多数"针对具体问题找具体证据"的问答场景,先把混合检索和重排做扎实,往往比直接上图谱更划算。</p>
+<h2 id="ai-pm">给 AI PM 的清单</h2>
+<ol>
+<li>切片是否按文档结构切,而不是固定字数硬切?</li>
+<li>是否已经是向量 + BM25 混合检索,而不是单一向量检索?</li>
+<li>是否有独立的重排环节,Top-K 大小是否经过成本/效果权衡?</li>
+<li>检索召回率和答案质量是否分开评测,是否有持续回流的坏例集?</li>
+<li>文档是否带权限/时间等元数据,权限过滤是否发生在检索阶段而非生成之后?</li>
+<li>知识库是否有明确的维护责任人和过期策略?</li>
+<li>矛盾文档是否有权威源与版本过滤,冲突是否由业务 Owner 裁决而非留给模型?</li>
+<li>高频流程是否已从口头知识显性化为可检索条目,再入库?</li>
+<li>「相关但没用」类坏例是否单独归因(切片去语境 / 证据不足 / 过期冲突 / 生成未用好)?</li>
+<li>检索不到时的降级策略是否明确(拒答 / 转人工 / 澄清追问)?</li>
+<li>是否只在真正需要时才升级到 Agentic 检索、NL2SQL 或 GraphRAG,而不是为了追新引入额外复杂度?</li>
+</ol>
+<h2 id="_7">相关阅读</h2>
+<ul>
+<li><a href="what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="rag-evolution-naive-to-agentic.html">RAG 没死:死的是 Naive 固定流水线</a></li>
+<li><a href="long-context-vs-rag.html">长上下文 vs RAG:什么时候塞全库,什么时候检索</a></li>
+<li><a href="nl2sql-for-ai-pm.html">NL2SQL:自然语言查库,为什么学术高分上不了生产</a></li>
+<li><a href="../../02-pm-skills/model-evaluation/badcase-analysis.html">Badcase 分析方法论:收集、归因、分发、验证</a></li>
+<li>面试题:<a href="../../04-interview/basics/rag-multi-retrieval-paths.html">RAG 系统有哪几种检索路径?分别适合什么场景?</a></li>
+<li>面试题:<a href="../../04-interview/basics/rag-kb-accuracy-evaluation.html">如何评估 RAG 知识库的准确率?</a></li>
+<li><a href="../../02-pm-skills/model-evaluation/build-your-eval-set.html">从零建设评测集:用例从哪来、标准答案怎么定</a></li>
+</ul>
+<h2 id="_8">参考资料</h2>
+<ul>
+<li><a href="https://www.anthropic.com/news/contextual-retrieval">Introducing Contextual Retrieval</a> — Anthropic 工程博客,2024-09-19 发布,混合检索(Contextual Embeddings + Contextual BM25)将 Top-20 检索失败率降低约 49%,叠加重排序后降低约 67%;说明切片去语境会导致"相关但不可用";2026-08 访问</li>
+<li><a href="https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/">GraphRAG: Unlocking LLM discovery on narrative private data</a> — Microsoft Research 官方博客,2026-07 访问</li>
+<li><a href="https://sspai.com/post/107169">RAG 过时了吗?</a> — 王树义,少数派,2026-03-13 发布</li>
+<li>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q23 / Q29 / Q45(矛盾文档、隐性知识、相关但没用);正文为原创改写,未摘录原书答案</li>
+</ul>
+</main>
+</body>
+</html>

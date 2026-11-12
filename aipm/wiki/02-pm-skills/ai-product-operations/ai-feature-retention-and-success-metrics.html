@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 功能留存与成功指标：死亡路径与 DAU 误判</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/ai-product-operations/ai-feature-retention-and-success-metrics.md</span></div>
+<main>
+<h1 id="ai-dau">AI 功能留存与成功指标：死亡路径与 DAU 误判</h1>
+<blockquote>
+<p><strong>选题启发</strong>：磊叔《关于 AI 产品经理的 100 个问题》Q50、Q61、Q62、Q64（仅选题结构，正文为原创）。</p>
+<p><strong>和既有文章的分工</strong>：指标树与四层定义见 <a href="ai-product-metrics.html">AI 产品指标体系</a>；概率性输出下的实验设计见 <a href="../model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试</a>；「用完又回人工」的交互与信任归因见 <a href="../prd-and-design/agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准</a>。本文聚焦：<strong>AI 功能上线后，如何用路径框架诊断留存，以及为何 DAU 容易误判成功。</strong></p>
+<p><strong>事实</strong>：产品分析实践把留存分析建立在<strong>队列（cohort）</strong>上——按共同起点分组，在后续时段统计回访比例；聚合 DAU 会把新老用户、不同获客批次混在一起，掩盖真实趋势。见文末 Amplitude / Mixpanel / Stripe 等公开材料。</p>
+<p><strong>建议</strong>：先画「触达 → 有效启动 → 任务成功 → 采纳/回访 → 业务结果」死亡路径，再为每个断点配主指标与诊断指标；<strong>不要</strong>把某篇分享里的「N 日留存 X%」当成行业红线。</p>
+</blockquote>
+<h2 id="dau-ai">一、为什么 DAU 会误判 AI 功能是否成功</h2>
+<p>DAU（日活跃用户）回答的是「今天有多少人碰到了这个功能」，通常<strong>回答不了</strong>「这些人是否得到了可复用的价值」。对 AI 功能尤其危险，原因包括：</p>
+<table>
+<thead>
+<tr>
+<th>误判模式</th>
+<th>常见现象</th>
+<th>真实含义可能是</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>新奇冲高</strong></td>
+<td>上线首日 DAU、会话数暴涨</td>
+<td>用户在「试一试」，未必完成任务；新奇效应衰减后曲线回落（实验侧讨论见 <a href="../model-evaluation/ab-testing-for-ai-products.html">A/B 文</a>）</td>
+</tr>
+<tr>
+<td><strong>无效活跃</strong></td>
+<td>打开入口、随便问一句就算活跃</td>
+<td>分母里混入好奇点击；分子没有任务完成或采纳证据</td>
+</tr>
+<tr>
+<td><strong>重试膨胀</strong></td>
+<td>追问多、重生成多，看起来很「忙」</td>
+<td>可能是一次解决失败；活跃与成本双涨，价值未涨</td>
+</tr>
+<tr>
+<td><strong>聚合掩盖</strong></td>
+<td>总 DAU 平稳，但新队列留存在掉</td>
+<td>老用户惯性托住总数；获客/上线批次问题被藏住（队列分析正是为拆开这种混合）</td>
+</tr>
+<tr>
+<td><strong>入口绑架</strong></td>
+<td>强入口、强推送抬高 DAU</td>
+<td>触达变了，留存事件定义没变；「成功」其实是流量，不是产品</td>
+</tr>
+<tr>
+<td><strong>信任报复</strong></td>
+<td>早期一次高后果翻车后活跃断崖</td>
+<td>问题在信任校准与副作用，不在「模型还不够卷」（见 <a href="../prd-and-design/agentic-ux-and-trust-calibration.html">Agentic UX</a>）</td>
+</tr>
+</tbody>
+</table>
+<p>Amplitude 等公开材料也强调：若「活跃」定义偏离核心价值行为，DAU 更像人气指标，而不是粘性指标；更稳妥的做法是把活跃锚定到<strong>反复带来价值的行为</strong>，并用留存/队列去验证。</p>
+<p><strong>可操作规则</strong>：汇报 AI 功能时，至少同时给出：</p>
+<ol>
+<li><strong>曝光/有资格用户</strong>（分母清晰）；</li>
+<li><strong>有效启动</strong>（不是路过）；</li>
+<li><strong>任务成功或采纳</strong>（有业务证据）；</li>
+<li><strong>队列留存</strong>（按首次有效使用日/周看回访）；</li>
+<li><strong>单位有效任务成本与护栏</strong>（安全、转人工、延迟）。</li>
+</ol>
+<p>只有 DAU 上涨、后面四项缺失——默认视为<strong>未证明成功</strong>。</p>
+<h2 id="_1">二、先定义「成功」，再谈留存</h2>
+<p>留存率的分母与「回访事件」必须先写清，否则数字不可比。通用做法（分析平台文档的共识）是：</p>
+<ol>
+<li><strong>定队列起点</strong>：首次注册、首次打开 AI 入口，或首次完成某关键行为（行为队列）；</li>
+<li><strong>定回访事件</strong>：应尽量接近产品核心价值（例如「再次完成同类任务」「再次采纳生成结果」），而不是笼统的「登录」；</li>
+<li><strong>定时桶</strong>：日/周/月对齐产品自然使用周期（日活工具 vs 周报助手不同）；</li>
+<li><strong>算比例</strong>：某时段仍发生回访事件的用户 ÷ 队列初始人数。</li>
+</ol>
+<p>常见口径差异（需在看板注明，避免混比）：</p>
+<table>
+<thead>
+<tr>
+<th>口径</th>
+<th>含义</th>
+<th>适用注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>N-Day（精确日）</strong></td>
+<td>恰好在第 N 天回访</td>
+<td>对使用频率不规律的产品噪声大</td>
+</tr>
+<tr>
+<td><strong>Unbounded / On or after</strong></td>
+<td>第 N 天及之后曾回访</td>
+<td>更宽松，适合看「最终有没有回来」</td>
+</tr>
+<tr>
+<td><strong>Rolling 窗口</strong></td>
+<td>在某窗口内至少回访一次</td>
+<td>定义窗口时要写进指标字典</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>不要当事实的说法</strong>：把「7 日留存 8%」之类数字当作所有 AI 功能的及格线。不同品类、入口强度、是否强提醒、ToB 工作流周期，基线可以差一个数量级。正确做法是：<strong>用自己产品的历史队列与对照组建基线</strong>，再设上线线与目标线（写法见 <a href="ai-product-metrics.html">指标体系 · 上线前后监控</a>）。</p>
+</blockquote>
+<h3 id="ai">AI 功能建议的「成功事件」分层</h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>事件例子</th>
+<th>若只停在这层会怎样</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L0 触达</td>
+<td>看到入口、收到推送</td>
+<td>只能证明分发</td>
+</tr>
+<tr>
+<td>L1 启动</td>
+<td>打开面板、发出首条有效请求</td>
+<td>证明好奇/试用</td>
+</tr>
+<tr>
+<td>L2 完成</td>
+<td>任务成功、生成被采纳、工单关闭</td>
+<td>证明当次价值</td>
+</tr>
+<tr>
+<td>L3 回访</td>
+<td>同任务类型再次成功/再次采纳</td>
+<td>证明可复用价值（留存主战场）</td>
+</tr>
+<tr>
+<td>L4 业务</td>
+<td>转化、人效、收入、成本回收</td>
+<td>证明业务结果（常需实验归因）</td>
+</tr>
+</tbody>
+</table>
+<p>北极星尽量落在 <strong>L2–L4 的组合</strong>，DAU 最多当诊断层流量指标。</p>
+<h2 id="_2">三、死亡路径：把流失拆成可修的断点</h2>
+<p>「留存差」是结果，不是病因。对 AI 功能，建议固定一条死亡路径，按漏斗断点分诊，而不是一上来换模型：</p>
+<pre><code class="language-text">有资格用户
+  → 触达（看见入口 / 被推荐）
+  → 理解边界（知道能做什么、不能做什么）
+  → 有效启动（发出合格请求 / 授权必要工具）
+  → 任务成功（效果、工具、数据都过关）
+  → 用户采纳（编辑后用、直接用、或减少人工）
+  → 愿意回访（再次遇到同类任务时仍选 AI）
+  → 业务结果（转化 / 人效 / 收入 / 成本）
+</code></pre>
+<p>每个节点配<strong>主指标 + 诊断问题</strong>（与指标树诊断链一致，此处强调留存视角）：</p>
+<table>
+<thead>
+<tr>
+<th>断点</th>
+<th>主指标（示例）</th>
+<th>诊断问题</th>
+<th>优先动作方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>触达</td>
+<td>有资格用户中的曝光率</td>
+<td>入口藏太深？权限未开通？</td>
+<td>分发与开通，不是调 Prompt</td>
+</tr>
+<tr>
+<td>理解</td>
+<td>首启后立刻退出率、空会话率</td>
+<td>文案过度承诺？能力边界不清？</td>
+<td>预期管理、示例任务</td>
+</tr>
+<tr>
+<td>启动</td>
+<td>有效启动率（合格请求 / 曝光）</td>
+<td>表单太重？授权恐惧？</td>
+<td>降低首启摩擦；渐进授权</td>
+</tr>
+<tr>
+<td>成功</td>
+<td>任务成功率（按任务类型）</td>
+<td>哪类意图/工具/数据源失败？</td>
+<td>评测集、工具、检索；见评测板块</td>
+</tr>
+<tr>
+<td>采纳</td>
+<td>采纳率、编辑率、转人工率</td>
+<td>不可信、不可改、流程不许用？</td>
+<td>引用/证据、可编辑、流程嵌入</td>
+</tr>
+<tr>
+<td>回访</td>
+<td>行为队列留存（回访事件=再次成功/采纳）</td>
+<td>新奇过后无刚需？第一次翻车？</td>
+<td>找激活行为；修信任与价值密度</td>
+</tr>
+<tr>
+<td>业务</td>
+<td>场景业务指标 + 对照</td>
+<td>有没有因果？还是外生活动？</td>
+<td>正式实验，见 <a href="../model-evaluation/ab-testing-for-ai-products.html">A/B 文</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="_3">和「用完回人工」归因对齐</h3>
+<p>若断点落在采纳或回访，可套用 Agentic UX 文中的 <strong>A–E 归因</strong>（能力 / 交互 / 信任 / 成本时延 / 组织流程），避免所有留存问题都开成「再训一版模型」。</p>
+<h2 id="_4">四、怎么读队列：从一张表到行动</h2>
+<h3 id="1">1. 获取队列：有没有「越做越黏」</h3>
+<p>行 = 按首次有效使用周（或日）分的队列；列 = 使用后第 1 / 7 / 30 个时桶的回访率。</p>
+<ul>
+<li><strong>纵向比同一年龄列</strong>：新队列在「第 7 时桶」是否高于旧队列 → 产品/引导是否真的变好；</li>
+<li><strong>横向看单条曲线</strong>：掉崖发生在第几天 → 对应死亡路径哪一段；</li>
+<li><strong>样本量</strong>：过小队列的波动不要当结论（分析文档普遍提醒：小样本「好看」的留存差往往是噪声）。</li>
+</ul>
+<h3 id="2">2. 行为队列：什么行为预测「会回来」</h3>
+<p>对比「首周做过行为 X」与「没做过」的后续留存差距。差距稳定且可解释时，X 可作为<strong>激活假设</strong>（仍应用实验验证因果，相关不等于因果）。</p>
+<p>对 AI 功能，候选 X 应偏向价值行为，例如：</p>
+<ul>
+<li>首次任务被采纳（而非仅生成）；</li>
+<li>完成一次带工具回执的闭环；</li>
+<li>用户保存/导出/提交了结果；</li>
+<li>在低风险场景建立信任后，再进入高后果场景（渐进授权路径）。</li>
+</ul>
+<p>避免把「多聊了几轮」自动当成激活——多轮可能是失败重试。</p>
+<h3 id="3-ai">3. AI 特有的读图注意</h3>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先怀疑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前 1–2 天回访很高，随后快速掉到接近无人</td>
+<td>新奇效应 + 无刚需；或强推送关掉后无自然需求</td>
+</tr>
+<tr>
+<td>成功当次高，回访低</td>
+<td>场景频次低（本来就不该日留存）；或竞品/人工路径更省事</td>
+</tr>
+<tr>
+<td>回访有，但转人工同步升</td>
+<td>用户「回来试」但信任未建立；看确认、证据、可撤销</td>
+</tr>
+<tr>
+<td>总 DAU 升、队列留存降</td>
+<td>拉新/入口变强，产品变黏没有发生</td>
+</tr>
+<tr>
+<td>分群差异大（任务类型/租户/模型档）</td>
+<td>总平均在骗人；按分群设护栏与目标</td>
+</tr>
+</tbody>
+</table>
+<p><strong>低频刚需产品</strong>（如按月报销助手）：用周/月时桶，或「下次同类任务到达时的选择率」，不要强行用日留存叙事向老板汇报。</p>
+<h2 id="_5">五、成功指标组合：给评审用的最小集</h2>
+<p>上线评审时，建议预注册下面这组（名称可改，结构尽量保留）：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>指标</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>流量诊断</td>
+<td>曝光、有效启动、DAU/WAU（定义写清）</td>
+<td>看触达与试用，不当北极星</td>
+</tr>
+<tr>
+<td>当次价值</td>
+<td>任务成功率、采纳率、一次解决率</td>
+<td>证明「这次有用」</td>
+</tr>
+<tr>
+<td>粘性</td>
+<td>以「再次成功/再次采纳」为事件的队列留存</td>
+<td>证明「还会来」</td>
+</tr>
+<tr>
+<td>体验护栏</td>
+<td>点踩、转人工、中止/接管、确认放弃率</td>
+<td>抓信任与交互断点</td>
+</tr>
+<tr>
+<td>系统护栏</td>
+<td>延迟分位、错误/超时、越权拦截</td>
+<td>稳定性一票否决</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>单位有效任务成本、重试成本</td>
+<td>规模化是否可持续</td>
+</tr>
+<tr>
+<td>业务</td>
+<td>场景转化/人效等 + 实验结论</td>
+<td>因果，不只相关</td>
+</tr>
+</tbody>
+</table>
+<p>指标冲突时的优先级仍遵循：<a href="ai-product-metrics.html">安全合规 → 任务成功与用户价值 → 体验/系统底线 → 单位成本 → 长期增长</a>。</p>
+<h2 id="_6">六、分诊清单（留存差时按序做）</h2>
+<ol>
+<li><strong>核对定义</strong>：活跃、成功、回访事件的分子分母是否写进指标字典？有没有把登录当成功？</li>
+<li><strong>画死亡路径</strong>：从触达到回访，哪一跳掉得最狠？先修最大断点。</li>
+<li><strong>拆队列</strong>：获取队列看趋势；行为队列找激活假设；按任务类型/新老用户/租户分层。</li>
+<li><strong>排除假繁荣</strong>：DAU 是否被活动、强入口、重试灌水？看采纳与成本是否同向。</li>
+<li><strong>对齐信任与 UX</strong>：高后果失败、确认疲劳、进度不可见 → 走 Agentic UX 归因，而不是只开模型需求。</li>
+<li><strong>需要因果再开实验</strong>：改引导/模型/检索后，用预注册 OEC + 护栏做 A/B；观察曝光后天数，防新奇效应。</li>
+<li><strong>低频场景改口径</strong>：不要用错误时桶证明「产品没留存」。</li>
+</ol>
+<h2 id="_7">小结</h2>
+<p>AI 功能的成功，不是「今天有多少人点进来」，而是<strong>有资格的用户能否反复以可接受成本完成有价值的任务</strong>。把 DAU 降级为诊断指标，用死亡路径定位断点，用队列留存（写清起点与回访事件）验证粘性，再用实验确认因果——这比追逐任何外部「留存百分数红线」都更接近可运营的产品决策。</p>
+<h2 id="_8">相关阅读</h2>
+<ul>
+<li><a href="ai-product-metrics.html">AI 产品指标体系：从业务结果到成本与风险</a></li>
+<li><a href="../prd-and-design/agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准：用户何时该信、何时该介入</a></li>
+<li><a href="../model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试：概率性输出下如何做实验</a></li>
+<li><a href="agent-evaluation-and-observability.html">Agent 评测与可观测性：从最终答案追到完整轨迹</a></li>
+<li><a href="../prd-and-design/fallback-and-feedback-design.html">兜底、反馈与预期管理：AI 产品的交互设计三件套</a></li>
+<li><a href="../../04-interview/basics/ai-blackbox-trust.html">AI 产品的黑箱问题如何影响用户信任?产品层面怎么做?</a></li>
+<li><a href="../../04-interview/case-analysis/ai-feature-retention-diagnosis.html">AI 功能上线后留存很差，你怎么分诊？</a>（面试分诊框架；细节以本文为准）</li>
+</ul>
+<h2 id="_9">参考资料</h2>
+<ul>
+<li><a href="https://amplitude.com/explore/analytics/cohort-retention-analysis">What Is Cohort Retention Analysis</a> —— Amplitude：队列留存定义、N-Day / Rolling 等口径与计算公式，2026-08-06 访问</li>
+<li><a href="https://amplitude.com/explore/analytics/cohort-analysis">The Complete Guide to Cohort Analysis</a> —— Amplitude：获取队列 vs 行为队列、读图方式与小样本陷阱，2026-08-06 访问</li>
+<li><a href="https://amplitude.com/blog/measuring-active-users">You're Measuring Daily Active Users Wrong</a> —— Amplitude：活跃定义应锚定核心价值行为，否则 DAU 偏人气，2026-08-06 访问</li>
+<li><a href="https://mixpanel.com/blog/cohort-analysis/">Cohort analysis in 2026</a> —— Mixpanel：行为队列与激活对比的实践框架，2026-08-06 访问</li>
+<li><a href="https://stripe.com/resources/more/saas-cohort-analysis">SaaS Cohort Analysis</a> —— Stripe：聚合流失率如何掩盖新队列恶化，2026-08-06 访问</li>
+<li>Kohavi, Tang, Xu, <em>Trustworthy Online Controlled Experiments</em> —— 在线实验中 OEC、长期价值与虚荣指标；新奇效应参见同作者相关公开讲义/论文</li>
+<li><a href="https://ai.stanford.edu/~ronnyk/puzzlingOutcomesInControlledExperiments.pdf">Puzzling Outcomes in Controlled Experiments</a> —— Kohavi 等：新奇效应与首因效应，2026-08-06 访问</li>
+<li>选题启发：磊叔 / AIRay1015《关于 AI 产品经理的 100 个问题》Q50、Q61、Q62、Q64</li>
+</ul>
+</main>
+</body>
+</html>

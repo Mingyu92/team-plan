@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>兜底、反馈与预期管理:AI 产品的交互设计三件套</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/prd-and-design/fallback-and-feedback-design.md</span></div>
+<main>
+<h1 id="ai">兜底、反馈与预期管理:AI 产品的交互设计三件套</h1>
+<h2 id="_1">为什么这三件事要放在一起说</h2>
+<p>AI 产品的交互设计,本质上是在回答同一个问题的三个不同侧面:</p>
+<ol>
+<li><strong>兜底</strong>:模型这次答不好,产品怎么接住,不让用户体验直接摔到地上?</li>
+<li><strong>反馈</strong>:用户觉得答得不好(或好),这个信号怎么被产品捕捉,喂回给下一次迭代?</li>
+<li><strong>预期管理</strong>:从一开始就让用户对"AI 可能出错"有心理准备,减少"答不好"造成的信任损耗。</li>
+</ol>
+<p>三者是一个闭环:预期管理降低了兜底触发时的用户挫败感;兜底触发本身就是一种反馈信号;反馈机制收集到的 bad case,又反过来优化兜底策略的判断阈值。本文按这三条线展开,并结合 ChatGPT、Claude、Gemini 在 2026 年的真实产品设计逐一验证。</p>
+<p>关于 PRD 文档层面如何写清楚效果指标、能力边界,见 <a href="ai-prd-guide.html">AI 产品 PRD 怎么写:与传统 PRD 的核心差异</a>;冷启动阶段兜底策略的分层框架(L1 生成层到 L4 系统层),已在 <a href="../../04-interview/product-design/ai-product-pmf-coldstart-fallback.html">AI 产品如何判断 PMF、如何冷启动、兜底策略怎么设计?</a> 中给出,本文不重复展开分层表格,而是聚焦<strong>交互设计层面</strong>要落的具体控件和话术。</p>
+<h2 id="_2">一、兜底设计:模型答不好时,产品怎么接住</h2>
+<h3 id="1">1. 置信度分级要先于交互设计存在</h3>
+<p>兜底设计的前提是产品/模型能给出某种"这次答案有多可信"的信号,常见来源:</p>
+<table>
+<thead>
+<tr>
+<th>信号来源</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型自身的置信度/概率分布</td>
+<td>如生成 token 的 log-probability,或让模型自评"我有多确定"</td>
+</tr>
+<tr>
+<td>检索质量信号</td>
+<td>RAG 场景下,检索到的资料相关度是否足够高(见 <a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG</a>)</td>
+</tr>
+<tr>
+<td>规则/业务信号</td>
+<td>是否命中已知的高风险关键词(金额、合规、医疗)</td>
+</tr>
+<tr>
+<td>历史准确率</td>
+<td>该问题类型在评测集上的历史准确率,作为先验</td>
+</tr>
+</tbody>
+</table>
+<p>这些信号本身不是终点,而是决定"接下来该走哪条交互路径"的开关。</p>
+<h3 id="2">2. 拒答话术:怎么说"不知道"才不难看</h3>
+<p>直接说"我不知道"会显得产品很弱;完全不说又会制造幻觉风险。好的拒答设计通常包含三层:承认边界 + 给出替代路径 + 保留追问空间。例如:</p>
+<ul>
+<li>差:"抱歉,我无法回答这个问题。"(用户下一步不知道该干嘛)</li>
+<li>好:"这个问题涉及具体的账户操作,我暂时无法确认,已经为你转接人工专员,预计 2 分钟内响应;如果你想先自己查,可以看看《账户安全说明》。"</li>
+</ul>
+<p>这也是 <a href="../../04-interview/product-design/ai-product-pmf-coldstart-fallback.html">AI 产品如何判断 PMF、如何冷启动、兜底策略怎么设计?</a> 中提到的"透明标注'为您转专员',在擅长的子场景打'秒回'"的具体落地方式。</p>
+<h3 id="3-ai">3. 降级链路:从"AI 独立解决"到"系统兜底"的完整路径</h3>
+<p>一个成熟的对话产品,交互上通常有以下几级降级路径,层层兜底:</p>
+<pre><code>AI 直接回答(高置信度)
+   ↓ 置信度不足
+AI 追问澄清(&quot;你是想问 A 还是 B?&quot;)
+   ↓ 仍不确定
+AI 明确说明局限 + 提供相关资料链接
+   ↓ 涉及高风险操作
+强制转人工 / 需要用户二次确认
+   ↓ 系统级故障(模型超时、宕机)
+规则模板兜底 + 排队提示,保证&quot;至少不空白&quot;
+</code></pre>
+<p>每一级降级都需要在交互上有明确的视觉/文案区分,让用户清楚"现在是 AI 在答,还是转到别的机制了",这本身也是预期管理的一部分。</p>
+<h2 id="_3">二、对话类交互范式:流式输出、打断、重新生成、引用溯源</h2>
+<p>这一部分的设计范式,主流对话产品在 2026 年已经趋于收敛,可以直接参考成熟做法。</p>
+<h3 id="1-stop-generating">1. 流式输出与打断(Stop Generating)</h3>
+<p>ChatGPT、Claude、Gemini 都采用"边生成边显示"的流式输出,而不是等模型全部生成完再一次性展示——这是降低用户等待焦虑的基本设计。配套的是"停止生成"(Stop Generating)按钮:模型输出过程中,用户可以随时打断,拿到已生成的部分内容,而不需要等待完整回答或整个作废重来。OpenAI 官方帮助文档明确把"点击 Stop generating,再点击 Regenerate 重试"作为标准操作路径。</p>
+<h3 id="2-regenerateedit">2. 重新生成(Regenerate)与编辑消息(Edit)</h3>
+<ul>
+<li><strong>重新生成</strong>:用户对已有回答不满意时,可以要求模型基于同一个问题重新作答一次,而不需要重新打字。Claude.ai 官方帮助文档描述的操作路径是:打开对话 → 点击 Retry → 选择"不做改动直接重试"→ 得到新回答。</li>
+<li><strong>编辑消息</strong>:用户可以修改自己之前发的问题,模型基于修改后的版本重新回答,原分支仍然保留可以切回——这本质上是一种轻量级的"对话分支"能力,让用户可以在同一个话题下尝试不同的提问方式,而不用开一个新对话。</li>
+</ul>
+<p>这两个控件解决的是同一个产品问题:<strong>AI 输出不满意时,重来的成本要足够低</strong>,否则用户会直接放弃、流失。</p>
+<h3 id="3-citation">3. 引用溯源(Citation):把"黑箱"变成"可核验"</h3>
+<p>引用溯源是缓解幻觉、建立信任性价比最高的设计手段之一(参考 <a href="../../04-interview/basics/ai-blackbox-trust.html">AI 产品的黑箱问题如何影响用户信任?</a>),三家产品的具体做法有细节差异,值得对比着看:</p>
+<table>
+<thead>
+<tr>
+<th>产品</th>
+<th>机制</th>
+<th>具体表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ChatGPT(Search)</td>
+<td>联网搜索触发后,回答中插入内联引用</td>
+<td>鼠标悬停引用角标可预览来源,点击跳转原文;若未显示内联引用,可点击回答下方 "Sources" 面板查看引用列表</td>
+</tr>
+<tr>
+<td>Claude(Citations API / 原生 web_search)</td>
+<td>面向开发者的 Citations 功能,让模型在引用文档时返回带字符级偏移的结构化引用对象</td>
+<td>保证引用内容确实来自给定文档,而非模型编造;原生联网搜索时,每条网页结果默认自带引用类型</td>
+</tr>
+<tr>
+<td>Gemini("双重核查",Double-check response)</td>
+<td>回答生成后,用户可点击"双重核查"用 Google 搜索交叉验证</td>
+<td>用绿色高亮标出"搜索结果与回答内容相符"的陈述,橙色高亮标出"搜索结果与回答不符或未找到相关信息"的陈述,帮助用户快速判断哪些内容需要重新核实</td>
+</tr>
+</tbody>
+</table>
+<p>三种机制的产品哲学略有不同:ChatGPT 和 Claude 更偏"生成时就带引用",Gemini 的双重核查更偏"生成后再做一次独立核验"——后者的好处是核查过程和生成过程解耦,即使模型编造了内容,只要核查环节足够独立,依然有机会被检测出来。做对话产品的引用设计时,这是一个值得参考的思路:<strong>不要把"引用展示"和"引用是否真实"这两件事混为一谈</strong>,后者需要工程上的保证机制,而不只是 UI 上加个角标。</p>
+<h2 id="_4">三、反馈机制:点赞点踩之外还有什么</h2>
+<h3 id="1_1">1. 主流产品怎么做显式反馈</h3>
+<p>点赞/点踩是最基础的显式反馈控件。ChatGPT 的做法是:点赞通常直接记录一个正向信号;点踩会弹出面板,要求用户具体标注问题类型(如"内容不准确""没有遵循指令"),并可选填文字说明——负反馈的"归因颗粒度"远高于正反馈。Claude.ai 类似:回答下方提供 thumbs up / thumbs down;点踩会把该轮对话分享给 Anthropic 用于改进(Team / Enterprise 可由管理员开关;用户也可在设置中管理是否愿意提供反馈)。OpenAI 官方亦把「回答下方点踩 / 使用 Report」作为替代已下线网页反馈表单的主渠道。</p>
+<blockquote>
+<p><strong>分工</strong>:显式反馈覆盖率低、如何当指标用、如何与隐式信号配对——见 <a href="../ai-product-operations/ai-product-metrics.html#八用户为何不点反馈低覆盖不是用户满意了">AI 产品指标体系 · 第八节</a>。本节只谈交互侧:按钮为何点不下去、控件怎么设计才更低摩擦。</p>
+</blockquote>
+<h3 id="2_1">2. 反馈按钮为何「点不下去」(交互视角)</h3>
+<p>答案错了,按钮明明在,用户仍不点——多数时候不是「其实满意了」,而是<strong>交互成本高于当下任务收益</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>交互断点</th>
+<th>用户侧感受</th>
+<th>设计含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时机错位</td>
+<td>正在赶任务/扫读答案,没空停下来「评价」</td>
+<td>评价动作插在主路径中间,会被跳过</td>
+</tr>
+<tr>
+<td>归因负担</td>
+<td>要点踩还得想「错在哪一类」、写说明</td>
+<td>必填文字/长问卷把一次点击变成一次写作</td>
+</tr>
+<tr>
+<td>收益不可见</td>
+<td>点了下次还是一样,感觉没人看</td>
+<td>缺少即时确认与中长期「被用上了」的感知</td>
+</tr>
+<tr>
+<td>控件淹没</td>
+<td>👍👎 藏在滚动后、或被复制/重生成抢注意力</td>
+<td>不满意时用户先点 Regenerate,反馈入口从未进入视线</td>
+</tr>
+<tr>
+<td>隐私顾虑</td>
+<td>「点了会不会把整段对话交出去训练?」</td>
+<td>用途说明缺失或文案吓人,理性用户更不点</td>
+</tr>
+<tr>
+<td>强打断</td>
+<td>弹窗挡路、关不掉就继续弹</td>
+<td>反馈率被刷高,信号被污染(反模式见<a href="../data-annotation/cold-start-and-data-flywheel.html#飞轮反模式">飞轮 KPI 化</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>一句话:<strong>显式反馈是「高置信、低覆盖」的金标准抽样</strong>,交互目标不是把点击率刷到很高,而是让<strong>真的不满意、且愿意花 1 秒</strong>的人,能几乎无脑完成一次信号投递。</p>
+<h3 id="3">3. 让按钮「点得下去」的交互设计清单</h3>
+<p>按「先降成本、再补收益感知」排优先级(不抄具体产品像素,只定原则):</p>
+<ol>
+<li><strong>一键主路径</strong>:👍 / 👎 默认零文案;点踩后再展开可选原因标签(芯片),文字说明永远可选。不要把「写一段话」当成进入反馈的门槛。</li>
+<li><strong>和「不满意动作」放一起</strong>:重生成、编辑消息、复制——用户已经在表达「不够好」时,把点踩放在同一工具条,比单独角落的幽灵按钮更容易被看见。</li>
+<li><strong>事后轻触发,而非阅读中打断</strong>:流式输出未结束不弹评价;可在用户完成复制/关闭会话/连续 Regenerate 后给一次<strong>可忽略</strong>的轻提示,禁止模态连环弹窗。</li>
+<li><strong>即时确认</strong>:点完立刻有「已收到,用于改进此类回答」类微文案;若会上传对话片段,用一行说明用途 + 链到设置/隐私页,降低「黑箱交出」感。</li>
+<li><strong>质量反馈 ≠ 合规举报</strong>:Report / 违规入口与 👎 分开(ChatGPT 即如此)——混用会让用户不敢随手点踩,也会把安全工单和效果 bad case 搅在一起。</li>
+<li><strong>闭环可感知(轻量)</strong>:同类问题修好后,可对曾贡献过反馈的用户给一次非打断提示(如「你反馈过的 X 类问题已优化」);这是信任与留存设计,展开见 <a href="../ai-product-operations/ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标</a>。不要为刷「反馈被采纳率」而频繁打扰。</li>
+<li><strong>A/B 只验摩擦,不验「日均反馈条数」</strong>:对比的是点踩完成率、原因标签完整率、以及点踩后是否仍转人工——不要把弹窗强度当成成功标准。</li>
+</ol>
+<h3 id="4">4. 隐式行为:覆盖率补网,交互上不必「求用户评价」</h3>
+<p>点赞点踩触发率低时,监测面主要靠隐式行为——它们发生在主任务路径上,不额外打断:</p>
+<table>
+<thead>
+<tr>
+<th>隐式信号</th>
+<th>交互含义(不是指标公式)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>编辑 / 大改后仍用</td>
+<td>「不够好,但还有救」;入口应靠近输出区</td>
+</tr>
+<tr>
+<td>反复重生成</td>
+<td>前几次未满足;可在第 N 次后轻提示点踩(可忽略)</td>
+</tr>
+<tr>
+<td>复制 / 采纳</td>
+<td>最直接的「有用」;勿在复制瞬间弹评价挡路</td>
+</tr>
+<tr>
+<td>会话中断 / 转人工</td>
+<td>体验断点;转人工前可收一条可选原因</td>
+</tr>
+<tr>
+<td>换说法追问同一事</td>
+<td>首答未真正解决</td>
+</tr>
+<tr>
+<td>Report(独立于点踩)</td>
+<td>合规/滥用,走审核队列,不要和效果点踩混入口</td>
+</tr>
+</tbody>
+</table>
+<p>交互上把显式做得极轻;运营上把隐式读成改进方向——口径与编辑三维读法见指标体系<a href="../ai-product-operations/ai-product-metrics.html#八用户为何不点反馈低覆盖不是用户满意了">第八–九节</a>;飞轮回流见<a href="../data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮</a>。对新的 Prompt / 模型 / 兜底阈值,用小流量 A/B 看采纳率、转人工率、留存等业务结果,而不是仅凭「感觉反馈变多了」就全量。</p>
+<h2 id="ai_1">四、预期管理:让用户对"AI 会犯错"有心理准备</h2>
+<p>预期管理是三件套里最容易被忽视、却是成本最低的设计手段——它不需要改模型,只需要改文案和视觉。</p>
+<h3 id="1-ai">1. AI 身份标识</h3>
+<p>用户需要清楚知道自己在和 AI 交互,而不是真人。这不仅是产品设计问题,也正在变成合规要求:欧盟《人工智能法案》(EU AI Act)已要求 AI 系统在特定场景下履行透明度和披露义务。Google 从 2026 年起在 Gemini 生成的图像中默认嵌入 SynthID 隐形水印,并上线了 SynthID Detector,允许任何人上传图片检测其是否为 AI 生成——这是"AI 标识"从"聊天界面上的一行小字"升级为"内容层面可检测水印"的信号,值得 AI 产品在设计内容溯源机制时参考。</p>
+<h3 id="2_2">2. 免责声明:管用,但不能只靠它</h3>
+<p>ChatGPT 在输入框下方长期展示"ChatGPT can make mistakes. Check important info."(ChatGPT 可能会犯错,请核查重要信息)。需要客观说明的是:已有研究显示,这类静态免责声明对用户实际核查行为的影响有限,不能指望一行小字就让用户对每条回答都保持警惕。<strong>免责声明的正确定位是"最后一道防线",而不是主力兜底手段</strong>——真正管用的还是前面提到的置信度分级、拒答话术和引用溯源;免责声明解决的是"万一前面几道防线都没拦住"的责任告知问题。</p>
+<h3 id="3_1">3. 能力提示:在用户提问之前,就管理好期待</h3>
+<p>比事后免责声明更有效的,是在交互设计中前置地提示能力边界:</p>
+<ul>
+<li>首次使用引导中说明"擅长做什么、不擅长做什么"(对应 PRD 里的能力边界清单,见 <a href="ai-prd-guide.html">AI 产品 PRD 怎么写</a>)</li>
+<li>对高风险问题在回答前主动提示"这类问题建议咨询专业人士"</li>
+<li>用"建议"而非"结论"的语气呈现涉及主观判断的内容(如医疗、法律、投资类回答)</li>
+<li>像 Gemini 的双重核查一样,把"这条内容我们自己核实过""这条内容需要你自己再确认"的区分,做成用户可见、可交互的产品功能,而不是藏在帮助文档里</li>
+</ul>
+<h2 id="_5">小结</h2>
+<p>兜底、反馈、预期管理这三件套,本质上都是在替"模型输出的不确定性"做产品层面的翻译工作:兜底负责"这次没做好怎么办",反馈负责"怎么让下次做得更好",预期管理负责"让用户对'可能没做好'本身有心理准备"。反馈这一环在交互上常被做成「角落里的幽灵按钮」——答案错了用户也不点,不是满意,是成本高于收益;把显式反馈做得一键可完成,并把隐式行为接进飞轮,才谈得上闭环。三者任何一环缺失,都会导致同一个结果——用户对 AI 功能的信任被消耗殆尽,即便模型本身的技术指标一直在进步。</p>
+<h2 id="_6">相关阅读</h2>
+<ul>
+<li><a href="ai-prd-guide.html">AI 产品 PRD 怎么写:与传统 PRD 的核心差异</a></li>
+<li><a href="agentic-ux-and-trust-calibration.html">Agentic UX 与信任校准：用户何时该信、何时该介入</a></li>
+<li><a href="../ai-product-operations/ai-product-metrics.html">AI 产品指标体系：从业务结果到成本与风险</a>（第八节:反馈低覆盖的指标口径;第九节:编辑行为）</li>
+<li><a href="../ai-product-operations/ai-feature-retention-and-success-metrics.html">AI 功能留存与成功指标：死亡路径与 DAU 误判</a></li>
+<li><a href="../data-annotation/cold-start-and-data-flywheel.html">冷启动与数据飞轮：没有数据时产品怎么起步</a>（含飞轮反模式）</li>
+<li><a href="../model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试：概率性输出下如何做实验</a></li>
+<li><a href="../../04-interview/product-design/ai-product-pmf-coldstart-fallback.html">AI 产品如何判断 PMF、如何冷启动、兜底策略怎么设计?</a></li>
+<li><a href="../../04-interview/basics/ai-blackbox-trust.html">AI 产品的黑箱问题如何影响用户信任?产品层面怎么做?</a></li>
+<li><a href="../../04-interview/basics/hallucination-mitigation.html">什么是大模型的幻觉?产品上怎么缓解?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../04-interview/basics/data-flywheel.html">什么是数据飞轮?对 AI 产品为什么重要?</a></li>
+</ul>
+<h2 id="_7">参考资料</h2>
+<ul>
+<li><a href="https://help.openai.com/en/articles/9237897-chatgpt-search">ChatGPT Search</a> — OpenAI Help Center,2026-07 访问</li>
+<li><a href="https://help.openai.com/en/articles/10245791-reporting-content-in-chatgpt-and-openai-platforms">Reporting Content in ChatGPT and OpenAI Platforms</a> — OpenAI Help Center,2026-07 访问</li>
+<li><a href="https://openai.com/form/chat-model-feedback/">Chat model feedback</a> — OpenAI 指引改走产品内点踩 / Report,2026-08-06 访问</li>
+<li><a href="https://support.google.com/gemini/answer/14143489">View related sources and double-check responses from Gemini Apps</a> — Gemini Apps Help,2026-07 访问</li>
+<li><a href="https://claude.com/blog/introducing-citations-api">Introducing Citations on the Anthropic API</a> — Anthropic,2026-07 访问</li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/citations">Citations - Claude Platform Docs</a> — Anthropic,2026-07 访问</li>
+<li><a href="https://support.claude.com/en/articles/8525154-claude-is-providing-incorrect-or-misleading-responses-what-s-going-on">Claude is providing incorrect or misleading responses</a> — Claude Help Center(含 thumbs down 反馈入口),2026-08-06 访问</li>
+<li><a href="https://support.anthropic.com/en/articles/10504844-managing-user-feedback-settings-on-claude-for-work-team-and-enterprise-plans">Manage user feedback settings on Team and Enterprise plans</a> — Anthropic,2026-08-06 访问</li>
+<li>第三节选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q49;正文为原创交互设计框架,未摘录原书答案</li>
+</ul>
+</main>
+</body>
+</html>

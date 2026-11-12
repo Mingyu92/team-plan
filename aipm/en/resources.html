@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Product Manager: Resources</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">en / resources.md</span></div>
+<main>
+<h1 id="ai-product-manager-resources">AI Product Manager: Resources</h1>
+<p>Curated, free resources for AI PM prep. Every external link was checked and returned HTTP 200 at the time of writing. Start with this repository's own material (it is written for exactly this purpose), then branch out.</p>
+<hr>
+<h2 id="start-here-in-this-repository">Start here: in this repository</h2>
+<ul>
+<li><strong><a href="../../../topics/foundations.html">Topic pages</a></strong>: <a href="../../../topics/foundations.html">Foundations</a>, <a href="../../../topics/prompting.html">Prompting</a>, <a href="../../../topics/rag.html">RAG</a>, <a href="../../../topics/fine-tuning.html">Fine-tuning</a>, <a href="../../../topics/agents.html">Agents</a>, <a href="../../../topics/evaluation.html">Evaluation</a>, <a href="../../../topics/multimodal.html">Multimodal</a>, <a href="../../../topics/production.html">Production</a>, <a href="../../../topics/safety-security.html">Safety and Security</a>.</li>
+<li><strong><a href="../../../journeys/use.html">Journeys</a></strong>: <a href="../../../journeys/use.html">Use AI</a> and <a href="../../../journeys/understand.html">Understand AI</a> give a PM the right depth without going full engineer; <a href="../../../journeys/build.html">Build AI</a> if you want to go deeper.</li>
+<li><strong><a href="../../60_gen_ai_questions.html">60 GenAI Interview Questions</a></strong> and <strong><a href="../../index.html">Role-Based Prep</a></strong>: the core question banks.</li>
+<li><strong>Roadmaps</strong>: <a href="../../../resources/genai_roadmap.html">GenAI roadmap</a>, <a href="../../../resources/agents_roadmap.html">Agents roadmap</a>, <a href="../../../resources/RAG_roadmap.html">RAG roadmap</a>.</li>
+<li><strong>Guides</strong>: <a href="../../../resources/agentic_rag_101.html">Agentic RAG 101</a>, <a href="../../../resources/fine_tuning_101.html">Fine-tuning 101</a>, <a href="../../../resources/agents_101_guide.html">Agents 101</a>, <a href="../../../resources/securing_agentic_ai_systems.html">Securing Agentic AI Systems</a>.</li>
+<li><strong>Research tables (current)</strong>: <a href="../../../research_updates/rag_research_table.html">RAG research</a>, <a href="../../../research_updates/ai_evaluation_2025_table.html">AI Evaluation 2025</a>, <a href="../../../research_updates/agentic_search_retrieval_table.html">Agentic Search and Retrieval</a>.</li>
+<li><strong><a href="../../../research_updates/state_of_ai_2025_report/index.html">State of AI 2025 report</a></strong>: the macro context an AI PM is expected to know.</li>
+<li><strong>Paths</strong>: <a href="../../../paths/harness-engineering.html">Harness Engineering</a> and <a href="../../../paths/agent-builder.html">Agent Builder</a> for the agent-product depth interviewers probe.</li>
+</ul>
+<h2 id="interview-specific-guides-ai-pm-loops-at-named-companies">Interview-specific guides (AI PM loops at named companies)</h2>
+<ul>
+<li><a href="https://www.tryexponent.com/guides/microsoft-ai-product-manager-interview">Microsoft AI Product Manager interview guide (Exponent, 2026)</a>: rounds and sample questions.</li>
+<li><a href="https://www.tryexponent.com/guides/sierra-agent-product-manager-pm-interview-guide">Sierra Agent Product Manager interview guide (Exponent, 2026)</a>: agent-PM specific, RAG, MCP, memory, agent metrics.</li>
+<li><a href="https://www.tryexponent.com/guides/openai-product-manager-interview">OpenAI Product Manager interview guide (Exponent, 2026)</a>: frontier-lab PM loop.</li>
+<li><a href="https://www.tryexponent.com/blog/product-sense-interview">Product Sense interview prep (Exponent, 2026)</a>: the classic product-sense frame the AI round builds on.</li>
+<li><a href="https://www.kore1.com/ai-product-manager-interview-questions-2026/">AI Product Manager interview questions (KORE1, 2026)</a>: deep question set on evals, unit economics, guardrails, with strong-answer guidance.</li>
+<li><a href="https://www.news.aakashg.com/p/ai-product-sense-guide">AI Product Sense Guide (Aakash Gupta)</a>: how to run the AI product-sense round.</li>
+<li><a href="https://www.productcompass.pm/p/ai-product-manager-roadmap-2026">The AI Product Manager Roadmap 2026 (Product Compass)</a>: the skill map for the role.</li>
+</ul>
+<h2 id="core-reading-what-models-and-agents-can-and-cannot-do">Core reading: what models and agents can and cannot do</h2>
+<ul>
+<li><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective Agents (Anthropic)</a>: the reference on when to use a workflow versus an agent, and the common patterns. Essential for the technical-literacy and product-sense rounds.</li>
+<li><a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">How we built our multi-agent research system (Anthropic)</a>: multi-agent tradeoffs, cost, and evaluation from a shipped system.</li>
+<li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective Context Engineering for AI Agents (Anthropic)</a>: the context-as-product-lever framing.</li>
+<li><a href="https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf">A practical guide to building agents</a> (OpenAI, 2025): the production architecture and orchestration (routing, guardrails, caching, observability) a PM should picture. Foundational anchor.</li>
+<li><a href="https://martinfowler.com/articles/gen-ai-patterns/">Emerging patterns in building GenAI products</a> (Martin Fowler, Thoughtworks): the enduring patterns and gotchas of shipping LLM products. Foundational anchor.</li>
+<li><a href="https://a16z.com/emerging-architectures-for-llm-applications/">Emerging Architectures for LLM Applications (a16z)</a>: the canonical reference-architecture diagram. Foundational anchor.</li>
+<li><a href="https://modelcontextprotocol.io/docs/getting-started/intro">Model Context Protocol (intro)</a> and the <a href="https://modelcontextprotocol.io/">MCP home</a>: the standard for connecting agents to tools and data.</li>
+</ul>
+<h2 id="evaluation-and-metrics">Evaluation and metrics</h2>
+<ul>
+<li><a href="../../../free_courses/ai_evals_for_everyone/index.html">AI Evals for Everyone (this repo)</a>: the single best starting point for the evaluation round.</li>
+<li><a href="../../../research_updates/ai_evaluation_2025_table.html">AI Evaluation 2025 research table (this repo)</a>: current methods and benchmarks.</li>
+<li><a href="https://platform.openai.com/docs/guides/evals">OpenAI Evals guide</a>: how offline eval harnesses are actually built.</li>
+<li><a href="https://www.evidentlyai.com/llm-guide">Evidently AI: LLM evaluation guide</a>: practical, current guide to offline and online LLM evaluation and monitoring.</li>
+<li><a href="https://cloud.google.com/blog/products/ai-machine-learning/measuring-the-value-of-ai-agents">Measuring the value of AI agents (Google Cloud)</a>: the reliability, adoption, and business-value framing for agent metrics.</li>
+</ul>
+<h2 id="responsible-ai-safety-and-regulation">Responsible AI, safety, and regulation</h2>
+<ul>
+<li><a href="https://pair.withgoogle.com/guidebook/">People + AI Guidebook (Google PAIR)</a>: the definitive free reference on designing human-centered AI UX (mental models, feedback, errors, trust). Read this before any product-sense round.</li>
+<li><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI Risk Management Framework</a>: the govern, map, measure, manage structure interviewers expect you to know.</li>
+<li><a href="https://artificialintelligenceact.eu/">EU AI Act explorer</a>: risk tiers and obligations that shape launch gates.</li>
+<li><a href="../../../resources/securing_agentic_ai_systems.html">Securing Agentic AI Systems (this repo)</a>: prompt injection, permissions, and agent guardrails.</li>
+</ul>
+<h2 id="papers-to-know-recognize-the-idea-not-memorize-the-math">Papers to know (recognize the idea, not memorize the math)</h2>
+<p>Foundational anchors that define the vocabulary interviewers use:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need (Transformer, 2017)</a></li>
+<li><a href="https://arxiv.org/abs/2005.11401">Retrieval-Augmented Generation (RAG, 2020)</a></li>
+<li><a href="https://arxiv.org/abs/2201.11903">Chain-of-Thought Prompting (2022)</a></li>
+<li><a href="https://arxiv.org/abs/2210.03629">ReAct: Reasoning and Acting in LLMs (2022)</a></li>
+<li><a href="https://arxiv.org/abs/2203.02155">Training Language Models to Follow Instructions (InstructGPT, 2022)</a></li>
+<li><a href="https://arxiv.org/abs/2212.08073">Constitutional AI (2022)</a></li>
+<li><a href="https://arxiv.org/abs/2302.04761">Toolformer (2023)</a></li>
+<li><a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal LLMs (Chinchilla scaling, 2022)</a></li>
+<li><a href="https://arxiv.org/abs/2307.03109">A Survey on Evaluation of Large Language Models (2023)</a></li>
+</ul>
+<h2 id="product-strategy-and-staying-current">Product strategy and staying current</h2>
+<ul>
+<li><a href="https://www.mindtheproduct.com/">Mind the Product</a>: general PM craft, with growing AI product coverage.</li>
+<li><a href="../../../research_updates/state_of_ai_2025_report/index.html">State of AI 2025 report (this repo)</a>: the macro trends to reference.</li>
+<li>Follow the <a href="../../../research_updates/2026_papers">2026 papers folder</a> and <a href="../../../research_updates/survey_papers.html">survey papers</a> in this repo to keep current without doom-scrolling.</li>
+</ul>
+<p>A note on sourcing: favor 2025-2026 material for anything about capability, cost, and agent patterns, since the field moves fast. The papers above are labeled as foundational anchors on purpose; know the idea, not the arithmetic.</p>
+</main>
+</body>
+</html>

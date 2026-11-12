@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLM 核心名词解释</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 01_基础架构/01_名词解释.md</span></div>
+<main>
+<h1 id="llm">LLM 核心名词解释</h1>
+<blockquote>
+<p>创建日期：2026-05-28</p>
+</blockquote>
+<hr>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>Token、Embedding、Vocabulary 三者分别是什么？</li>
+<li>Self-Attention 的公式怎么理解？Q/K/V 各自起什么作用？</li>
+<li>KV Cache 为什么能加速推理？代价是什么？</li>
+<li>Pre-training、SFT、RLHF、DPO 的边界是什么？</li>
+<li>Temperature、Top-k、Top-p、Beam Search 的使用差异是什么？</li>
+<li>Quantization、LoRA、MoE 分别解决什么问题？</li>
+</ul>
+<hr>
+<h2 id="_2">一张总览图</h2>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;文本&quot;] --&gt; B[&quot;Tokenization&quot;]
+    B --&gt; C[&quot;Token IDs&quot;]
+    C --&gt; D[&quot;Embedding&quot;]
+    D --&gt; E[&quot;Transformer Blocks&quot;]
+    E --&gt; F[&quot;Logits&quot;]
+    F --&gt; G[&quot;Decoding&quot;]
+    G --&gt; H[&quot;生成文本&quot;]
+</code></pre>
+<p>这张图基本覆盖了大模型从输入到输出的主路径。下面的名词，大多都能放回这条链路里理解。</p>
+<hr>
+<h2 id="_3">基础概念</h2>
+<h3 id="token">Token</h3>
+<p><strong>细化理解：</strong> Token 是模型处理文本的最小离散单位，但它不是语言学上的“词”。同一个中文词可能被拆成多个 token，一个英文单词也可能因为大小写、前导空格、后缀变化被拆成不同 token。面试中遇到上下文长度、计费、KV Cache、吞吐这些问题时，都要先把“字符数”转换成“token 数”来讨论。</p>
+<p>模型处理文本的最小离散单元。它不一定等于一个汉字、一个单词或一个标点，而是 tokenizer 切分后的片段。</p>
+<p>例子：</p>
+<ul>
+<li>英文单词 <code>"unhappiness"</code> 可能被切成 <code>["un", "happiness"]</code></li>
+<li>中文可能一个字一个 token，也可能多个字合成一个 token</li>
+<li>代码中的空格、换行、缩进也可能占 token</li>
+</ul>
+<p><strong>为什么重要：</strong></p>
+<ul>
+<li>训练和推理成本通常按 token 计</li>
+<li>上下文窗口大小本质上就是最多能处理多少 token</li>
+<li>不同语言的 token 效率差异会影响真实成本</li>
+</ul>
+<h3 id="tokenization">Tokenization（分词）</h3>
+<p>把原始文本切成 token 序列的过程。常见算法有：</p>
+<ul>
+<li><strong>BPE</strong></li>
+<li><strong>WordPiece</strong></li>
+<li><strong>SentencePiece</strong></li>
+</ul>
+<p><strong>理解重点：</strong></p>
+<ul>
+<li>tokenizer 不是语义理解器，而是一套编码压缩规则</li>
+<li>tokenizer 设计会影响中文、代码、数学公式的表示效率</li>
+<li>好的 tokenizer 能减少序列长度，提升训练和推理效率</li>
+</ul>
+<h3 id="vocabulary">Vocabulary（词表）</h3>
+<p>模型能识别的全部 token 的集合。</p>
+<ul>
+<li>GPT-2 词表规模约 50K</li>
+<li>LLaMA 约 32K</li>
+<li>不同模型词表不同，token 切分方式也不同</li>
+</ul>
+<p><strong>词表越大不一定越好：</strong></p>
+<ul>
+<li>太小：文本会被切得很碎，序列变长</li>
+<li>太大：embedding 和输出层参数增大，训练更重</li>
+</ul>
+<h3 id="embedding">Embedding（词嵌入）</h3>
+<p>把离散 token id 映射成稠密向量的过程。</p>
+<p>直观上可以把 embedding 理解成：模型把每个 token 投影到一个连续空间里，让后续网络在向量空间里做计算。</p>
+<p><strong>要点：</strong></p>
+<ul>
+<li>embedding 层是离散世界进入神经网络的入口</li>
+<li>语义相近 token 在向量空间里往往更接近</li>
+<li>在大模型里，输入 embedding 和输出词表投影有时会共享参数</li>
+</ul>
+<hr>
+<h2 id="_4">模型架构</h2>
+<h3 id="transformer">Transformer</h3>
+<p>2017 年提出的序列建模架构，核心是 <strong>Self-Attention</strong>。现代 LLM 大多是 Transformer 的 decoder-only 变体。</p>
+<p>Transformer 的优势：</p>
+<ul>
+<li>并行性强</li>
+<li>长距离依赖建模能力强</li>
+<li>易于扩展到超大参数规模</li>
+</ul>
+<h3 id="self-attention">Self-Attention（自注意力）</h3>
+<p>序列中每个位置都可以看见其他位置，并根据相关性聚合信息。</p>
+<p>公式：</p>
+<pre><code class="language-text">Attention(Q, K, V) = softmax(QK^T / sqrt(d_k)) V
+</code></pre>
+<p>直观理解：</p>
+<ul>
+<li><code>Q</code>：我想找什么</li>
+<li><code>K</code>：我这里有什么特征</li>
+<li><code>V</code>：真正要被拿来聚合的信息</li>
+</ul>
+<p>流程是：</p>
+<ol>
+<li>用 <code>Q</code> 和所有 <code>K</code> 算相似度</li>
+<li>做 softmax 得到权重</li>
+<li>按权重对 <code>V</code> 加权求和</li>
+</ol>
+<h3 id="multi-head-attention">Multi-Head Attention（多头注意力）</h3>
+<p>把 Q/K/V 投影到多个子空间，分别做 attention，再拼接回来。</p>
+<p><strong>作用：</strong></p>
+<ul>
+<li>不同头可以捕捉不同关系</li>
+<li>有的头关注局部邻近</li>
+<li>有的头关注长距离依赖</li>
+<li>有的头可能更偏语法、位置或实体对齐</li>
+</ul>
+<h3 id="q-k-v">Q / K / V</h3>
+<p>这三个向量通常都是由输入隐状态线性投影得到：</p>
+<ul>
+<li><strong>Q（Query）</strong>：当前 token 想找什么信息</li>
+<li><strong>K（Key）</strong>：每个 token 提供什么索引特征</li>
+<li><strong>V（Value）</strong>：每个 token 携带什么内容信息</li>
+</ul>
+<p>注意：Q/K/V 不是外部硬编码概念，而是训练中自动学出来的表示空间。</p>
+<h3 id="kv-cache">KV Cache</h3>
+<p><strong>细化理解：</strong> KV Cache 缓存的是每层 attention 中历史 token 的 Key 和 Value，不是缓存最终答案。它能避免每生成一个新 token 就重算全部历史，但显存会随 batch size、层数、head 数、head 维度和上下文长度线性增长。长上下文推理的核心瓶颈之一就是 KV Cache 管理，所以才会有 PagedAttention、MQA/GQA、KV 量化等优化。</p>
+<p>推理时缓存已经算过的 <code>K</code> 和 <code>V</code>，避免每生成一个新 token 都把历史部分重新计算一遍。</p>
+<p><strong>为什么能加速：</strong></p>
+<ul>
+<li>自回归生成时，历史 token 不变</li>
+<li>所以历史 K/V 可以直接复用</li>
+<li>新 token 只需要和已有 K/V 做 attention</li>
+</ul>
+<p><strong>代价：</strong></p>
+<ul>
+<li>上下文越长，KV Cache 占用越大</li>
+<li>长上下文推理常常是显存瓶颈，而不是参数本身</li>
+</ul>
+<h3 id="positional-encoding">Positional Encoding（位置编码）</h3>
+<p>Transformer 本身不感知顺序，所以要显式注入位置信息。</p>
+<p>常见方式：</p>
+<ul>
+<li>绝对位置编码</li>
+<li>相对位置编码</li>
+<li><strong>RoPE</strong></li>
+<li><strong>ALiBi</strong></li>
+</ul>
+<h3 id="rope">RoPE（旋转位置编码）</h3>
+<p>通过旋转矩阵把位置信息编码进 Q/K。LLaMA、Qwen 等主流模型广泛采用。</p>
+<p>它的优势是：</p>
+<ul>
+<li>对相对位置信息建模自然</li>
+<li>外推到更长上下文更方便</li>
+<li>与现代 decoder-only 架构兼容性好</li>
+</ul>
+<h3 id="ffn">FFN（前馈网络）</h3>
+<p>每个 Transformer Block 中，attention 后面通常接一个两层 MLP/FFN，用于做非线性变换和特征重组。</p>
+<p>现代大模型中常见变体：</p>
+<ul>
+<li>ReLU -&gt; 老方案</li>
+<li>GELU</li>
+<li><strong>SwiGLU</strong> -&gt; 目前主流</li>
+</ul>
+<h3 id="layer-norm-rmsnorm">Layer Norm / RMSNorm</h3>
+<p>归一化层用于稳定训练。</p>
+<p>常见点：</p>
+<ul>
+<li><strong>Pre-Norm</strong> 比 Post-Norm 更稳定</li>
+<li>很多新模型从 LayerNorm 转向 <strong>RMSNorm</strong></li>
+<li>RMSNorm 计算更简洁，工程上更常见</li>
+</ul>
+<hr>
+<h2 id="_5">训练相关</h2>
+<h3 id="pre-training">Pre-training（预训练）</h3>
+<p>在海量无监督语料上训练语言模型，目标通常是下一个 token 预测。</p>
+<p>它解决的是：</p>
+<ul>
+<li>语言规律学习</li>
+<li>世界知识吸收</li>
+<li>基础推理能力形成</li>
+</ul>
+<h3 id="fine-tuning">Fine-tuning（微调）</h3>
+<p>在预训练基座上继续训练，使模型适配特定任务或特定行为。</p>
+<p>它可以是：</p>
+<ul>
+<li>领域适配</li>
+<li>指令跟随</li>
+<li>风格控制</li>
+<li>垂直任务优化</li>
+</ul>
+<h3 id="sftsupervised-fine-tuning">SFT（Supervised Fine-Tuning）</h3>
+<p>使用人工标注的指令-回答数据继续训练模型，让模型学会按人类期望作答。</p>
+<p>SFT 主要解决：</p>
+<ul>
+<li>指令遵循</li>
+<li>输出格式</li>
+<li>对话行为</li>
+</ul>
+<h3 id="rlhfreinforcement-learning-from-human-feedback">RLHF（Reinforcement Learning from Human Feedback）</h3>
+<p>利用人类偏好数据训练奖励模型，再用强化学习优化模型，使输出更符合"有帮助、安全、无害"等主观偏好。</p>
+<p>核心链路：</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;SFT 模型&quot;] --&gt; B[&quot;采样多个回答&quot;]
+    B --&gt; C[&quot;人工偏好标注&quot;]
+    C --&gt; D[&quot;训练奖励模型&quot;]
+    D --&gt; E[&quot;PPO/RL 优化&quot;]
+</code></pre>
+<h3 id="ppo">PPO</h3>
+<p>RLHF 中常见的强化学习算法。它通过限制策略更新幅度，让训练更稳定。</p>
+<p>你在面试里只要抓住一点：</p>
+<ul>
+<li>PPO 的价值不是更强表达力</li>
+<li>而是让 RL 微调不至于一步把模型带偏</li>
+</ul>
+<h3 id="dpodirect-preference-optimization">DPO（Direct Preference Optimization）</h3>
+<p>RLHF 的简化替代方案。直接用偏好数据优化模型，不单独训练奖励模型，也不必跑复杂 PPO。</p>
+<p>它为什么火：</p>
+<ul>
+<li>实现简单</li>
+<li>训练稳定</li>
+<li>工程门槛低</li>
+</ul>
+<hr>
+<h2 id="_6">推理相关</h2>
+<h3 id="autoregressive">Autoregressive（自回归）</h3>
+<p>模型逐个生成 token，每一步都依赖前面已经生成的内容。</p>
+<p>特点：</p>
+<ul>
+<li>输出自然</li>
+<li>推理不可完全并行</li>
+<li>decode 阶段通常比 prefill 更慢</li>
+</ul>
+<h3 id="greedy-decoding">Greedy Decoding（贪心解码）</h3>
+<p>每步选概率最高的 token。</p>
+<p>优点：</p>
+<ul>
+<li>快</li>
+<li>稳</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>容易保守</li>
+<li>多样性差</li>
+</ul>
+<h3 id="beam-search">Beam Search（束搜索）</h3>
+<p>同时保留多个候选序列，再从整体概率角度选更优路径。</p>
+<p>优点：</p>
+<ul>
+<li>比贪心更全局</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>计算量更大</li>
+<li>在开放生成里未必比采样更自然</li>
+</ul>
+<h3 id="temperature">Temperature（温度）</h3>
+<p>控制输出分布平滑程度的参数。</p>
+<ul>
+<li>温度低：更确定、更保守</li>
+<li>温度高：更发散、更多样</li>
+</ul>
+<h3 id="top-k-top-p">Top-k / Top-p 采样</h3>
+<ul>
+<li><strong>Top-k</strong>：只从概率最高的前 <code>k</code> 个 token 里采样</li>
+<li><strong>Top-p</strong>：从累计概率达到 <code>p</code> 的最小 token 集中采样</li>
+</ul>
+<p>理解上：</p>
+<ul>
+<li>Top-k 更像固定候选池</li>
+<li>Top-p 更像自适应候选池</li>
+</ul>
+<h3 id="perplexity">Perplexity（困惑度）</h3>
+<p>衡量语言模型对测试集预测好坏的指标，值越低通常表示建模越好。</p>
+<p>注意：</p>
+<ul>
+<li>困惑度适合评估语言建模能力</li>
+<li>不等于指令跟随能力</li>
+<li>也不直接等于产品体验</li>
+</ul>
+<hr>
+<h2 id="_7">效率与部署</h2>
+<h3 id="quantization">Quantization（量化）</h3>
+<p>把权重或激活从 FP16/BF16/FP32 压缩到 INT8、INT4 甚至更低精度，以减少显存和提升推理效率。</p>
+<p><strong>解决的问题：</strong></p>
+<ul>
+<li>模型太大，部署不起</li>
+<li>显存贵</li>
+<li>吞吐不够</li>
+</ul>
+<h3 id="lora">LoRA（低秩适配）</h3>
+<p><strong>细化理解：</strong> LoRA 的关键假设是：下游任务需要的参数更新可以用低秩矩阵近似。它冻结原模型，只训练插入到线性层旁边的小矩阵，因此训练显存和可保存参数都大幅下降。面试时要说明 LoRA 适合低成本适配风格、格式和领域任务，但如果基础模型缺少目标能力或知识，LoRA 不能神奇补齐全部缺口。</p>
+<p>微调时不更新全部参数，只训练少量低秩矩阵。</p>
+<p>优点：</p>
+<ul>
+<li>显存开销小</li>
+<li>微调成本低</li>
+<li>适合多任务多版本管理</li>
+</ul>
+<h3 id="moe">MoE（混合专家）</h3>
+<p>模型由多个专家子网络组成，每次只激活其中一部分。</p>
+<p>好处：</p>
+<ul>
+<li>总参数可以很大</li>
+<li>单次激活参数较少</li>
+<li>在不线性增加推理成本的前提下扩模型容量</li>
+</ul>
+<p>挑战：</p>
+<ul>
+<li>路由与负载均衡复杂</li>
+<li>训练工程难度更高</li>
+</ul>
+<h3 id="prefill-decode">Prefill / Decode</h3>
+<p>推理通常分两阶段：</p>
+<ul>
+<li><strong>Prefill</strong>：处理输入 prompt，建立 KV Cache</li>
+<li><strong>Decode</strong>：逐 token 生成输出</li>
+</ul>
+<p>它们的瓶颈不同：</p>
+<ul>
+<li>Prefill 更偏大矩阵计算</li>
+<li>Decode 更偏 memory-bound 和串行生成</li>
+</ul>
+<hr>
+<h2 id="_8">常见混淆点</h2>
+<h3 id="token_1">Token 和词不是一回事</h3>
+<p>不要把 token 简单理解成"单词数"。中文、英文、代码、表情、空格的切法都可能不同。</p>
+<h3 id="embedding_1">Embedding 不是检索向量</h3>
+<p>训练时的 token embedding 和 RAG 中的 sentence/document embedding 是两个不同层面的概念。</p>
+<h3 id="kv-cache_1">KV Cache 只在推理阶段重要</h3>
+<p>训练时通常不会用这种逐步缓存方式，因为训练是并行喂整段序列。</p>
+<h3 id="_9">困惑度低不代表对话体验一定好</h3>
+<p>它更多反映语言建模能力，不等于安全性、遵循性和任务完成率。</p>
+<hr>
+<h2 id="_10">工程实践视角</h2>
+<h3 id="_11">面试里怎么把这些词讲顺</h3>
+<p>一个很实用的回答顺序是：</p>
+<ol>
+<li>输入先经 tokenizer 变成 token ids</li>
+<li>token ids 进 embedding 变成向量</li>
+<li>经过多层 Transformer，用 self-attention 建模上下文</li>
+<li>输出 logits，再通过 decoding 生成 token</li>
+<li>训练阶段用 pretraining/SFT/RLHF 等不同目标塑造行为</li>
+<li>部署阶段再用 KV Cache、量化、LoRA、MoE 等手段平衡成本与效果</li>
+</ol>
+<p>这个顺序能把零散术语串成一条完整链路。</p>
+<hr>
+<h2 id="_12">学完可以做什么</h2>
+<ol>
+<li>画一张自己的 Transformer 推理流程图，把每个名词放回所在位置。</li>
+<li>用 tokenizer 工具比较中英文和代码文本的 token 数差异。</li>
+<li>实测不同 temperature、top-p 对回答风格的影响。</li>
+</ol>
+<hr>
+<h2 id="_13">原始论文</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>：Transformer 原论文，理解 self-attention、multi-head attention、position encoding 的起点。</li>
+<li><a href="https://arxiv.org/abs/2005.14165">Language Models are Few-Shot Learners</a>：GPT-3 论文，解释大模型、上下文学习和 scaling 后能力变化。</li>
+<li><a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a>：InstructGPT / RLHF 经典论文，适合理解预训练模型为什么还需要对齐。</li>
+<li><a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a>：DPO 原论文，适合和 RLHF / PPO 放在一起对比。</li>
+<li><a href="https://arxiv.org/abs/2106.09685">LoRA: Low-Rank Adaptation of Large Language Models</a>：参数高效微调代表方法。</li>
+<li><a href="https://arxiv.org/abs/2205.14135">FlashAttention</a>：理解现代推理加速和 attention IO 瓶颈的重要论文。</li>
+<li><a href="https://arxiv.org/abs/2309.06180">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>：vLLM / PagedAttention 论文，解释 KV Cache 管理为什么是 serving 核心问题。</li>
+</ul>
+<hr>
+<h2 id="_14">延伸阅读与视频</h2>
+<ul>
+<li><a href="https://jalammar.github.io/illustrated-transformer/">The Illustrated Transformer</a>：用图讲 Transformer，适合把 Q/K/V 和 attention 流程看明白。</li>
+<li><a href="https://www.youtube.com/watch?v=eMlx5fFNoYc">3Blue1Brown: Attention in Transformers</a>：注意力机制可视化讲解。</li>
+<li><a href="https://www.youtube.com/watch?v=zduSFxRajkE">Andrej Karpathy: Let's build the GPT Tokenizer</a>：从代码角度理解 tokenization 和 BPE。</li>
+<li><a href="https://huggingface.co/docs/transformers/main/cache_explanation">Hugging Face Transformers - KV cache explanation</a>：官方文档，解释 KV Cache 在生成阶段的作用。</li>
+<li><a href="https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken">OpenAI Cookbook: How to count tokens with tiktoken</a>：适合做 token 成本估算和上下文窗口计算。</li>
+<li><a href="https://lilianweng.github.io/posts/2023-01-27-the-transformer-family-v2/">Lil'Log: The Transformer Family</a>：系统梳理 Transformer 变体、位置编码和 attention 变体。</li>
+</ul>
+<hr>
+<p><em>持续更新中...</em></p>
+</main>
+</body>
+</html>

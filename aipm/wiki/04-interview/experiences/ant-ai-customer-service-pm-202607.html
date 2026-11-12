@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>蚂蚁 AI 客服产品经理 面经</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/experiences/ant-ai-customer-service-pm-202607.md</span></div>
+<main>
+<h1 id="ai">蚂蚁 AI 客服产品经理 面经</h1>
+<p><strong>来源</strong>: 牛客 @哀妮N, 2026-04 | <strong>岗位</strong>: AI 客服产品经理 | <strong>类型</strong>: 校招/社招（投稿者背景为研发转产品）</p>
+<p><strong>来源性质</strong>：牛客社区公开面经（部分为社区整理），本文仅整理原文明确内容，未对经历进行独立核验；未披露信息统一标注“原文未披露”。
+<strong>背景</strong>：研发转产品
+<strong>渠道</strong>：原文未披露
+<strong>结果</strong>：原文未披露</p>
+<h2 id="_1">流程概览</h2>
+<p>简历筛选 → 业务一面（项目深挖 + 大语言模型产品方法 + 流程题 + 英语题）</p>
+<h2 id="_2">各轮详情</h2>
+<h3 id="_3">一面</h3>
+<p><strong>问题清单</strong>:</p>
+<ol>
+<li>自我介绍</li>
+<li>为什么选择这个岗位（投稿者此前为研发背景）</li>
+<li>为什么选产品经理</li>
+<li>经历拷打</li>
+<li>询问之前公司的项目产品定位情况</li>
+<li>大语言模型（AI）怎么去判断效果，用什么指标去判断</li>
+<li>如果设计一个大语言产品需要看什么，怎么设计（产品主要为聊天机器人，语言 &amp; 文字）</li>
+<li>有没有自己搭建过 AI 模型（或开发过 AI）的经历（投稿者以 Dify 接入模型、自动化工作流为例）</li>
+<li>对于进入一个新的陌生项目，怎么快速入手</li>
+<li>一个产品从需求到最终上线交付中间的流程是什么</li>
+<li>英语口语题：最喜欢用来辅助工作的 AI 模型是什么</li>
+</ol>
+<p><strong>参考回答思路</strong>:</p>
+<ul>
+<li><strong>研发转产品</strong>: 强调「懂技术边界 + 更想对用户与业务结果负责」，用 1 个从需求到上线的完整协作案例证明转型合理性。</li>
+<li><strong>客服 LLM 评测</strong>: 分层指标——解决率/一次解决率、转人工率、用户满意度、平均处理时长、安全与合规（敏感词、幻觉）；离线评测集 + 线上 A/B。</li>
+<li><strong>聊天机器人设计</strong>: 意图识别 → 知识库/RAG → 多轮对话 → 兜底（转人工、澄清、拒答）→ 全链路监控；突出客服场景对「可控、可审计」的要求。</li>
+<li><strong>Dify / 工作流</strong>: 讲清在 POC 中的角色（编排、Prompt、评测），区分「平台使用」与「模型训练」。</li>
+<li><strong>陌生项目入手</strong>: 用户与指标 → 现有系统与数据 → 关键 stakeholder 访谈 → 小步快跑验证假设。</li>
+<li><strong>英语题</strong>: 简短流利即可，准备 30 秒版：模型名 + 使用场景 + 一个具体收益。</li>
+</ul>
+<h2 id="_4">总结与建议</h2>
+<ul>
+<li>蚂蚁 AI 客服岗重视「指标 + 聊天机器人全链路 + 转岗动机」，与纯概念八股面差异明显。</li>
+<li>研发背景是双刃剑：展示技术理解的同时，避免回答像架构评审，始终扣「产品决策与用户价值」。</li>
+<li>客服场景务必准备转人工、拒答、合规三类兜底方案，这是该岗的隐含考点。</li>
+</ul>
+</main>
+</body>
+</html>

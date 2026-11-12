@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>为什么大模型的输出每次都不一样?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/llm-output-randomness.md</span></div>
+<main>
+<h1 id="_1">为什么大模型的输出每次都不一样?</h1>
+<p><strong>难度</strong>:⭐ 入门
+<strong>出现频率</strong>:中,仓库规划题</p>
+<h2 id="_2">考察点</h2>
+<ul>
+<li>能否解释大模型输出的概率本质</li>
+<li>是否理解 Temperature 等参数的作用</li>
+<li>能否从产品角度说明何时需要确定性、何时需要多样性</li>
+</ul>
+<h2 id="_3">参考答案</h2>
+<p><strong>一句话解释</strong>:大模型是概率模型,每次生成时对每个候选 token 做"加权随机抽样",而非查表返回固定答案。</p>
+<p><strong>原理简述</strong>:
+1. 模型输出的是下一个 token 的概率分布(如"好"30%、"行"25%、"的"20%...)
+2. 采样策略从分布中抽取一个 token 作为输出
+3. 每抽一次,后续所有 token 的概率都会变化(因为上下文变了)
+4. 因此即使输入完全相同,输出也可能不同</p>
+<p><strong>影响随机性的关键参数</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+<th>值越高</th>
+<th>值越低</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Temperature</td>
+<td>控制概率分布的"平坦度"</td>
+<td>输出更多样、更有创意</td>
+<td>输出更确定、更保守</td>
+</tr>
+<tr>
+<td>Top-p</td>
+<td>只从概率累计前 p 的 token 中采样</td>
+<td>候选范围更大</td>
+<td>候选范围更小</td>
+</tr>
+<tr>
+<td>Seed</td>
+<td>固定随机种子</td>
+<td>—</td>
+<td>相同输入可复现相同输出</td>
+</tr>
+</tbody>
+</table>
+<p><strong>产品场景选择</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>随机性需求</th>
+<th>参数建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客服问答、知识查询</td>
+<td>低,要稳定一致</td>
+<td>低 Temperature</td>
+</tr>
+<tr>
+<td>创意写作、头脑风暴</td>
+<td>高,要多样新颖</td>
+<td>高 Temperature</td>
+</tr>
+<tr>
+<td>代码生成、格式输出</td>
+<td>低,要精确合规</td>
+<td>低 Temperature + 格式约束</td>
+</tr>
+<tr>
+<td>A/B 测试</td>
+<td>可控</td>
+<td>固定 Seed 保证可复现</td>
+</tr>
+</tbody>
+</table>
+<p><strong>用户预期管理</strong>:产品层面应告知用户"AI 回答仅供参考",关键场景提供"重新生成"和"固定回答"选项。</p>
+<h2 id="_4">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"用户抱怨'同一个问题每次答案不一样',你怎么处理?"
+  → 降低 Temperature;对高频问题做缓存;提供"标准回答"模式;向用户解释 AI 的随机性特征。</li>
+<li><strong>追问 2</strong>:"什么场景下随机性是优势?"
+  → 创意生成(避免千篇一律)、探索式对话(每次有新角度)、生成评测集的多样化样本。</li>
+<li><strong>追问 3</strong>:"怎么在开发测试时保证结果可复现?"
+  → 固定 Seed 值;降低 Temperature 到 0(贪婪解码);用固定的测试集和参数跑回归。</li>
+</ul>
+<h2 id="_5">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/model-evaluation/ab-testing-for-ai-products.html">AI 产品的 A/B 测试：概率性输出下如何做实验</a></li>
+<li><a href="rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../01-ai-basics/glossary.html">AI 术语速查表</a></li>
+</ul>
+</main>
+</body>
+</html>

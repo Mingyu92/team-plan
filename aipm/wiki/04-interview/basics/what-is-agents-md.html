@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>什么是 AGENTS.md / Agent.md?产品经理为什么要关心?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/what-is-agents-md.md</span></div>
+<main>
+<h1 id="agentsmd-agentmd">什么是 AGENTS.md / Agent.md?产品经理为什么要关心?</h1>
+<p><strong>难度</strong>:⭐⭐ 入门必备
+<strong>出现频率</strong>:中高,Coding Agent、开源协作与「Agent 原生仓库」相关面试渐多</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否说清「项目级 Agent 说明书」解决什么问题</li>
+<li>是否区分 AGENTS.md、Rules、Skill、README 的职责</li>
+<li>能否从协作与治理角度说明 PM/TL 为何要维护它</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>:<code>AGENTS.md</code>(亦常见 <code>Agent.md</code> 等命名)是放在仓库里的<strong>给编码/操作 Agent 读的项目说明书</strong>——告诉 Agent「这是什么项目、怎么改、禁区在哪、验证怎么跑」,减少每次对话从头猜。</p>
+<p>它不是给人看的营销 README 替代品,而是 <strong>Agent 的入职手册(项目级)</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>文档</th>
+<th>主要读者</th>
+<th>典型内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>README.md</code></td>
+<td>人类贡献者</td>
+<td>快速开始、架构鸟瞰</td>
+</tr>
+<tr>
+<td><code>AGENTS.md</code> / Agent 约定</td>
+<td>Coding Agent</td>
+<td>目录约定、改动纪律、测试命令、禁改区域</td>
+</tr>
+<tr>
+<td>Rules / 系统提示</td>
+<td>当前会话 Agent</td>
+<td>语气、全局安全、工具权限</td>
+</tr>
+<tr>
+<td>Skill</td>
+<td>某类任务</td>
+<td>可复用 SOP(可跨仓)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>PM 为什么要关心</strong>(即使自己不写代码):</p>
+<ol>
+<li><strong>行为可预期</strong>:没有项目约定时,Agent 会按「通用开源习惯」乱改——扩 scope、改格式、动不相关文件。</li>
+<li><strong>协作契约</strong>:人和 Agent 共用同一套「怎么贡献」规则,Code Review 标准一致。</li>
+<li><strong>安全与合规</strong>:可写明「禁止提交密钥」「禁止改计费逻辑」等红线。</li>
+<li><strong>降本</strong>:少绕弯、少返工,等于少烧探索性 token。</li>
+</ol>
+<p>写什么(最小集):项目目标与边界、目录地图、允许/禁止的改动类型、如何跑测试/预览、PR/提交约定、联系人。保持短、可执行、常更新——过期的 AGENTS.md 比没有更危险。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"AGENTS.md 和 Cursor Rules / CLAUDE.md 是什么关系?"
+  → 同属「给 Agent 的项目上下文」;不同工具文件名不同。产品上应追求<strong>一份真相、多工具适配</strong>,避免三份互相矛盾的规矩。</li>
+<li><strong>追问 2</strong>:"要不要把全部业务知识写进 AGENTS.md?"
+  → 不要。只放「改这个仓必须知道」的约束与流程;长 SOP 用 Skill 或 docs/,按需加载。</li>
+<li><strong>追问 3</strong>:"开源项目没有 AGENTS.md,Agent 还能用吗?"
+  → 能,但效果看 README 质量。对内仓建议补上,作为 Agent 落地的最低治理件。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../01-ai-basics/llm/agent-skills.html">Agent Skills:给 Agent 装上可复用的「操作手册」</a></li>
+<li><a href="skill-vs-rules.html">Skill 和 Rules 到底有什么区别?</a></li>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="../../02-pm-skills/vibe-coding/what-is-vibe-coding.html">什么是 Vibe Coding</a></li>
+</ul>
+</main>
+</body>
+</html>

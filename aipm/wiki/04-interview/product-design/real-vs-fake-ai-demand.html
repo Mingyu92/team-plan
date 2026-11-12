@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>如何判断一个 AI 需求是真需求还是伪需求?</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/product-design/real-vs-fake-ai-demand.md</span></div>
+<main>
+<h1 id="ai">如何判断一个 AI 需求是真需求还是伪需求?</h1>
+<p><strong>难度</strong>:⭐⭐ 常规
+<strong>出现频率</strong>:高(美团 AI 产品实习面经、牛客 JD 押题「业务是否适合 AI」)</p>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否抵制「为 AI 而 AI」,用用户问题和替代方案检验需求</li>
+<li>是否理解 AI 的能力边界(非确定性、成本、延迟)</li>
+<li>能否给出可验证的假设,而非主观判断</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>:真需求 = <strong>用户愿为结果付费/反复使用 + 现有方案明显不够好 + AI 是相对最优解</strong>;伪需求往往是「技术可行」但「用户不在乎」或「规则就能搞定」。</p>
+<h3 id="1">1. 澄清与界定</h3>
+<p>收到 AI 需求时先问三件事:</p>
+<ol>
+<li><strong>谁的问题?</strong> 老板、销售、还是终端用户?(销售要的「AI 标签」常常是伪需求)</li>
+<li><strong>成功长什么样?</strong> 可量化指标,如节省多少人天、转化率提升多少</li>
+<li><strong>不用 AI 怎么做?</strong> 人工、规则、搜索——若规则已 95% 准确,上 AI 是负 ROI</li>
+</ol>
+<h3 id="2">2. 方案设计:四问过滤法</h3>
+<table>
+<thead>
+<tr>
+<th>检验问题</th>
+<th>真需求信号</th>
+<th>伪需求信号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>频率够高吗?</td>
+<td>日活场景、重复劳动</td>
+<td>一年几次的报表</td>
+</tr>
+<tr>
+<td>容错够吗?</td>
+<td>草稿、推荐、排序可纠错</td>
+<td>零差错(金融核赔)且无人工复核</td>
+</tr>
+<tr>
+<td>数据有吗?</td>
+<td>有历史对话/日志可学习</td>
+<td>冷启动无标注</td>
+</tr>
+<tr>
+<td>用户要的是 AI 还是结果?</td>
+<td>「帮我写完」</td>
+<td>「我们要大模型」</td>
+</tr>
+</tbody>
+</table>
+<p>美团面经类题目常考:<strong>用 AI 优化生鲜库存</strong>——需论证预测误差带来的损耗是否大于模型成本,而非直接上 LSTM。</p>
+<h3 id="3">3. 技术方案:从最轻手段验证</h3>
+<p>验证阶段不先选 RAG/微调,按成本递增:</p>
+<ol>
+<li><strong>人工 + 模板</strong>:跑一周,看用户是否买单</li>
+<li><strong>Prompt + 通用模型</strong>:小流量验证完成率</li>
+<li><strong>RAG / Agent</strong>:知识密集或需多步时再上</li>
+<li><strong>微调</strong>:仅当风格/格式稳定且量大</li>
+</ol>
+<p>若 Prompt 已满足 80% 需求,伪需求往往是「老板想微调」——见 <a href="../basics/rag-vs-finetuning.html">RAG vs 微调</a> 的「从最轻手段开始」。</p>
+<h3 id="4">4. 风险与兜底</h3>
+<p>伪需求强行上线后果:<strong>用户不信任、成本失控、团队空转</strong>。产品职责是在 PRD 阶段写清<strong>不适用 AI 的边界</strong>,并设计人工兜底,避免 AI 背锅。</p>
+<p>对内部推动的 AI 项目,用 <strong>2 周 Spike + 明确 kill 标准</strong>(如完成率 &lt;50% 则停)保护资源。</p>
+<h3 id="5">5. 衡量与迭代</h3>
+<p>真需求用<strong>行为数据</strong>验证,不用问卷:</p>
+<ul>
+<li>留存/复访率(用完还来吗?)</li>
+<li>任务完成率 vs 人工基线</li>
+<li>单位任务成本(含人工校对)</li>
+</ul>
+<p>迭代时区分「需求假」和「方案差」:后者换架构,前者果断砍。</p>
+<h2 id="_3">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"业务方坚持要上 AI 怎么办?"
+  → 共建 POC 指标与对照组;用数据对话,保留非 AI 降级方案。</li>
+<li><strong>追问 2</strong>:"竞品都有 AI 功能,我们没有会落后?"
+  → 区分「营销 AI」和「效果 AI」;用户选品看解决什么问题,不看技术名词。</li>
+<li><strong>追问 3</strong>:"怎么判断能不能用 Agent?"
+  → 任务是否多步、工具是否标准、失败能否回滚;单轮问答不必 Agent。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../basics/rag-vs-finetuning.html">RAG 和微调有什么区别?什么场景该用哪个?</a></li>
+<li><a href="../basics/when-to-use-ai.html">如何判断一个业务问题是否适合用 AI 解决?</a></li>
+<li><a href="../../02-pm-skills/prd-and-design/ai-native-vs-plus-ai.html">AI Native vs +AI：怎么判断该怎么做</a></li>
+</ul>
+</main>
+</body>
+</html>

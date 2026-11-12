@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>所有人都在卷 Agent，什么场景不该用？怎么说服老板？</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 04-interview/basics/when-not-to-use-agent.md</span></div>
+<main>
+<h1 id="agent">所有人都在卷 Agent，什么场景不该用？怎么说服老板？</h1>
+<p><strong>难度</strong>:⭐⭐⭐ 进阶
+<strong>出现频率</strong>:中高，Agent 平台 / ToB 办公 Agent / 二面架构选型常见</p>
+<blockquote>
+<p>选题启发自磊叔《关于 AI 产品经理的 100 个问题》Q16 / Q17 / Q41 / Q43 / Q99；正文为本库原创，未摘录该 PDF 答案原文。框架对齐正课 <a href="../../02-pm-skills/ai-product-operations/when-not-to-use-multi-agent.html">何时不该上多 Agent</a>。</p>
+</blockquote>
+<h2 id="_1">考察点</h2>
+<ul>
+<li>能否把「上 Agent」和「上多 Agent」分层说清，而不是一刀切否定或跟风</li>
+<li>能否用延迟、成本、工具面、可观测性给出<strong>可证伪</strong>的劝退标准，而不是口号</li>
+<li>能否用一页纸对照方案说服老板：替代路径 + 复盘触发条件，而不是单纯说「技术不行」</li>
+</ul>
+<h2 id="_2">参考答案</h2>
+<p><strong>一句话</strong>：不是「别做 Agent」，而是<strong>默认走最简路径</strong>——单次 LLM / 规则 / Workflow 够用就不上 Agent；单 Agent 够用就不上多 Agent。多 Agent 是用更高的协调税换并行与隔离，没证明税值得付就别立项。</p>
+<h3 id="_3">一、先分清三层，别和老板吵同一件事</h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>典型形态</th>
+<th>何时该停</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单次 LLM（可加 RAG）</td>
+<td>问答、摘要、抽取</td>
+<td>一步能验收，就别做成循环 Agent</td>
+</tr>
+<tr>
+<td>单 Agent / Workflow</td>
+<td>多步工具循环，或固定编排 + 局部模型判断</td>
+<td>路径大体可写死 → 优先 Workflow；开放规划才上单 Agent</td>
+</tr>
+<tr>
+<td>多 Agent</td>
+<td>多上下文 + 编排/交接</td>
+<td>没有「上下文污染 / 真并行 / 专精工具面」硬约束 → 默认不批</td>
+</tr>
+</tbody>
+</table>
+<p>决策顺序可口述：</p>
+<pre><code class="language-text">多步骤 + 要外部动作 + 结果可验证？
+  ├─ 否 → 单次 LLM / 规则 / 表单
+  ├─ 是，路径可写死 → Workflow
+  ├─ 是，路径开放 → 受约束的单 Agent
+  └─ 单 Agent 撞硬约束 → 再谈多 Agent
+</code></pre>
+<p>公开工程共识（Anthropic 等，细节与数字见正课，访问日以正课为准）：先找最简单方案；Agent 用延迟与成本换效果；多 Agent 相对单 Agent 常见约 <strong>3–10×</strong> token 量级——<strong>用自有灰度账单填表，不要背外部倍数当财务红线</strong>。</p>
+<h3 id="_4">二、什么场景「不该用 / 先别上」</h3>
+<p><strong>不该上 Agent（连单 Agent 都重）</strong>：</p>
+<ul>
+<li>步骤固定、规则可穷举（改状态、填表、固定审批链）→ 规则引擎 / 传统工作流更稳</li>
+<li>零容错且错了难回滚（支付金额、合规硬闸）→ 模型只可辅助，执行走确定性系统</li>
+<li>用户在对话里等结果，任务价值撑不起多跳延迟与费用</li>
+<li>还没有任务级评测与成本看板，就先上「更炫的编排」</li>
+</ul>
+<p><strong>不该上多 Agent（单 Agent / Workflow 优先）</strong>：</p>
+<ul>
+<li>子任务强依赖、几乎无法并行，却拆成「规划 / 执行 / 审核」流水线——交接丢上下文、协调税高</li>
+<li>工具面过宽导致空转，瓶颈在工具描述与选型，不在 Agent 个数</li>
+<li>简单意图被错误路由进重路径（见 <a href="agent-routing-and-large-files.html">路由题</a>）——先收默认路径与门槛</li>
+</ul>
+<p><strong>可能值得上多 Agent（仍要评测证明）</strong>：信息面大需真并行、单上下文易被中间结果污染、工具面过宽拆专精后选型准确率上升，且单位任务价值盖得住协调税。</p>
+<h3 id="_5">三、怎么说服老板（给可签字的取舍，不给技术否定）</h3>
+<p>一页纸结构（可直接贴进评审）：</p>
+<ol>
+<li><strong>用户任务与成功证据</strong>：完成标准是业务证据，不是模型自称完成</li>
+<li><strong>候选方案对照表</strong>：规则 / 单次 LLM / Workflow / 单 Agent / 多 Agent → 效果假设、P50/P95、单位费用、可控性、工期</li>
+<li><strong>自有基线</strong>：哪怕小流量灰度；缺数据就写「两周内补齐评测，当前不扩大多 Agent 投入」</li>
+<li><strong>硬约束检查</strong>：上下文污染 / 真并行 / 专精工具面——三项皆无 → 默认不批多 Agent</li>
+<li><strong>劝退结论 + 替代路径</strong>：例如「先 Workflow + 关键步人工确认；单 Agent 评测不够再开子 Agent」</li>
+<li><strong>复盘触发条件</strong>：何种成功率 / 成本 / 接管率组合出现时，才允许重新立项——避免被竞品叙事再次绑架</li>
+</ol>
+<p>口头三句：</p>
+<ul>
+<li>「多 Agent 是用更高协调税换并行与隔离；我们还没证明税值得付。」</li>
+<li>「现在瓶颈在工具面 / 评测 / 权限，不在 Agent 个数。」</li>
+<li>「先把单路径做到可观测、可熔断，再谈编排复杂度。」</li>
+</ul>
+<p>上线后延迟暴增时，别一上来二选一砍功能：先归因「误入重路径 / 工具空转 / 步数无上限 / 假并行 / 外部 API 慢」，经验顺序是<strong>收默认路径与预算 → 瘦工具面 → 合并 Agent → 最后才砍对用户可见的功能</strong>。完整归因表见正课。</p>
+<h2 id="_6">追问延伸</h2>
+<ul>
+<li><strong>追问 1</strong>:"竞品都上了多 Agent，我们不上是不是落后？"
+  → 问他们任务是否真并行、单位任务价值是否覆盖协调税、有没有错路由与可观测性。没有自有对照数据，跟风是叙事不是工程。</li>
+<li><strong>追问 2</strong>:"多 Agent 一定比单 Agent 强吗？"
+  → 不一定。强在隔离与并行；弱在交接摘要丢信息、成本与调试复杂度。边界清晰、需要隔离上下文时才划算。路由选错与超大输入接法见 <a href="agent-routing-and-large-files.html">Agent 路由与超大文件</a>。</li>
+<li><strong>追问 3</strong>:"老板只听 ROI，你怎么算？"
+  → 用单位任务：<code>(成功率提升 × 业务价值) − (增量 token/延迟/人工接管成本)</code>。缺分子就先定评测集与灰度账单，而不是先定架构。</li>
+</ul>
+<h2 id="_7">相关阅读</h2>
+<ul>
+<li><a href="../../02-pm-skills/ai-product-operations/when-not-to-use-multi-agent.html">何时不该上多 Agent：延迟、成本、工具膨胀与劝退</a>（正课，含公开数字与决策清单）</li>
+<li><a href="agent-routing-and-large-files.html">Agent 路由选错了怎么办?超大文件又该怎么接?</a></li>
+<li><a href="agent-vs-chatbot.html">什么是 Agent?它和 Chatbot 的区别是什么?</a></li>
+<li><a href="agentic-workflows.html">什么是 Agentic Workflows?</a></li>
+<li><a href="when-to-use-ai.html">如何判断一个业务问题是否适合用 AI 解决?</a></li>
+<li><a href="../../02-pm-skills/ai-product-operations/agent-product-design.html">Agent 产品生产化</a></li>
+<li><a href="../../02-pm-skills/cost-and-tech/cost-optimization.html">降本手段盘点：缓存、批处理、路由与蒸馏</a></li>
+</ul>
+</main>
+</body>
+</html>

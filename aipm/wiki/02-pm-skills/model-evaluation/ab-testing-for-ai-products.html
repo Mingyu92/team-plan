@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 产品的 A/B 测试：概率性输出下如何做实验</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/model-evaluation/ab-testing-for-ai-products.md</span></div>
+<main>
+<h1 id="ai-ab">AI 产品的 A/B 测试：概率性输出下如何做实验</h1>
+<blockquote>
+<p><strong>选题启发</strong>：磊叔《关于 AI 产品经理的 100 个问题》Q54、Q65（实验为何易误判、与传统 A/B 的差异）。正文为原创方法论，不复述 PDF 中的具体数字与轶事。</p>
+<p><strong>事实</strong>：大模型同一输入可产出不同输出；官方评测指南把「变异性」当作必须用 evals 与持续评估来应对的前提，而不是可忽略噪声。见文末资料。</p>
+<p><strong>建议</strong>：把线上 A/B 当作「业务因果」工具，把离线评测当作「输出质量」工具；二者对齐后才能解释「用户变了，是因为模型真变好了，还是因为方差/新奇效应在骗人」。</p>
+</blockquote>
+<p>传统产品改一个按钮文案，同一用户看到的通常是固定界面；随机性主要来自「分到哪一组」。AI 产品再加一层：<strong>同一组、同一用户、同一问题，模型也可能给出不同回答</strong>。若不把这层方差写进实验设计，很容易把随机波动当成方案胜负。</p>
+<p>本文回答两件事：AI A/B 和传统 A/B 差在哪；概率性输出下，实验该怎么重新设计。采样参数与可复现性的基础见<a href="../../04-interview/basics/llm-output-randomness.html">为什么大模型的输出每次都不一样?</a>；指标怎么分层见<a href="../ai-product-operations/ai-product-metrics.html">AI 产品指标体系</a>。</p>
+<h2 id="ab-vs-ai-ab">一、传统 A/B vs AI A/B：差异表</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统产品 A/B</th>
+<th>AI 产品 A/B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>处理对象</td>
+<td>界面、流程、规则等相对确定的体验</td>
+<td>Prompt / 模型 / 检索 / Agent 策略等，输出本身是概率的</td>
+</tr>
+<tr>
+<td>组内一致性</td>
+<td>同组用户看到的体验大体一致</td>
+<td>同组内也可能因采样、上下文、工具结果而差异很大</td>
+</tr>
+<tr>
+<td>主要噪声来源</td>
+<td>用户异质性、季节性、外生活动</td>
+<td>上述全部 + <strong>生成方差</strong> + 任务难度长尾</td>
+</tr>
+<tr>
+<td>「改动生效」的含义</td>
+<td>用户看到了新 UI/新规则</td>
+<td>用户接触到了新系统，但<strong>单次输出质量仍在抖动</strong></td>
+</tr>
+<tr>
+<td>离线证据</td>
+<td>多为可用性走查、规则回归</td>
+<td>需要<strong>任务级评测集 / rubric / 安全闸门</strong>（见<a href="build-your-eval-set.html">从零建设评测集</a>）</td>
+</tr>
+<tr>
+<td>线上主问题</td>
+<td>「用户行为是否因方案而变？」</td>
+<td>同上，还要追问「行为变化是否对应质量变化，还是方差/新奇效应？」</td>
+</tr>
+<tr>
+<td>护栏指标</td>
+<td>崩溃率、延迟、核心漏斗</td>
+<td>再加上拒答率、幻觉/安全事件、转人工、单位任务成本等</td>
+</tr>
+<tr>
+<td>可复现性</td>
+<td>回放同一 UI 即可对照</td>
+<td>需固定模型版本与采样设置，或接受「分布可比」而非「逐字可比」</td>
+</tr>
+</tbody>
+</table>
+<p>一句话：<strong>传统 A/B 比较的是两种确定体验；AI A/B 比较的是两种随机过程。</strong> 结论要建立在「分布差异」上，而不是「某几次好看的回答」上。</p>
+<h2 id="_1">二、为什么容易得出错误结论</h2>
+<h3 id="1">1. 生成方差被当成方案差异</h3>
+<p>OpenAI 官方写得很直接：生成式 AI 具有变异性，同一输入也可能得到不同输出，传统软件测试方法不够用，需要用结构化 evals 来度量表现。把这一点搬到线上：若只看短窗口、小样本，或只看个别会话截图，B 组「看起来更好」完全可能是运气。</p>
+<p><strong>可操作含义</strong>：用户级指标（转化、完成率）要按用户/会话聚合后再比组；不要拿「某一条生成答案」当实验单元去宣称胜负。</p>
+<h3 id="2">2. 样本量与功效仍按「确定性体验」估算</h3>
+<p>在线对照实验的经典要求仍然成立：先定假设与总体评估准则（OEC），再按最小可检测效应（MDE）、方差、显著性水平与功效估算样本量；过早 peeking、多重比较会抬高假阳性。Kohavi 等人的在线实验实践反复强调：<strong>拿到数字不难，拿到可信数字很难</strong>。</p>
+<p>AI 场景通常还会抬高方差（开放域生成、任务难度不均、重试与转人工）。因此：</p>
+<ul>
+<li>用历史流量先估<strong>真实方差</strong>，再算样本量，而不是套用别的团队的「大概要跑几天」；</li>
+<li>若方差明显高于历史 UI 实验，应预期需要更长窗口或更大流量——<strong>具体倍数取决于你的指标与流量，不是行业统一红线</strong>。</li>
+</ul>
+<h3 id="3">3. 新奇效应与学习效应</h3>
+<p>引入「会说话的新能力」时，用户常会多点几下、多试几次（新奇效应），或因不熟悉而暂时变慢（首因/学习效应）。Kohavi 等对受控实验中的 puzzling outcomes 指出：新奇与首因方向相反，短期 lift 可能夸大或掩盖长期价值；可疑时应延长实验、按曝光天数看趋势，或重点看<strong>新用户</strong>（较少受旧习惯干扰）。</p>
+<p><strong>可操作含义</strong>：AI 功能上线实验不要只看前两天的「新鲜劲」；同时观察护栏（点踩、转人工、成本）是否在衰减期后仍可接受。</p>
+<h3 id="4">4. 线上涨了、离线没涨（或反过来）</h3>
+<p>这是 AI 特有的解释陷阱：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>常见解释方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>离线评测升、业务不动</td>
+<td>评测集与线上分布不一致；入口/展示/信任问题；延迟或成本拖垮体验</td>
+</tr>
+<tr>
+<td>业务升、离线不动或不降</td>
+<td>新奇效应；外生活动；用户「多聊」被误当成成功；评测维度没覆盖真实价值</td>
+</tr>
+<tr>
+<td>两边都动但方向相反</td>
+<td>指标定义冲突（例如更长回答抬高满意度却抬高成本、降低一次解决率）</td>
+</tr>
+</tbody>
+</table>
+<p>指标冲突如何排序，见<a href="../ai-product-operations/ai-product-metrics.html">AI 产品指标体系</a>；badcase 与「模型分涨、业务不涨」排查见<a href="badcase-analysis.html">Badcase 分析方法论</a>。</p>
+<h2 id="_2">三、把实验拆成两层：离线质量门 + 线上因果门</h2>
+<p>Anthropic 将 A/B 测试列为对照基线/旧版本的定量方法之一，同时强调成功标准要具体、可测。OpenAI 面向业务落地的论述也指出：对外产品，evals <strong>不能替代</strong>传统 A/B 与产品实验，二者应互补——evals 看清系统在任务上的表现，实验看清真实用户与业务结果。</p>
+<p>推荐默认链路：</p>
+<pre><code class="language-text">假设：改 Prompt/模型/检索 → 某类任务质量提升 → 用户完成率/采纳率提升 → 业务结果改善
+        │                         │                      │
+   离线评测集 + 护栏          灰度/小流量观察质量与稳定性    正式 A/B（用户随机）
+</code></pre>
+<ol>
+<li><strong>离线</strong>：在固定评测集上比较版本；主观任务用 rubric / LLM-as-a-Judge 并做人工校准（见<a href="llm-as-a-judge.html">主观任务怎么评</a>）。</li>
+<li><strong>灰度</strong>：小流量看延迟、错误、安全、成本是否可接受。</li>
+<li><strong>线上 A/B</strong>：用户随机分流，主看预注册的业务/行为 OEC，护栏指标一票否决。</li>
+<li><strong>对齐解释</strong>：线上显著时，回看离线分维度是否同向；不同向就先查分布漂移与指标定义，而不是直接全量。</li>
+</ol>
+<h2 id="_3">四、可操作的实验设计原则（至少做到这些）</h2>
+<h3 id="1oec">原则 1：预注册假设、OEC、护栏与停止规则</h3>
+<p>上线实验前写清：</p>
+<ul>
+<li><strong>假设</strong>：改的是什么（模型版本、Prompt、检索、工具策略），预期改善哪类任务；</li>
+<li><strong>OEC</strong>：一个（或极少几个）主指标，定义分子分母与触发人群（只统计真正曝光到 AI 能力的用户）；</li>
+<li><strong>护栏</strong>：安全事件、严重幻觉、延迟分位、单位任务成本、转人工率等；</li>
+<li><strong>停止规则</strong>：计划样本量/时长、是否允许提前终止、如何处理多重比较。</li>
+</ul>
+<p>未预注册就「看着涨了就推全」——在方差更大的 AI 场景里，假阳性成本更高。</p>
+<h3 id="2_1">原则 2：显式处理生成随机性，而不是假装不存在</h3>
+<p>按场景选策略（可组合）：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>适用</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定模型版本 + 记录采样参数</td>
+<td>所有对照实验</td>
+<td>版本漂移会污染结论</td>
+</tr>
+<tr>
+<td>降低 Temperature / 约束解码（若产品允许）</td>
+<td>客服、抽取、强一致场景</td>
+<td>可能牺牲多样性；见<a href="../../04-interview/basics/llm-output-randomness.html">输出随机性面试题</a></td>
+</tr>
+<tr>
+<td>离线同一用例多跑，报告均值与波动</td>
+<td>版本准入</td>
+<td>单次跑分不够；Agent 场景尤甚</td>
+</tr>
+<tr>
+<td>线上以用户/会话为分析单元</td>
+<td>业务 A/B</td>
+<td>避免把单次 token 抽样当独立样本滥用</td>
+</tr>
+</tbody>
+</table>
+<p>目标不是「消灭随机」，而是<strong>让两组面对可比的随机过程</strong>，并把剩余方差算进功效。</p>
+<h3 id="3_1">原则 3：离线与线上必须互相校验</h3>
+<ul>
+<li>上线前：离线未过安全/质量闸门，不进入正式 A/B；</li>
+<li>上线中：抽样线上日志回灌评测集（脱敏），检查分布是否漂移；</li>
+<li>上线后：若 OEC 显著，抽检会话与 badcase，确认机制故事成立；若不显著但离线大涨，优先查「评测是否过拟合」和「体验是否触达」。</li>
+</ul>
+<p>OpenAI 的评价实践强调：围绕真实任务定义成功标准、持续评估、用生产日志扩充用例——这与「只跑一次 A/B 就宣布模型胜利」是对立的。</p>
+<h3 id="4_1">原则 4：为新奇效应与长尾任务留观察窗口</h3>
+<ul>
+<li>按<strong>曝光后天数</strong>看 lift 是否衰减；衰减后仍为正，才更像真实价值；</li>
+<li>分群：新用户 / 老用户、任务类型、租户、模型层级；</li>
+<li>高风险或低频高损任务：不要只用总平均 OEC，设置独立护栏或单独实验切片。</li>
+</ul>
+<p>「要跑几天」没有普适答案：由功效计算、业务周期（工作日/活动）和新奇衰减是否结束共同决定。把「别人说的 N 天」当成标准，本身就是实验设计失败。</p>
+<h3 id="5">原则 5：实验结论要能落到产品动作</h3>
+<p>胜出方案全量时，同步准备：</p>
+<ul>
+<li>回滚开关与流量配比；</li>
+<li>反馈与兜底是否跟上（见<a href="../prd-and-design/fallback-and-feedback-design.html">兜底、反馈与预期管理</a>）；</li>
+<li>新 badcase 回流评测集，避免下一轮实验建立在过时金标上。</li>
+</ul>
+<p>A/B 不是终点，是迭代闭环里的一环。</p>
+<h2 id="pm">五、PM 实验评审清单</h2>
+<ul>
+<li>[ ] 假设写清「改动 → 质量机制 → 用户行为 → 业务结果」，且 OEC 与护栏已预注册。</li>
+<li>[ ] 离线评测集覆盖本次改动的任务类型，安全项有一票否决。</li>
+<li>[ ] 模型/Prompt/检索版本与采样参数已固定并可追溯。</li>
+<li>[ ] 样本量基于历史方差与 MDE，而不是套用外部「经验天数/倍数」。</li>
+<li>[ ] 分析单元是用户或会话；触发规则只统计真实曝光。</li>
+<li>[ ] 已计划检查新奇/学习效应（趋势、新老用户、曝光天数）。</li>
+<li>[ ] 线上结论与离线分维度结果有对照解释；冲突时有排查路径。</li>
+<li>[ ] 全量方案附带回滚、反馈入口与评测集更新责任人。</li>
+</ul>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="build-your-eval-set.html">从零建设评测集：用例从哪来、标准答案怎么定</a></li>
+<li><a href="llm-as-a-judge.html">主观任务怎么评：人工评估与 LLM-as-a-Judge</a></li>
+<li><a href="badcase-analysis.html">Badcase 分析方法论：收集、归因、分发、验证</a></li>
+<li><a href="../ai-product-operations/ai-product-metrics.html">AI 产品指标体系：从业务结果到成本与风险</a></li>
+<li><a href="../prd-and-design/fallback-and-feedback-design.html">兜底、反馈与预期管理：AI 产品的交互设计三件套</a></li>
+<li><a href="../../04-interview/basics/llm-output-randomness.html">为什么大模型的输出每次都不一样?</a></li>
+<li><a href="../../04-interview/basics/ai-ab-testing-difference.html">AI 产品的 A/B 测试和传统产品差在哪？</a></li>
+<li><a href="../../04-interview/basics/offline-eval-online-gap.html">离线 Evals 全绿、线上「时灵时不灵」，Gap 怎么填？</a></li>
+<li><a href="../../04-interview/basics/model-evaluation-system.html">如何构建大模型效果评测体系?</a></li>
+</ul>
+<h2 id="_5">参考资料</h2>
+<ul>
+<li><a href="https://developers.openai.com/api/docs/guides/evaluation-best-practices">Evaluation best practices</a> —— OpenAI 官方文档（生成式输出具有变异性；需用 evals 持续评估），2026-08-06 访问</li>
+<li><a href="https://openai.com/index/evals-drive-next-chapter-of-ai/">How evals drive the next chapter in AI for businesses</a> —— OpenAI（对外部署中 evals 与传统 A/B / 产品实验互补），2026-08-06 访问</li>
+<li><a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests">Define success criteria and build evaluations</a> —— Anthropic 官方文档（成功标准；定量方法含 A/B testing），2026-08-06 访问</li>
+<li><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Demystifying evals for AI agents</a> —— Anthropic 工程博客（任务级成功标准、多试次与 grader 设计），2026-08-06 访问</li>
+<li>Kohavi, Tang, Xu, <em>Trustworthy Online Controlled Experiments</em> —— 在线对照实验方法论（功效、可信性、常见陷阱），Cambridge University Press</li>
+<li><a href="https://ai.stanford.edu/~ronnyk/puzzlingOutcomesInControlledExperiments.pdf">Puzzling Outcomes in Controlled Experiments</a> —— Kohavi 等（新奇效应与首因效应），2026-08-06 访问</li>
+<li>选题启发：磊叔 / AIRay1015《关于 AI 产品经理的 100 个问题》Q54、Q65</li>
+</ul>
+</main>
+</body>
+</html>

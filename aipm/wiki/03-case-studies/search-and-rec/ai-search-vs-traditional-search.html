@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 搜索 vs 传统搜索:交互范式与商业模式的双重颠覆</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 03-case-studies/search-and-rec/ai-search-vs-traditional-search.md</span></div>
+<main>
+<h1 id="ai-vs">AI 搜索 vs 传统搜索:交互范式与商业模式的双重颠覆</h1>
+<p><strong>分类</strong>:搜推
+<strong>体验时间</strong>:2026 年 7 月</p>
+<h2 id="_1">一、产品背景</h2>
+<p>传统搜索的默认契约是:<strong>你给关键词,我给十条蓝链,综合与判断留给你</strong>。AI 搜索把契约改成:<strong>你给自然语言问题,我先给一段可直接使用的综合答案,网页变成可回溯的依据,而不是唯一交付物</strong>。这场变化不是「多一个 AI 摘要模块」,而是交互范式与商业模式同时被改写——前者决定用户还要不要点开结果页,后者决定广告库存还能不能按旧逻辑卖。</p>
+<p>本篇是<strong>范式对比</strong>,不以单一产品为对象。三条可对照的产品路径(数字与细节一律引用已有单品案例,本文不新造):</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>代表</th>
+<th>一句话策略</th>
+<th>详案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>独立答案引擎</td>
+<td>Perplexity</td>
+<td>答案 + 引用溯源为主产品;2026-02 起公开弃广告,押订阅与入口</td>
+<td><a href="perplexity.html">Perplexity 案例</a></td>
+</tr>
+<tr>
+<td>入口上的答案层防御</td>
+<td>Google AI Overviews / AI Mode</td>
+<td>把生成式回答嵌回全球最大搜索入口,同时把广告迁入答案面</td>
+<td><a href="google-ai-mode.html">Google AI Mode 案例</a></td>
+</tr>
+<tr>
+<td>超级框 + 工具闭环</td>
+<td>夸克</td>
+<td>搜索/提问/网址同一入口,答案后再接到总结、创作、文件等任务工具</td>
+<td><a href="quark.html">夸克案例</a></td>
+</tr>
+</tbody>
+</table>
+<p>规模量级本身就说明「范式」与「入口」不是同一战场:Google 官方口径全球搜索量超过 <strong>5 万亿次/年</strong>(2025-01 广告商业博客脚注);AI Mode 在 2026-05 I/O 称已超过 <strong>10 亿月用户</strong>。Perplexity 侧第三方口径月查询约 <strong>7.8 亿次</strong>、2026 年初 MAU 超 <strong>4500 万</strong>、ARR 在 2026-03 突破 <strong>4.5 亿美元</strong>(详见 Perplexity 案例)。夸克则未在公开材料中披露可比的搜索量/收入数字(详见夸克案例)。<strong>流量级差巨大,但交互命题已经共享</strong>——用户越来越期待「先看结论」,平台则必须回答:结论页还卖不卖广告、卖什么、卖给谁。</p>
+<h2 id="_2">二、核心功能拆解:交互范式从「十蓝链」到「先答案」</h2>
+<h3 id="21">2.1 两条主流程对照</h3>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>传统搜索</th>
+<th>AI 搜索(答案引擎范式)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入</td>
+<td>关键词、少量运算符;用户需「搜索化」表达</td>
+<td>自然语言问题、可多轮追问;夸克等产品还会把网址导航收进同一框</td>
+</tr>
+<tr>
+<td>系统目标</td>
+<td>召回并排序候选网页/文档</td>
+<td>检索 → 综合 → 生成可读答案,并保留回网页的路径</td>
+</tr>
+<tr>
+<td>第一屏交付物</td>
+<td>标题、摘要片段、广告与自然结果混排的链接列表</td>
+<td>结构化综合回答(+ 来源入口);传统分栏结果可并存或退后</td>
+</tr>
+<tr>
+<td>用户劳动</td>
+<td>自行打开多页、比对、摘要</td>
+<td>先消费结论,再按需下钻原文或追问</td>
+</tr>
+<tr>
+<td>任务边界</td>
+<td>以「找到页」为完成</td>
+<td>以「得到可用答案 / 进入下一步动作」为完成</td>
+</tr>
+</tbody>
+</table>
+<p>传统搜索把「理解问题」外包给用户的关键词技巧;AI 搜索把「综合多源」产品化。Google 的拆法是<strong>双表面</strong>:AI Overviews 自动出现在结果页顶部,守「第一屏答案」与广告位;AI Mode 需用户主动进入,承接更长、可追问的复杂问题——Labs 早期反馈称 AI Mode 查询平均长度约为传统搜索的 <strong>2 倍</strong>(详见 Google 案例)。Perplexity 则几乎没有「先给十链再可选摘要」的经典 SERP 心智,默认就是答案引擎链路。夸克公开页把输入框写成「搜索、提问或输入网址」,意图是<strong>降低范式迁移成本</strong>:用户不必先决定「今天用搜索还是用聊天」。</p>
+<h3 id="22">2.2 交互上真正被颠覆的三件事</h3>
+<ol>
+<li><strong>完成定义变了。</strong> 传统搜索的成功往往落在点击与停留;答案引擎的成功更接近「用户是否带着结论离开、或带着结论继续追问/办事」。面试里常考的北极星差异,本质就在这里——详见文末《AI 搜索的北极星指标怎么定》。</li>
+<li><strong>会话取代单次查询。</strong> Threads / 相关追问 / AI Mode 多轮,把一次 SERP 变成可收敛的任务流。Deep Research 一类能力进一步把「搜」拉长成「研」——官方与单品案例中的 fan-out、多步检索描述,说明交互时长与成本结构同步上升(详见 Google / Perplexity 案例,本文不展开引用控件细节)。</li>
+<li><strong>答案之后还有动作。</strong> Perplexity 的 Shopping/Finance 卡片与 Comet 浏览器、夸克的总结/创作/PDF/网盘、Google 在 Mode 内推进的购物与 agentic 履约,都在把范式从「信息检索」推到「决策与执行」。<strong>入口争夺</strong>(Comet、Atlas、浏览器侧边栏)之所以重要,是因为范式变了之后,「谁打开第一屏」决定后续所有动作的分发权——Perplexity 案例写明:Comet 2026 Q1 月活约 <strong>1800 万</strong>,并视浏览器为操作系统级入口。</li>
+</ol>
+<blockquote>
+<p><strong>主题边界</strong>:引用角标怎么点、来源列表怎么排、信任与幻觉如何产品化,属于答案引擎的信任机制专题,见 <a href="answer-engine-citation-trust.html">答案引擎的引用与信任设计</a>。本篇只承认「可回溯来源」是新范式的标配能力,不展开控件级设计。</p>
+</blockquote>
+<h3 id="23">2.3 三种落地形态,同一范式</h3>
+<table>
+<thead>
+<tr>
+<th>形态</th>
+<th>用户感知</th>
+<th>与传统搜索的关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>独立答案引擎(Perplexity)</td>
+<td>打开即答案</td>
+<td>几乎替代经典 SERP 心智</td>
+</tr>
+<tr>
+<td>嵌在 SERP 的答案层(Overviews) + 进阶 Mode</td>
+<td>有时自动出现摘要,复杂题进 Mode</td>
+<td><strong>寄生并改造</strong>传统结果页,蓝链仍在</td>
+</tr>
+<tr>
+<td>超级框 + 工具带(夸克)</td>
+<td>同一入口兼容旧习惯,答案后进工具</td>
+<td>用兼容换迁移,再用工具提高「任务完成」密度</td>
+</tr>
+</tbody>
+</table>
+<p>对 PM 而言:争论「算不算 AI 搜索」意义不大;更有用的是问——<strong>第一屏交付的是链接还是结论?用户能否不离开产品完成下一步?</strong></p>
+<h2 id="_3">三、技术方案推测</h2>
+<blockquote>
+<p>以下为基于三篇单品案例公开表现的<strong>范式级推测</strong>,各厂商未完整公开检索与生成管线,请勿当作确定性技术结论。</p>
+</blockquote>
+<ul>
+<li><strong>传统搜索(已知产品逻辑)</strong>:爬取/索引 → 查询理解 → 多阶段召回 → Learning to Rank → 混排广告与自然结果。优化目标长期贴近点击、停留、商业转化等可拍卖信号。</li>
+<li><strong>AI 搜索(推测的共性骨架)</strong>:在检索之上叠加生成——问题理解/改写 →(复杂题)子查询拆解与并行检索 → 片段排序去重 → 将证据喂给大模型生成综合叙述 → 将来源标识回填到答案面。产品表现上接近 RAG,但是否统一框架、是否每问都实时检索,因厂而异(三篇案例均作此保留)。</li>
+<li><strong>与传统栈的关键差别(推测)</strong>:排序目标从「哪条标题最值得被点」部分转向「哪些片段最适合被模型引用综合」;延迟与边际成本从「一次检索」变成「检索 + 生成(+ 可能的多步 fan-out)」,因此路由(简单查询走摘要/列表、难题走 Deep Research/Mode)本身就是产品决策,而不只是工程优化。</li>
+<li><strong>入口与 Agent 层(推测)</strong>:浏览器侧栏、跨页操作、代填代购等,是在答案范式之上再叠「感知页面 → 规划动作 → 执行」循环;这会进一步拉高单次任务成本,并倒逼商业模式不能只靠「多展示几次蓝链广告」。</li>
+</ul>
+<p>技术细节与引用对齐算法不是本篇重点;PM 只需抓住一句:<strong>交互改成「先答案」,成本结构就不再等于传统搜索的 CPC 机器。</strong></p>
+<h2 id="vs">四、商业模式:广告机器 vs 信任订阅的分叉</h2>
+<p>交互范式一变,变现逻辑立刻分叉。核心冲突是:<strong>当第一屏已经是「结论」时,用户还需要点广告主的着陆页吗?用户还会相信这段结论吗?</strong></p>
+<h3 id="41">4.1 对照表</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统搜索</th>
+<th>Google 答案层防御</th>
+<th>Perplexity 答案引擎</th>
+<th>夸克(公开形态)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>变现主轴</td>
+<td>搜索广告(+购物等)</td>
+<td>广告库存<strong>迁入</strong> Overviews / Mode 答案面</td>
+<td>2026-02 起<strong>放弃广告</strong>;订阅 + API + 内容分成探索</td>
+<td>个人工具/会员与搜索 API 等方向可观察;经营数字未披露</td>
+</tr>
+<tr>
+<td>答案与广告关系</td>
+<td>用户默认结果含推广</td>
+<td>Sponsored 标注下,广告可在 Overview 上/下/内,Mode 内可在答下或嵌入</td>
+<td>公开理由:答案旁广告会损害可信度</td>
+<td>产品页宣传浏览搜索「无广告」(以当时页面为准,非永久承诺)</td>
+</tr>
+<tr>
+<td>定价可见性</td>
+<td>广告主侧拍卖为主</td>
+<td>沿用 Search/Shopping/PMax 等;广告主通常不能单独「只要 Overview」</td>
+<td>Free / Pro <strong>$20</strong>/月 / Max <strong>$200</strong>/月等阶梯;Sonar API 按 Token+请求+检索深度计费</td>
+<td>标准个人价目表本次单品案例未核实到</td>
+</tr>
+<tr>
+<td>战略命题</td>
+<td>最大化可商业化查询的匹配与点击</td>
+<td>守住入口与广告机器,缩短发现→决策</td>
+<td>用无广告与付费意愿换信任定位</td>
+<td>用超级入口+工具留存,再探索 B 端能力输出</td>
+</tr>
+</tbody>
+</table>
+<p>数字与机制的出处见 <a href="google-ai-mode.html">Google AI Mode</a> 与 <a href="perplexity.html">Perplexity</a>;夸克侧「未披露」边界见 <a href="quark.html">夸克案例</a>。第三方曾统计 AI Overviews 覆盖约 <strong>48%</strong> 的 Google 查询、以及 Overview 旁广告渗透变化等,口径属第三方、且会漂移——引用时请回单品案例核对,本文不另造新数。</p>
+<h3 id="42">4.2 为什么不能互相抄作业</h3>
+<ul>
+<li><strong>入口方(Google)</strong> 的北极星贴近「发现到转化的商业路径 + 广告主库存」。答案层若只摘要不点击,会压缩旧曝光路径,因此必须把广告设计成答案面的「helpful next step」,并用敏感垂类限制、Sponsored 标注等降低污染感(详见 Google 案例)。</li>
+<li><strong>信任方(Perplexity)</strong> 的北极星贴近「用户是否相信这句话、是否愿意为可信答案付费」。它曾试过相关问题区赞助、答案旁 Sponsored 视频等(CPM 一度很高),却在验证信任受损后整条撤回,转而追逐订阅年化目标,并用 Comet Plus 等与出版商分成探索「给内容源付费」(详见 Perplexity 案例)。</li>
+<li><strong>工具方(夸克)</strong> 更接近「搜索当入口、工具当留存与增值」:答案完成不等于任务完成,商业化可能长在会员权益、文件/创作能力与开放平台,而非先复制一套 CPC 答案广告——但公开财务未证实,只能当路径假说。</li>
+</ul>
+<p>一句话:<strong>同一交互(答案旁出现商品或推广)在入口方是库存迁移,在信任方可能是定位自杀。</strong> 写 PRD 前先写清卖的是点击、信任还是任务完成,再决定广告是一等公民还是禁区。</p>
+<h2 id="pm">五、PM 视角的启示</h2>
+<ol>
+<li><strong>先画清「完成定义」,再画信息架构。</strong> 若 KPI 仍是经典 CTR/分页点击,却强行上默认 AI 摘要,会自己打自己的分发与广告模型;若 KPI 是「可核验的答案采纳 / 任务完成」,却死守十蓝链首页,用户会流向答案引擎。Overviews(默认层)+ Mode(进阶层)是大入口的渐进迁移范例;没有超级入口的团队,更应狠做场景取舍,避免「既不像搜索又不像助手」。</li>
+<li><strong>商业模式必须与信任定位同向,不能先跑通再后悔。</strong> Perplexity「试了又撤」说明:在回答型产品里,广告与可信度的冲突比传统搜索尖锐得多。Google 选择迁广告、Perplexity 选择弃广告,两边都自洽——抄错边才会同时丢掉收入叙事与用户叙事。</li>
+<li><strong>范式竞争的下一跳是入口与「答案之后」。</strong> 当综合答案的边际体验差收窄,分发位置(浏览器、系统框、超级 App)与后续动作(购物、总结、创作、代操作)会决定复访。做搜推 AI 时,不要只盯模型正确率;问自己:用户看完结论下一步去哪、这一步是否还在我产品内、这一步如何计量与变现。</li>
+</ol>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="perplexity.html">Perplexity 案例拆解:AI 搜索的答案引擎范式</a></li>
+<li><a href="google-ai-mode.html">Google AI Overviews 与 AI Mode:传统搜索的答案层防御</a></li>
+<li><a href="quark.html">夸克 AI 搜索与答案引擎案例拆解</a></li>
+<li><a href="answer-engine-citation-trust.html">答案引擎的引用与信任设计</a></li>
+<li><a href="../../04-interview/case-analysis/ai-search-north-star-metric.html">AI 搜索的北极星指标怎么定</a></li>
+<li><a href="../../01-ai-basics/llm/what-is-rag.html">什么是 RAG:检索增强生成入门</a></li>
+<li><a href="../../04-interview/case-analysis/analyze-a-good-ai-product.html">如何分析一个优秀的 AI 产品</a></li>
+</ul>
+<h2 id="_5">参考资料</h2>
+<p>本篇为横向主题文,事实与数字以同目录单品案例及其参考资料为准,不另作一手核验:</p>
+<ul>
+<li><a href="perplexity.html">Perplexity 案例拆解</a> — 答案引擎范式、弃广告、订阅/API/Comet 等口径</li>
+<li><a href="google-ai-mode.html">Google AI Overviews 与 AI Mode 案例拆解</a> — 双表面防御、广告迁入答案面、官方规模口径</li>
+<li><a href="quark.html">夸克 AI 搜索案例拆解</a> — 超级框、工具闭环、公开商业化形态与未披露边界</li>
+</ul>
+<p>单品文内已列出的官方博客、Ads Help、产品页等外链,写作本篇时以 2026 年 7 月体验/核验批次为准;若需对外引用具体美元价、月活或覆盖率,请回对应单品文核对访问日期与口径。</p>
+</main>
+</body>
+</html>

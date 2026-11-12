@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>从训练到部署：LLM 生命周期</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 00_LLM总览/03_训练到部署全流程.md</span></div>
+<main>
+<h1 id="llm">从训练到部署：LLM 生命周期</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>一个 LLM 从数据到上线要经过哪些阶段？</li>
+<li>预训练、SFT、DPO/RLHF、评估、部署如何衔接？</li>
+<li>为什么训练完成不等于产品可用？</li>
+<li>商业项目里如何持续迭代模型？</li>
+</ul>
+<hr>
+<h2 id="_2">总览</h2>
+<p>LLM 生命周期可以拆成 7 个阶段：</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;数据收集&quot;] --&gt; B[&quot;预训练&quot;]
+    B --&gt; C[&quot;后训练 SFT/DPO/RLHF&quot;]
+    C --&gt; D[&quot;评估&quot;]
+    D --&gt; E[&quot;推理部署&quot;]
+    E --&gt; F[&quot;线上监控&quot;]
+    F --&gt; G[&quot;反馈迭代&quot;]
+    G --&gt; A
+</code></pre>
+<hr>
+<h2 id="1">1. 数据阶段</h2>
+<p><strong>细化理解：</strong> 数据阶段决定了模型能力上限和风险下限。真实流程通常包括来源筛选、去重、质量打分、敏感信息过滤、版权与合规审查、语言和领域配比控制。去重不仅是为了省算力，还能减少 benchmark 泄漏和训练集记忆；质量过滤也不是越严格越好，因为过度过滤可能损失长尾知识、口语表达和代码边界案例。</p>
+<p>数据来源包括：</p>
+<ul>
+<li>Web 文本</li>
+<li>代码</li>
+<li>书籍</li>
+<li>论文</li>
+<li>对话</li>
+<li>企业文档</li>
+<li>用户反馈</li>
+<li>工具调用轨迹</li>
+</ul>
+<p>关键工作：</p>
+<table>
+<thead>
+<tr>
+<th>工作</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>清洗</td>
+<td>去噪、去广告、去乱码</td>
+</tr>
+<tr>
+<td>去重</td>
+<td>防止重复样本放大</td>
+</tr>
+<tr>
+<td>过滤</td>
+<td>去低质量、有害、违规内容</td>
+</tr>
+<tr>
+<td>配比</td>
+<td>控制代码、数学、中文、英文比例</td>
+</tr>
+<tr>
+<td>去污染</td>
+<td>避免评测集泄漏</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2">2. 预训练</h2>
+<p>预训练目标通常是 next-token prediction。</p>
+<p>产物是 base model。</p>
+<p>Base model 的特点：</p>
+<ul>
+<li>知识和语言能力强</li>
+<li>能续写</li>
+<li>不一定会稳定遵循指令</li>
+<li>安全边界弱</li>
+<li>输出格式不可控</li>
+</ul>
+<p>面试里要说清：</p>
+<blockquote>
+<p>Base model 是能力底座，不等于可直接上线的助手。</p>
+</blockquote>
+<hr>
+<h2 id="3">3. 后训练</h2>
+<p>后训练让 base model 变成 assistant model。</p>
+<h3 id="sft">SFT</h3>
+<p>学习指令格式和任务行为。</p>
+<p>适合：</p>
+<ul>
+<li>格式遵循</li>
+<li>领域问答</li>
+<li>工具调用格式</li>
+<li>多轮对话样式</li>
+</ul>
+<h3 id="dpo-rlhf">DPO / RLHF</h3>
+<p>学习偏好排序。</p>
+<p>适合：</p>
+<ul>
+<li>更有帮助</li>
+<li>更自然</li>
+<li>更安全</li>
+<li>更少废话</li>
+<li>更符合业务风格</li>
+</ul>
+<hr>
+<h2 id="4">4. 评估</h2>
+<p><strong>细化理解：</strong> 评估要分层做：基础能力看通用 benchmark，业务能力看真实任务集，安全能力看红队与越权测试，稳定性看多轮回归。只看平均分会掩盖严重问题，例如某些高风险类别失败率很高、长上下文后半段遗忘、工具调用参数稳定性差。生产上线前更重要的是建立可复现的 eval set 和失败样本归因流程。</p>
+<p>评估不能只看一个 benchmark。</p>
+<p>要分层：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通用能力</td>
+<td>MMLU、CMMLU、C-Eval</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>HumanEval、MBPP</td>
+</tr>
+<tr>
+<td>数学</td>
+<td>GSM8K、MATH</td>
+</tr>
+<tr>
+<td>指令遵循</td>
+<td>IFEval、人工集</td>
+</tr>
+<tr>
+<td>安全</td>
+<td>jailbreak、拒答准确率</td>
+</tr>
+<tr>
+<td>RAG</td>
+<td>Recall、Faithfulness、Citation Accuracy</td>
+</tr>
+<tr>
+<td>业务</td>
+<td>解决率、采纳率、成本、延迟</td>
+</tr>
+</tbody>
+</table>
+<p>商业上线前必须有回归集，防止新版本在旧任务上退化。</p>
+<hr>
+<h2 id="5">5. 推理部署</h2>
+<p><strong>工程细节：</strong> 推理部署关注吞吐、延迟、显存和稳定性。Prefill 阶段吃计算，decode 阶段吃显存带宽和 KV Cache；在线服务还要处理 batch 合并、流式输出、超时取消、重试、限流和多模型路由。一个常见面试回答是：部署不是把模型加载起来就结束，而是把请求调度、缓存、监控、降级和成本治理一起纳入系统设计。</p>
+<p>部署要考虑：</p>
+<ul>
+<li>模型大小</li>
+<li>并发</li>
+<li>延迟</li>
+<li>上下文长度</li>
+<li>KV Cache</li>
+<li>量化</li>
+<li>batching</li>
+<li>成本</li>
+</ul>
+<p>常见技术：</p>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>解决什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>vLLM / SGLang</td>
+<td>高吞吐 serving</td>
+</tr>
+<tr>
+<td>Quantization</td>
+<td>降显存和成本</td>
+</tr>
+<tr>
+<td>FlashAttention</td>
+<td>提升 attention IO 效率</td>
+</tr>
+<tr>
+<td>Prefix Cache</td>
+<td>复用公共前缀</td>
+</tr>
+<tr>
+<td>Speculative Decoding</td>
+<td>降低生成延迟</td>
+</tr>
+<tr>
+<td>Router</td>
+<td>简单问题走小模型</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="6">6. 线上监控</h2>
+<p>LLM 产品要监控的不只是服务可用性。</p>
+<h3 id="_3">系统指标</h3>
+<ul>
+<li>QPS</li>
+<li>TTFT</li>
+<li>TPOT</li>
+<li>GPU 利用率</li>
+<li>KV Cache 使用率</li>
+<li>错误率</li>
+</ul>
+<h3 id="_4">质量指标</h3>
+<ul>
+<li>用户点赞/点踩</li>
+<li>人工接管率</li>
+<li>幻觉率</li>
+<li>拒答率</li>
+<li>引用正确率</li>
+<li>工具调用成功率</li>
+</ul>
+<h3 id="_5">成本指标</h3>
+<ul>
+<li>input token 成本</li>
+<li>output token 成本</li>
+<li>cache hit rate</li>
+<li>单次请求平均成本</li>
+<li>每个业务场景的成本</li>
+</ul>
+<hr>
+<h2 id="7">7. 反馈迭代</h2>
+<p>线上反馈可以进入不同链路：</p>
+<table>
+<thead>
+<tr>
+<th>反馈类型</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知识缺失</td>
+<td>更新知识库 / RAG</td>
+</tr>
+<tr>
+<td>格式不好</td>
+<td>SFT 数据补充</td>
+</tr>
+<tr>
+<td>偏好不好</td>
+<td>DPO 偏好对</td>
+</tr>
+<tr>
+<td>工具失败</td>
+<td>修工具 schema 和流程</td>
+</tr>
+<tr>
+<td>安全问题</td>
+<td>安全数据和规则</td>
+</tr>
+<tr>
+<td>成本太高</td>
+<td>缓存、路由、量化</td>
+</tr>
+</tbody>
+</table>
+<p>重点：</p>
+<blockquote>
+<p>不是所有问题都靠微调解决。很多生产问题应该先看检索、prompt、工具、权限和产品流程。</p>
+</blockquote>
+<hr>
+<h2 id="_6">常见误区</h2>
+<h3 id="1_1">误区 1：训练好模型就能上线</h3>
+<p>上线还需要评估、部署、监控、安全、回滚和反馈闭环。</p>
+<h3 id="2_1">误区 2：线上效果差就微调</h3>
+<p>可能是知识库没召回、prompt 不清楚、工具失败或权限过滤错了。</p>
+<h3 id="3-benchmark">误区 3：只看 benchmark</h3>
+<p>业务系统必须看真实任务指标，比如解决率、采纳率、成本和延迟。</p>
+<h3 id="4_1">误区 4：大模型越强越适合所有请求</h3>
+<p>简单请求用小模型或缓存更划算，复杂请求再路由到强模型。</p>
+<hr>
+<h2 id="_7">面试延伸</h2>
+<p><strong>Q：你怎么设计一个 LLM 产品的迭代闭环？</strong></p>
+<blockquote>
+<p>我会把日志、反馈、评估集和线上指标打通。知识缺失进 RAG 知识库，行为问题进 SFT，偏好问题进 DPO，工具失败修 workflow，安全问题进规则和安全数据。</p>
+</blockquote>
+<p><strong>Q：为什么评估要分层？</strong></p>
+<blockquote>
+<p>因为总分无法定位问题。RAG 出错要拆检索和生成，Agent 出错要拆规划和工具调用，部署问题要拆 TTFT、TPOT 和吞吐。</p>
+</blockquote>
+<p><strong>Q：如何降低 LLM 产品成本？</strong></p>
+<blockquote>
+<p>优先做缓存、模型路由、上下文压缩、检索增强、量化和 batching，而不是一上来换更小模型牺牲质量。</p>
+</blockquote>
+<hr>
+<h2 id="_8">生命周期决策树</h2>
+<p>线上问题不要一律回答“微调”。可以用这个决策树：</p>
+<pre><code class="language-text">答案缺事实？
+  -&gt; 知识库是否有？没有：补知识库 / 数据接入
+  -&gt; 有但没召回：调 RAG
+  -&gt; 召回了但没用：调 prompt / 上下文
+
+格式不稳定？
+  -&gt; 先加输出 schema / parser / few-shot
+  -&gt; 仍不稳定：SFT 格式样本
+
+偏好不符合？
+  -&gt; 收集 preference pairs
+  -&gt; DPO / RLHF
+
+延迟高？
+  -&gt; 看 TTFT / TPOT / queue time
+  -&gt; prefix cache / batching / 量化 / 路由
+
+成本高？
+  -&gt; token 归因
+  -&gt; 缓存 / 压缩 / 小模型路由 / 限额
+</code></pre>
+<p>面试里这比背概念更有区分度，因为它体现你知道不同问题应该进不同工程链路。</p>
+<hr>
+<h2 id="_9">训练数据到反馈数据</h2>
+<p>LLM 生命周期里有几类数据，不要混：</p>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>来源</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pretraining Corpus</td>
+<td>网页、书籍、代码、论文</td>
+<td>学语言和世界知识</td>
+</tr>
+<tr>
+<td>Instruction Data</td>
+<td>人工/合成指令</td>
+<td>学会按任务回答</td>
+</tr>
+<tr>
+<td>Preference Data</td>
+<td>A/B 答案偏好</td>
+<td>学偏好和安全边界</td>
+</tr>
+<tr>
+<td>RAG Knowledge</td>
+<td>企业文档、FAQ、工单</td>
+<td>提供事实和最新知识</td>
+</tr>
+<tr>
+<td>Eval Set</td>
+<td>黄金问答、红队样本</td>
+<td>回归测试和上线门禁</td>
+</tr>
+<tr>
+<td>Feedback Logs</td>
+<td>用户反馈、失败 trace</td>
+<td>迭代 prompt、RAG、数据</td>
+</tr>
+</tbody>
+</table>
+<p>项目里可以说：</p>
+<blockquote>
+<p>我不会把线上日志直接拿去训练，而是先脱敏、聚类、标注、分流：知识缺口进知识库，格式问题进 SFT，偏好问题进 DPO，安全问题进红队集。</p>
+</blockquote>
+<hr>
+<h2 id="_10">上线门禁</h2>
+<p>一个模型或 prompt 版本上线前至少过这些检查：</p>
+<ul>
+<li>黄金集准确率不下降。</li>
+<li>引用准确率不下降。</li>
+<li>拒答率在合理范围。</li>
+<li>安全红队样本不回退。</li>
+<li>P95 延迟和单次成本在预算内。</li>
+<li>工具调用成功率不下降。</li>
+<li>出错时能降级或回滚。</li>
+</ul>
+<p>如果面试官问“怎么保证改 prompt 不把线上搞坏”，这就是答案。</p>
+<hr>
+<h2 id="_11">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>InstructGPT / Training language models to follow instructions with human feedback (Ouyang et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2203.02155">arxiv.org/abs/2203.02155</a></td>
+</tr>
+<tr>
+<td>Direct Preference Optimization (Rafailov et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2305.18290">arxiv.org/abs/2305.18290</a></td>
+</tr>
+<tr>
+<td>PagedAttention / vLLM (Kwon et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2309.06180">arxiv.org/abs/2309.06180</a></td>
+</tr>
+<tr>
+<td>FlashAttention (Dao et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2205.14135">arxiv.org/abs/2205.14135</a></td>
+</tr>
+<tr>
+<td>LoRA (Hu et al., 2021)</td>
+<td><a href="https://arxiv.org/abs/2106.09685">arxiv.org/abs/2106.09685</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_12">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📖 OpenAI Cookbook</td>
+<td><a href="https://cookbook.openai.com/examples/evaluation/getting_started_with_openai_evals">Getting started with OpenAI Evals</a></td>
+<td>学如何把模型升级和 prompt 改动放进评估闭环</td>
+</tr>
+<tr>
+<td>📖 vLLM Docs</td>
+<td><a href="https://docs.vllm.ai/">vLLM documentation</a></td>
+<td>推理部署、continuous batching、PagedAttention 实践入口</td>
+</tr>
+<tr>
+<td>📖 Hugging Face TRL</td>
+<td><a href="https://huggingface.co/docs/trl/index">TRL documentation</a></td>
+<td>SFT、DPO、PPO 等后训练工具链</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1hd4y187CR">跟李沐学 AI - InstructGPT 论文精读</a></td>
+<td>理解从 SFT 到 RLHF 的后训练范式</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

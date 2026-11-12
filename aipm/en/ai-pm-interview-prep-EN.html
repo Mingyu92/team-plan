@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Product Manager: Interview Prep</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">en / ai-pm-interview-prep-EN.md</span></div>
+<main>
+<h1 id="ai-product-manager-interview-prep">AI Product Manager: Interview Prep</h1>
+<p>A deep, self-contained prep folder for the <strong>AI Product Manager (AI PM)</strong> role. If you work through the 6 files here, you should not need another resource for this loop.</p>
+<ul>
+<li><strong><a href="rounds.html">rounds.md</a></strong>: every interview round, what it tests, how it is run, what good looks like, common mistakes, and realistic prompts.</li>
+<li><strong><a href="questions.html">questions.md</a></strong>: a 45-question bank with concise model answers, grouped by theme.</li>
+<li><strong><a href="resources.html">resources.md</a></strong>: the best free reading, talks, papers, and repos, all links verified.</li>
+<li><strong><a href="courses.html">courses.md</a></strong>: the best free courses, starting with this repository's own.</li>
+<li><strong><a href="prep-plan.html">prep-plan.md</a></strong>: a 4-week plan and a 1-week crunch plan, sequenced day by day.</li>
+</ul>
+<hr>
+<h2 id="what-the-job-actually-is">What the job actually is</h2>
+<p>An AI Product Manager owns products or features whose core behavior is powered by a model (an LLM, an agent, a recommender, a vision or speech model). The work is ordinary product management plus 4 things that a normal PM rarely has to reason about:</p>
+<ol>
+<li><strong>Capability judgment.</strong> Deciding whether a model should be anywhere near the problem, and which class of model (rules, classic ML, or an LLM or agent) fits. The strongest AI PMs start one step earlier than classic product sense: before "what should we build," they ask "should a model touch this at all." Boring, deterministic solutions often win.</li>
+<li><strong>Probabilistic UX.</strong> The output is non-deterministic and sometimes confidently wrong. You design the experience <em>around</em> wrongness: confidence gates, graceful fallbacks to a human, citations or abstention, undo, and edit-in-place.</li>
+<li><strong>Evaluation and metrics.</strong> You own an eval harness, not just a dashboard. You separate offline eval sets and regression suites from online production signals, and you watch for silent model degradation even when the north-star metric rises.</li>
+<li><strong>Cost, latency, and risk tradeoffs.</strong> Token cost per call, p95 latency, and unit economics change what you can ship. Responsible AI (fairness, privacy, hallucination, agent permissions, EU AI Act readiness) is threaded through every decision, not bolted on at the end.</li>
+</ol>
+<p>The role sits on top of the same skill tree the rest of this repo teaches. Ground yourself in the <a href="../../../topics/foundations.html">Foundations</a>, <a href="../../../topics/rag.html">RAG</a>, <a href="../../../topics/agents.html">Agents</a>, <a href="../../../topics/evaluation.html">Evaluation</a>, <a href="../../../topics/production.html">Production</a>, and <a href="../../../topics/safety-security.html">Safety and Security</a> topic pages, and follow the <a href="../../../journeys/use.html">Use AI</a> and <a href="../../../journeys/understand.html">Understand AI</a> journeys for the conceptual grounding a PM needs without going full engineer.</p>
+<h2 id="who-hires-for-it-and-at-what-levels">Who hires for it, and at what levels</h2>
+<ul>
+<li><strong>Frontier labs and AI-native companies</strong> (model providers, agent platforms, AI-first startups). Loops here go deepest on capability judgment, evals, and agent design, and increasingly include a live prototype round (build a small demo with a tool like Cursor or v0). Example public loops: OpenAI, Sierra (agent PM).</li>
+<li><strong>Big tech shipping AI features</strong> (Microsoft, Google, Meta, Amazon, and similar). These add a dedicated AI product-sense round to an otherwise standard PM loop. Meta, for example, runs a product-sense round that shifts into building or critiquing an AI feature. Levels map to the normal PM ladder (roughly IC PM, Senior PM, Group PM or Principal, then Director).</li>
+<li><strong>Enterprises adding AI to existing products</strong> (banks, healthcare, SaaS, retail). Here responsible AI, compliance, build-versus-buy, and cross-functional trust with data science matter most.</li>
+</ul>
+<p>Titles you will see for the same work: AI PM, GenAI PM, ML PM, Agent PM, AI Platform PM, Applied AI PM, and Technical PM (AI). Seniority raises the bar on strategy (portfolio, build-versus-buy, moats) and on ambiguity, not on how many facts you memorize.</p>
+<h2 id="how-this-differs-from-adjacent-roles">How this differs from adjacent roles</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Primary object</th>
+<th>What the AI PM does differently</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Traditional PM</strong></td>
+<td>A feature and its funnel</td>
+<td>Adds capability judgment, probabilistic UX, evals, and cost/latency/risk tradeoffs on top of normal PM.</td>
+</tr>
+<tr>
+<td><strong>Data / ML PM (predictive)</strong></td>
+<td>A model in a pipeline</td>
+<td>Overlaps heavily; AI PM leans toward generative and agentic products, prompts-as-spec, and RAG rather than only classification and ranking.</td>
+</tr>
+<tr>
+<td><strong>AI / LLM Engineer</strong></td>
+<td>The system's code</td>
+<td>The PM decides what to build and why, sets eval targets and launch gates, and owns the tradeoffs; the engineer builds it. See the <a href="../../index.html">AI/LLM Engineer track</a>.</td>
+</tr>
+<tr>
+<td><strong>Applied Scientist</strong></td>
+<td>Model quality and research</td>
+<td>The scientist pushes the metric; the PM decides which metric matters to the user and when good enough ships.</td>
+</tr>
+<tr>
+<td><strong>AI Program / TPM</strong></td>
+<td>Delivery and coordination</td>
+<td>The TPM drives execution across teams; the AI PM owns the what and the why and the success definition.</td>
+</tr>
+<tr>
+<td><strong>Designer (AI UX)</strong></td>
+<td>The interaction</td>
+<td>Partners closely; the PM owns tradeoffs and metrics, the designer owns the interaction craft.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-end-to-end-interview-loop">The end-to-end interview loop</h2>
+<p>A typical 2025-2026 AI PM loop runs 5 to 7 conversations. Not every company runs every round, but the shape is stable:</p>
+<pre><code>1. Recruiter screen ........ archetype fit, one AI product you truly owned, comp and logistics
+2. AI product sense ........ design an AI feature end to end; grade the &quot;should we even use AI&quot; instinct
+3. Analytical / metrics .... eval harness, offline vs online, unit economics, north-star vs guardrails
+4. AI technical literacy ... what models and agents can and cannot do; RAG, evals, cost, latency tradeoffs
+5. Behavioral / leadership . ambiguity, influence, killing an AI feature, explaining AI to non-experts
+6. Cross-functional / exec . a real engineer and data scientist in the room; build-vs-buy; roadmap
+7. (Increasingly) prototype  build a small working demo; graded on judgment, not code
+</code></pre>
+<p>The <strong>evaluation and technical-depth round is the one that most predicts the hire.</strong> It was bolted onto loops over the last 18 months and is where AI-washed candidates fall apart. The <a href="rounds.html">rounds.md</a> file breaks down each of these in detail.</p>
+<h2 id="how-to-use-this-folder">How to use this folder</h2>
+<ol>
+<li>Skim this README and <a href="rounds.html">rounds.md</a> to build a mental map of the loop.</li>
+<li>Work <a href="questions.html">questions.md</a> until you can answer each theme cold, in your own words, with a specific example.</li>
+<li>Close gaps with the topic pages and <a href="resources.html">resources.md</a> / <a href="courses.html">courses.md</a>.</li>
+<li>Follow <a href="prep-plan.html">prep-plan.md</a> to sequence everything into a dated path.</li>
+</ol>
+<p>Related repo starting points: the <a href="../../60_gen_ai_questions.html">60 GenAI Interview Questions</a>, the <a href="../../index.html">Role-Based Interview Prep</a> tracks, the <a href="../../../resources/genai_roadmap.html">GenAI</a>, <a href="../../../resources/agents_roadmap.html">Agents</a>, and <a href="../../../resources/RAG_roadmap.html">RAG</a> roadmaps, and the <a href="../../../research_updates/state_of_ai_2025_report/index.html">State of AI 2025 report</a> for current context.</p>
+</main>
+</body>
+</html>

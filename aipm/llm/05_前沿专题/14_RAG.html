@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG（检索增强生成）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 05_前沿专题/14_RAG.md</span></div>
+<main>
+<h1 id="rag">RAG（检索增强生成）</h1>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>RAG 的完整链路是什么？每一步有哪些关键设计选择？</li>
+<li>向量检索和关键词检索的区别是什么？什么时候该做混合检索？</li>
+<li>Query Rewrite、Reranker、Hybrid Search 各自解决什么问题？</li>
+<li>RAG、Fine-tuning、Long Context 各自适合什么场景？</li>
+<li>如何评估 RAG 系统效果？Recall、Faithfulness、RAGAS 分别看什么？</li>
+</ul>
+<hr>
+<h2 id="rag_1">为什么需要 RAG</h2>
+<p>LLM 的参数知识有天然边界：</p>
+<ul>
+<li>有知识截止日期</li>
+<li>不能直接访问私有知识库</li>
+<li>难以提供可靠引用</li>
+<li>开放问答中容易幻觉</li>
+</ul>
+<p>RAG 的目标不是让模型“更会背”，而是让模型在回答时<strong>先找证据，再基于证据作答</strong>。</p>
+<p><img alt="RAG 官方流程图" src="https://developer-blogs.nvidia.com/wp-content/uploads/2023/12/rag-pipeline-ingest-query-flow-b.png"></p>
+<blockquote>
+<p>图源：NVIDIA Technical Blog, <code>RAG 101: Demystifying Retrieval-Augmented Generation Pipelines</code>。</p>
+</blockquote>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;用户问题&quot;] --&gt; B[&quot;检索外部知识&quot;]
+    B --&gt; C[&quot;构造上下文&quot;]
+    C --&gt; D[&quot;LLM 基于证据生成答案&quot;]
+    D --&gt; E[&quot;引用/出处&quot;]
+</code></pre>
+<hr>
+<h2 id="rag_2">RAG 完整链路</h2>
+<h3 id="indexing">离线阶段（Indexing）</h3>
+<ol>
+<li>文档接入</li>
+<li>清洗解析</li>
+<li>Chunk 切分</li>
+<li>生成 Embedding</li>
+<li>建向量索引 / 倒排索引</li>
+</ol>
+<h3 id="querying">在线阶段（Querying）</h3>
+<ol>
+<li>Query 改写</li>
+<li>检索召回 Top-K</li>
+<li>Rerank 精排</li>
+<li>上下文压缩与拼接</li>
+<li>LLM 生成答案</li>
+<li>可选引用与校验</li>
+</ol>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;文档&quot;] --&gt; B[&quot;解析/清洗&quot;]
+    B --&gt; C[&quot;Chunk 切分&quot;]
+    C --&gt; D[&quot;Embedding + 建索引&quot;]
+    E[&quot;用户 Query&quot;] --&gt; F[&quot;Query Rewrite&quot;]
+    F --&gt; G[&quot;召回&quot;]
+    D --&gt; G
+    G --&gt; H[&quot;Rerank&quot;]
+    H --&gt; I[&quot;上下文组装&quot;]
+    I --&gt; J[&quot;LLM 生成答案&quot;]
+</code></pre>
+<hr>
+<h2 id="_2">每一步的关键设计选择</h2>
+<p><strong>细化理解：</strong> RAG 每一步都会影响最终答案。Chunk 切太小会丢上下文，切太大会引入噪声；embedding 只擅长语义近邻，不一定擅长错误码、数字和专有名词；rerank 能把相关证据排到前面，但会增加延迟；上下文拼接如果没有去重、排序和引用约束，模型仍可能忽略关键证据。面试中要把 RAG 当系统工程，而不是单个向量库功能。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>常见选项</th>
+<th>核心 trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chunking</td>
+<td>固定大小、递归切分、语义切分</td>
+<td>精度 vs 上下文完整性</td>
+</tr>
+<tr>
+<td>Embedding</td>
+<td>OpenAI、BGE、E5、M3E 等</td>
+<td>效果 vs 成本 vs 多语言</td>
+</tr>
+<tr>
+<td>索引</td>
+<td>向量库、倒排索引、双索引</td>
+<td>简单性 vs 召回质量</td>
+</tr>
+<tr>
+<td>检索</td>
+<td>Dense、BM25、Hybrid</td>
+<td>语义匹配 vs 精确关键词</td>
+</tr>
+<tr>
+<td>Rerank</td>
+<td>Cross-Encoder、LLM Judge</td>
+<td>精度 vs 延迟</td>
+</tr>
+<tr>
+<td>生成</td>
+<td>小模型、强模型、长上下文模型</td>
+<td>成本 vs 事实性 vs 体验</td>
+</tr>
+</tbody>
+</table>
+<p>很多 RAG 失败，不是败在模型不够强，而是败在切分、召回、重排和上下文构造这些前置步骤。</p>
+<hr>
+<h2 id="_3">更工程化的理解</h2>
+<p>把 RAG 拆成三层更好讲：</p>
+<ul>
+<li>检索层：尽量别漏掉关键证据</li>
+<li>排序层：把最有用的证据排到前面</li>
+<li>生成层：基于证据回答，并尽量引用来源</li>
+</ul>
+<p>很多线上问题其实不是模型不会答，而是前面喂给它的证据就不对。</p>
+<hr>
+<h2 id="_4">检索方式详解</h2>
+<h3 id="dense-retrieval">Dense Retrieval</h3>
+<p>把 query 和文档都编码成向量，在向量空间找最近邻。</p>
+<p><strong>优点：</strong>
+- 擅长语义匹配
+- 对同义改写较鲁棒</p>
+<p><strong>缺点：</strong>
+- 对数字、代码、专有名词不够稳定
+- 可解释性弱</p>
+<h3 id="sparse-retrieval-bm25">Sparse Retrieval / BM25</h3>
+<p>基于关键词、词频和逆文档频率检索。</p>
+<p><strong>优点：</strong>
+- 对报错码、接口名、专有词很强
+- 速度快、解释性强</p>
+<p><strong>缺点：</strong>
+- 语义泛化差</p>
+<h3 id="hybrid-search">Hybrid Search</h3>
+<p>把 Dense 和 BM25 结合，通常是生产 RAG 的默认起点。</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;用户 Query&quot;] --&gt; B[&quot;Dense 检索&quot;]
+    A --&gt; C[&quot;BM25 检索&quot;]
+    B --&gt; D[&quot;结果融合&quot;]
+    C --&gt; D
+    D --&gt; E[&quot;Rerank&quot;]
+</code></pre>
+<h3 id="rrfreciprocal-rank-fusion">RRF（Reciprocal Rank Fusion）</h3>
+<p>常见融合方法：</p>
+<pre><code class="language-text">RRF = Σ 1 / (k + rank_i)
+</code></pre>
+<p>优点是：</p>
+<ul>
+<li>简单</li>
+<li>稳</li>
+<li>不依赖复杂调权</li>
+</ul>
+<hr>
+<h2 id="query">Query 改写技术</h2>
+<p>用户问题常常并不适合直接检索，所以会做 query rewrite。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HyDE</td>
+<td>先生成假设答案再检索</td>
+<td>解释类问题</td>
+</tr>
+<tr>
+<td>Multi-Query</td>
+<td>生成多个改写问题分别召回</td>
+<td>提高 recall</td>
+</tr>
+<tr>
+<td>Step-back</td>
+<td>回到更抽象的问题层</td>
+<td>专业复杂问题</td>
+</tr>
+<tr>
+<td>Query Decomposition</td>
+<td>拆成子问题</td>
+<td>多跳问题</td>
+</tr>
+<tr>
+<td>Contextual Rephrase</td>
+<td>结合历史补全指代</td>
+<td>多轮问答</td>
+</tr>
+</tbody>
+</table>
+<p>判断原则：</p>
+<ul>
+<li>问题短、抽象、模糊：优先改写</li>
+<li>问题里有明确关键词或错误码：要保留原 query 信息</li>
+</ul>
+<hr>
+<h2 id="reranker">Reranker 为什么重要</h2>
+<p><strong>细化理解：</strong> 初召回通常追求高 recall，会故意拿回更多候选；Reranker 用更昂贵但更精确的模型重新判断 query-document 相关性，把真正有用的证据放到上下文前面。对于 LLM 来说，证据顺序很重要，因为长上下文中间内容可能被忽略，前排噪声会挤占 token budget。生产 RAG 常见配置是 Top-50 召回、Top-5/10 精排入模。</p>
+<p>初检索负责“尽量别漏”，Reranker 负责“别把噪声排太前”。</p>
+<p>典型流程：</p>
+<ol>
+<li>Dense/BM25 召回 Top-50</li>
+<li>Cross-Encoder Rerank</li>
+<li>保留 Top-5 到 Top-10</li>
+<li>再送给 LLM</li>
+</ol>
+<p>很多生产系统里，Reranker 带来的收益比单纯换更大模型还稳定。</p>
+<hr>
+<h2 id="rag_3">RAG 如何评估</h2>
+<p><strong>工程细节：</strong> RAG 评估要先构造带标准证据的样本集：问题、正确文档、可接受答案、不可接受答案和权限条件。检索层先看 Recall@K、MRR、NDCG；生成层再看 faithfulness、引用准确率和答案覆盖度。没有把检索和生成拆开时，答案错了无法判断是没找对、没排好、没拼好，还是模型看到了但没答对。</p>
+<h3 id="_5">检索层指标</h3>
+<ul>
+<li><code>Recall@K</code>：相关文档有没有召回到</li>
+<li><code>MRR</code>：第一个相关文档排得靠不靠前</li>
+<li><code>NDCG@K</code>：排序质量</li>
+</ul>
+<h3 id="_6">生成层指标</h3>
+<ul>
+<li><code>Faithfulness</code>：答案是否忠于检索证据</li>
+<li><code>Answer Relevance</code>：答案是否真正回答问题</li>
+<li><code>Citation Accuracy</code>：引用是否对应正确证据</li>
+</ul>
+<h3 id="ragas">RAGAS 常见指标</h3>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>看什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Faithfulness</td>
+<td>是否胡编</td>
+</tr>
+<tr>
+<td>Answer Relevancy</td>
+<td>是否答到点上</td>
+</tr>
+<tr>
+<td>Context Precision</td>
+<td>召回结果脏不脏</td>
+</tr>
+<tr>
+<td>Context Recall</td>
+<td>关键证据漏没漏</td>
+</tr>
+</tbody>
+</table>
+<p>关键点是：RAG 评估必须拆成检索层和生成层，不然出了问题很难定位。</p>
+<hr>
+<h2 id="rag-vs-long-context-vs-fine-tuning">RAG vs Long Context vs Fine-tuning</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>RAG</th>
+<th>Long Context</th>
+<th>Fine-tuning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>知识更新</td>
+<td>强</td>
+<td>中</td>
+<td>弱</td>
+</tr>
+<tr>
+<td>可追溯性</td>
+<td>强</td>
+<td>中</td>
+<td>弱</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>中</td>
+<td>高</td>
+<td>前期高，单次低</td>
+</tr>
+<tr>
+<td>适合私有知识</td>
+<td>强</td>
+<td>中</td>
+<td>弱</td>
+</tr>
+<tr>
+<td>适合改行为风格</td>
+<td>弱</td>
+<td>弱</td>
+<td>强</td>
+</tr>
+</tbody>
+</table>
+<p>一个务实的结论：</p>
+<ul>
+<li>知识更新问题优先看 RAG</li>
+<li>长文深读问题优先看 Long Context</li>
+<li>行为/格式/风格问题优先看 Fine-tuning</li>
+</ul>
+<hr>
+<h2 id="rag_4">高级 RAG 方向</h2>
+<h3 id="self-rag">Self-RAG</h3>
+<p>模型自己判断要不要检索、检索结果有没有用、生成是否被支持。</p>
+<h3 id="corrective-ragcrag">Corrective RAG（CRAG）</h3>
+<p>先检查检索质量，再决定是否补搜或重检。</p>
+<h3 id="agentic-rag">Agentic RAG</h3>
+<p>把检索当成 Agent 的工具，而不是固定流水线的一步。适合多轮、多源、多跳任务。</p>
+<h3 id="graphrag">GraphRAG 为什么近两年经常被问</h3>
+<p>因为它显式建模实体和关系，不只是“找相似文本块”，所以在多跳推理、知识库问答、跨文档关联检索里更容易体现优势。</p>
+<hr>
+<h2 id="_7">常见误区</h2>
+<h3 id="1rag-llm">误区 1：RAG 就是“向量数据库 + LLM”</h3>
+<p>错。真正影响效果的是切分、召回、改写、rerank、上下文构造和评估闭环。</p>
+<h3 id="2">误区 2：检索到了文档就不会幻觉</h3>
+<p>不对。模型仍可能误读、拼错、忽略证据，或者在证据不足时自行补全。</p>
+<h3 id="3chunk">误区 3：Chunk 越大越安全</h3>
+<p>太大常常会拉低召回精度，还增加上下文噪声。</p>
+<h3 id="4rag">误区 4：RAG 可以替代所有微调</h3>
+<p>不能。RAG 解决的是外部知识接入，不是输出行为控制。</p>
+<hr>
+<h2 id="_8">面试延伸</h2>
+<p><strong>Q：如何评估 RAG 系统？</strong></p>
+<blockquote>
+<p>要拆成两层：检索层看 Recall@K、MRR、NDCG；生成层看 Faithfulness、Answer Relevance、Citation Accuracy。RAGAS 可以做自动化评估，但关键任务仍然需要人工抽样和业务数据集验证。</p>
+</blockquote>
+<p><strong>Q：RAG 和 Fine-tuning 怎么选？</strong></p>
+<blockquote>
+<p>知识频繁更新、要溯源、要接私有文档时优先 RAG；想改变输出格式、语气、任务执行风格时优先 Fine-tuning。很多企业是 Fine-tuning 学行为，RAG 接知识。</p>
+</blockquote>
+<p><strong>Q：RAG 为什么仍然会幻觉？</strong></p>
+<blockquote>
+<p>可能是没召回、召回错了、证据冲突、上下文太长被忽略，或模型虽然看到了证据但总结错了。解决思路是先提升检索质量，再约束生成和引用。</p>
+</blockquote>
+<hr>
+<h2 id="_9">学完可以做什么</h2>
+<ol>
+<li>做一个 <code>BM25 + Vector + Reranker</code> 的最小 RAG demo。</li>
+<li>在自己的知识库上测 <code>Recall@5</code> 和 <code>Faithfulness</code>。</li>
+<li>对比 <code>不做 query rewrite</code> 和 <code>multi-query</code> 的召回差异。</li>
+</ol>
+<hr>
+<h2 id="_10">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAG: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., NeurIPS 2020)</td>
+<td><a href="https://arxiv.org/abs/2005.11401">arxiv.org/abs/2005.11401</a></td>
+</tr>
+<tr>
+<td>Self-RAG: Learning to Retrieve, Generate, and Critique (Asai et al., ICLR 2024)</td>
+<td><a href="https://arxiv.org/abs/2310.11511">arxiv.org/abs/2310.11511</a></td>
+</tr>
+<tr>
+<td>Corrective RAG (CRAG) (Yan et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2401.15884">arxiv.org/abs/2401.15884</a></td>
+</tr>
+<tr>
+<td>RAGAS: Automated Evaluation of RAG (Es et al., 2024)</td>
+<td><a href="https://arxiv.org/abs/2309.15217">arxiv.org/abs/2309.15217</a></td>
+</tr>
+<tr>
+<td>HyDE: Precise Zero-Shot Dense Retrieval without Relevance Labels (Gao et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2212.10496">arxiv.org/abs/2212.10496</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_11">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 YouTube</td>
+<td><a href="https://www.youtube.com/watch?v=T-D1OfcDW1M">Retrieval Augmented Generation (RAG) Explained</a></td>
+<td>IBM Technology，适合快速入门</td>
+</tr>
+<tr>
+<td>📖 LlamaIndex Docs</td>
+<td><a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">RAG concepts</a></td>
+<td>明确资料页，解释 RAG 架构与组件</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

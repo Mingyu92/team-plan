@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>[产品名] 案例拆解</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">templates / case-study.md</span></div>
+<main>
+<h1 id="_1">[产品名] 案例拆解</h1>
+<p><strong>分类</strong>:<!-- 对话助手 / AIGC / 搜推 / 垂直行业 -->
+<strong>体验时间</strong>:<!-- YYYY 年 MM 月(AI 产品迭代快,时间戳很重要) --></p>
+<h2 id="_2">一、产品背景</h2>
+<!-- 解决什么问题?目标用户?所处竞争格局? -->
+
+<h2 id="_3">二、核心功能拆解</h2>
+<!-- 主流程走一遍,配截图(存入 assets/ 对应目录)。重点标注 AI 在哪些环节起作用 -->
+
+<h2 id="_4">三、技术方案推测</h2>
+<!-- 基于产品表现推测:用了 RAG 吗?Agent 吗?依据是什么?注明"推测"属性 -->
+
+<h2 id="_5">四、商业模式</h2>
+<!-- 怎么赚钱/打算怎么赚钱?定价逻辑?成本结构推测? -->
+
+<h2 id="pm">五、PM 视角的启示</h2>
+<!-- 2-3 条:这个产品做对了什么、有什么可借鉴的设计、你会怎么改进 -->
+
+<h2 id="_6">参考资料</h2>
+<!-- 官方博客、发布会、公开报道等来源链接 -->
+</main>
+</body>
+</html>

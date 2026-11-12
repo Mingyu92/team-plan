@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vibe Coding 是什么:AI PM 该不该自己写代码</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/vibe-coding/what-is-vibe-coding.md</span></div>
+<main>
+<h1 id="vibe-coding-ai-pm">Vibe Coding 是什么:AI PM 该不该自己写代码</h1>
+<h2 id="_1">一句话解释</h2>
+<p>Vibe Coding(氛围编程)= 用自然语言向 AI 编程 Agent 描述你想要什么,让它生成、运行、修改代码,你全程不必读懂每一行,只需要判断"效果对不对"。它把"写代码"从一门需要多年训练的手艺,变成了一种更接近"和一个懂技术的同事对话"的体验——这也是为什么 2025-2026 年,越来越多不会编程的产品经理开始亲手做出可运行的 Demo。</p>
+<h2 id="_2">概念溯源:从一条推文说起</h2>
+<p>"Vibe Coding" 不是学术术语,也不是哪家公司的产品名,它出自 OpenAI 创始成员、特斯拉前 AI 总监 Andrej Karpathy 在 2025 年 2 月 2 日发的一条推文。原话是:</p>
+<blockquote>
+<p>"There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes, embrace exponentials, and forget that the code even exists."
+——"有一种新的编程方式,我叫它 vibe coding:你完全沉浸在氛围里,拥抱指数级进步,甚至忘记代码本身的存在。"</p>
+</blockquote>
+<p>他在同一条推文里描述得更具体:看到报错就把错误信息直接粘贴给 AI,AI 改完基本不看 diff(代码差异)就接受,遇到问题也懒得深究原理,"我基本上就是看看东西、说说话、跑一跑、复制粘贴,大多数时候就是能用"。这是一种相当极端、近乎"完全放手"的工作方式,前提是像 Cursor Composer 配 Claude Sonnet 这类工具已经好到能撑起这种信任。</p>
+<p>这条推文本人形容是"一时兴起随手发的",没想到精准踩中了当时很多人的共同体验,迅速破圈:Merriam-Webster 词典 2025 年 3 月就将其收录为"俚语与热词",Collins 英语词典更是把它评为 <strong>2025 年度词汇</strong>。</p>
+<h3 id="ai-vibe-coding">定义的分化:不是所有"用 AI 写代码"都叫 Vibe Coding</h3>
+<p>术语火了之后,用法很快就比 Karpathy 原意宽泛得多。开发者 Simon Willison 在 2025 年 3 月专门写文章做出区分:如果 AI 帮你写了每一行代码,但你审查过、测试过、真正理解了这些代码,那就不是 Vibe Coding,而是普通的"AI 辅助编程"——<strong>Vibe Coding 的核心特征恰恰是"不审查、不完全理解,只看结果"</strong>。吴恩达(Andrew Ng)也在 2025 年 6 月提出批评,认为这个词容易误导人,让大家以为专业工程师用 AI 工具时也是"跟着感觉走",但实际上专业场景里的 AI 辅助开发仍然包含大量审查和把控。</p>
+<p>到 2025 年 7 月,《华尔街日报》报道称专业工程师也开始把 Vibe Coding 用于商业项目——这时词义已经从"周末个人小项目的一时兴起",扩展到覆盖企业级的 AI 辅助开发实践,原本"完全不看代码"的严格定义,在日常使用中被大大稀释了。</p>
+<h3 id="2026-karpathy">2026 年的演化:Karpathy 自己也换了说法</h3>
+<p>到 2026 年年初,Karpathy 本人认为随着模型能力跃升,"Vibe Coding"这个词已经不够用了,提出了新说法 <strong>"Agentic Engineering"(智能体化工程)</strong>。他的解释是:"agentic"是因为现在的默认模式不再是你亲自写代码,而是你在编排(orchestrate)多个 Agent 去写,自己负责监督;"engineering"则是强调这里面有章法、有专业性,不是纯粹跟着感觉走。他给出一句被广泛引用的总结:<strong>"Vibe Coding 抬高了下限,Agentic Engineering 保住了上限。"</strong> 换句话说,Vibe Coding 让完全不会编程的人也能做出东西(抬高下限),但要做出经得起推敲、能长期维护的系统,还是需要专业性和方法论(守住上限)。</p>
+<p>对 AI PM 来说,这个演化路径本身就是重要信息:不要把 Vibe Coding 神化成"从此不需要理解技术",它的价值一直是"让你能更快地把想法变成看得见摸得着的东西",而不是替代工程判断力。</p>
+<h2 id="demo">和其他三种"做 Demo"方式的区别</h2>
+<p>AI PM 想把一个想法变成可演示的东西,大致有四条路。它们不是互相排斥的关系,而是"投入门槛"和"最终掌控力"两个维度上的权衡:</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>怎么做</th>
+<th>门槛</th>
+<th>产出物的可控性</th>
+<th>迭代速度</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>传统写代码</strong></td>
+<td>自己动手写、调试、部署</td>
+<td>高,需系统学习编程</td>
+<td>最高,想改哪里改哪里</td>
+<td>慢,受个人熟练度限制</td>
+<td>专业工程师做生产级系统</td>
+</tr>
+<tr>
+<td><strong>低代码/无代码平台</strong>(如飞书低码、Bubble)</td>
+<td>拖拽组件、配置逻辑,平台内置模板</td>
+<td>低,但受平台能力边界限制</td>
+<td>中等,超出平台预设能力就做不了</td>
+<td>快,但复杂逻辑会卡住</td>
+<td>内部工具、标准化流程表单</td>
+</tr>
+<tr>
+<td><strong>找工程师做 Demo</strong></td>
+<td>把需求讲清楚,等排期,工程师实现</td>
+<td>对 PM 本人门槛低</td>
+<td>取决于沟通质量和排期优先级</td>
+<td>慢,受协作成本和排期制约</td>
+<td>需要严谨评审、正式立项后的开发</td>
+</tr>
+<tr>
+<td><strong>Vibe Coding</strong></td>
+<td>用自然语言向 AI 编程 Agent 描述需求,AI 生成并运行代码,你验证效果、继续对话调整</td>
+<td>低,但需要一点"看懂报错、判断对不对"的耐心</td>
+<td>较高,本质是真代码,能力上限取决于 AI 能力和你能读懂多少</td>
+<td>很快,当天甚至几十分钟出一版</td>
+<td>PM 自己验证想法、做原型、面试作品集</td>
+</tr>
+</tbody>
+</table>
+<p>Vibe Coding 相对于低代码平台的关键区别在于:低代码平台是"在别人画好的框里拼积木",逻辑边界被平台预设死了;Vibe Coding 生成的是<strong>真实代码</strong>,理论上没有平台能力上限,只是你未必看得懂全部细节。相对于"找工程师做 Demo",最大的区别是<strong>去掉了沟通成本和排期等待</strong>——你不需要先把想法讲清楚再等别人实现,而是自己先做出一版粗糙但可运行的东西,再拿着它去和工程师讨论,讨论效率完全不同。</p>
+<h2 id="ai-pm">对 AI PM 的价值:为什么这正在变成核心竞争力</h2>
+<h3 id="1">1. 验证想法的速度快了一个数量级</h3>
+<p>传统流程里,一个想法从"我觉得这个可行"到"有个东西可以点开看看",中间要经过写 PRD、评审、排期、开发、联调,少则几天多则几周。Vibe Coding 把这个链条压缩到几十分钟到几小时——你可以在提出想法的当天就做出一个能点、能交互的原型,哪怕只是前端界面加假数据。这不是要替代正式开发流程,而是<strong>在正式立项之前,用最低成本证伪或证实想法</strong>,把"拍脑袋讨论"变成"看着实际效果讨论"。</p>
+<h3 id="2">2. 和工程师沟通的效率显著提高</h3>
+<p>当你自己动手搭过哪怕一个简陋的 Demo,你对"这个功能大概要改哪些模块""这个交互在技术上大概是什么代价"会有更具体的直觉,提需求时能少说很多空话,也更容易听懂工程师说"这个改动比看起来复杂"背后的原因。这不需要你达到工程师的水平,只需要你亲手踩过一次"从想法到能跑起来"中间的坑。</p>
+<h3 id="3">3. 面试作品集的说服力完全不同</h3>
+<p><a href="../../00-roadmap/transition-guide.html">转型指南</a> 里提到一个反复被验证的观察:"一个亲手做过的 RAG 小 demo、一份认真写过的评测集,远比罗列课程证书更有说服力。" 这个判断放在 Vibe Coding 上同样成立,甚至更适用——因为它的门槛比"手写 RAG 代码"更低,几乎任何一个愿意花时间的 PM 都能做出一个可以现场打开演示的东西。面试官见过太多"我熟悉 Prompt 工程""我了解 RAG 原理"这样的自我介绍,但一个能当场点开、能现场改一个参数演示效果变化的作品,分量完全不一样。</p>
+<h2 id="vibe-coding-pm">边界:Vibe Coding 不是让 PM 替代工程师</h2>
+<p>这是最容易被误解、也最需要讲清楚的一点。Vibe Coding 抬高的是"从 0 到能跑起来"的下限,不是让产品经理从此不需要工程师。以下这些工作,仍然清晰地属于专业工程师的范畴,PM 不应该、也没有能力越界:</p>
+<table>
+<thead>
+<tr>
+<th>能做(PM 亲自上手合理)</th>
+<th>不该做(仍需专业工程师)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>验证交互流程是否顺畅的原型</td>
+<td>面向真实用户、需要承担流量的生产环境代码</td>
+</tr>
+<tr>
+<td>用假数据/小数据集跑通一个核心逻辑</td>
+<td>涉及真实用户数据的安全审查与合规处理</td>
+</tr>
+<tr>
+<td>面试作品集、内部提案的 Demo</td>
+<td>需要长期维护、多人协作的代码库架构设计</td>
+</tr>
+<tr>
+<td>探索性质的技术方案可行性验证</td>
+<td>高并发、高可用场景下的系统设计与容灾</td>
+</tr>
+<tr>
+<td>给工程师提供一个"具体一点的参考"而非最终方案</td>
+<td>未经审查就把 AI 生成代码直接合并到主干、上线给真实用户</td>
+</tr>
+</tbody>
+</table>
+<p>一句话概括这条边界:<strong>Vibe Coding 出来的东西默认是"验证用的一次性原型",不是"可以直接上生产的工程资产"</strong>。就像 Karpathy 自己在原始定义里承认的,这种工作方式"基本不看 diff、不深究原理",这在探索阶段没问题,但恰恰是生产代码最忌讳的态度——安全漏洞、性能陷阱、技术债往往就藏在"没人仔细看过的那部分代码"里。AI PM 用 Vibe Coding 的目的,是让自己在"想法"和"工程实现"之间多一个可以亲手验证的中间地带,而不是把自己的角色变成半吊子工程师。</p>
+<h2 id="_3">决策框架:我该不该自己动手写(氛围)代码?</h2>
+<p>面对一个新想法,可以按下面几个问题依次自查:</p>
+<ol>
+<li>
+<p><strong>这个东西的目的是验证想法,还是要长期运行给真实用户用?</strong>
+   如果是前者,适合自己上手做;如果是后者,应该走正式开发流程,哪怕你已经做出了一版 Demo,也只能作为参考,不能直接当成交付物。</p>
+</li>
+<li>
+<p><strong>我需要多快看到结果?</strong>
+   如果答案是"今天下午的评审会就要用",找工程师排期基本来不及,这正是 Vibe Coding 最适合出场的场景。</p>
+</li>
+<li>
+<p><strong>这个想法有没有可能被现有工具(低代码平台、模板)十分钟解决?</strong>
+   如果有现成的低代码方案能满足,没必要额外学习编程式的工具——用最省力的方式达到目的。</p>
+</li>
+<li>
+<p><strong>我愿不愿意花时间去看懂报错信息、判断 AI 给出的方案是否合理?</strong>
+   Vibe Coding 不要求你会写代码,但要求你有基本的耐心去判断"这个结果对不对""哪里看起来不对劲"。完全不愿意参与判断、只想当甩手掌柜,风险会明显升高。</p>
+</li>
+<li>
+<p><strong>做完之后,这个东西会不会被误当成"可以直接用的产品"?</strong>
+   如果团队里有人可能把你的原型代码直接部署上线,一定要提前说清楚这只是验证用的、未经审查的代码,避免安全和稳定性风险被忽视。</p>
+</li>
+</ol>
+<p>如果 5 个问题里,你的答案指向"验证性质、时间紧、没有现成工具、我愿意参与判断、团队清楚这只是原型",那就大胆动手;如果指向"要长期维护、涉及真实用户数据、没人愿意做后续代码审查",这时候该做的是把想法讲清楚,交给专业工程师来做,而不是勉强自己啃一个 Vibe Coding 搞不定的复杂系统。</p>
+<p>工具层面的具体选型,可以参考 <a href="tool-landscape.html">Vibe Coding 工具盘点与选型(2026 年中)</a>。</p>
+<h2 id="_4">相关阅读</h2>
+<ul>
+<li><a href="../../00-roadmap/transition-guide.html">传统 PM 转型 AI PM 指南</a></li>
+<li><a href="../../01-ai-basics/llm/agent-basics.html">Agent 入门:规划、记忆、工具调用</a></li>
+<li><a href="../../00-roadmap/getting-started.html">AI 产品经理入门路径</a></li>
+<li><a href="tool-landscape.html">Vibe Coding 工具盘点与选型(2026 年中)</a></li>
+<li><a href="from-idea-to-demo.html">从一句话需求到能跑的原型:AI PM 的 Vibe Coding 实战方法论</a></li>
+</ul>
+<h2 id="_5">参考资料</h2>
+<ul>
+<li><a href="https://x.com/karpathy/status/1886192184808149383">Andrej Karpathy 原始推文,2025-02-02</a> — X(Twitter),2026-07 访问</li>
+<li><a href="https://simonwillison.net/2025/Mar/19/vibe-coding/">Not all AI-assisted programming is vibe coding (but vibe coding rocks)</a> — Simon Willison 博客,2026-07 访问</li>
+<li><a href="https://en.wikipedia.org/wiki/Vibe_coding">Vibe coding</a> — Wikipedia 词条,含 Collins 年度词汇、Andrew Ng 观点等信息来源汇总,2026-07 访问</li>
+<li><a href="https://thenewstack.io/vibe-coding-is-passe/">Vibe coding is passé. Karpathy has a new name for the future of software.</a> — The New Stack,2026-07 访问</li>
+<li><a href="https://x.com/karpathy/status/2019137879310836075">Andrej Karpathy 一周年回顾推文,2026</a> — X(Twitter),2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

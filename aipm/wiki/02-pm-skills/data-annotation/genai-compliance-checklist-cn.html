@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>生成式 AI 合规设计清单（中国为主，出海对照）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 02-pm-skills/data-annotation/genai-compliance-checklist-cn.md</span></div>
+<main>
+<h1 id="ai">生成式 AI 合规设计清单（中国为主，出海对照）</h1>
+<blockquote>
+<p><strong>本文不构成法律意见。</strong> 法规与配套标准更新频繁，请以主管部门最新原文与你方法务意见为准。文中「事实」仅复述已公开的官方法规/解读要点；「建议」是产品设计与上线流程上的可操作动作，不等于强制法条。版权与权属争议标「需法务」处，禁止当作已定结论。</p>
+<p><strong>覆盖范围</strong>：本文是面向境内向公众提供生成式 AI 服务的<strong>产品过审 / 上线总清单</strong>（内容安全、标识、备案评估、个保、投诉处置、出海对照）。训练数据能否用于模型训练、厂商政策与出境门槛的细节，见 <a href="data-compliance.html">数据合规红线：用户数据能不能用来训练</a>。Agent 权限与运行时安全见 <a href="../ai-product-operations/guardrails-and-agent-security.html">AI 安全与 Agent 权限</a>。</p>
+</blockquote>
+<p>选题结构启发自磊叔《关于 AI 产品经理的 100 个问题》Q86–89（版权、中欧美好差异、训练红线、过审清单）；正文依据下文「参考资料」中的官方原文原创撰写，<strong>不以任何第三方 PDF 条款代替法规原文</strong>。</p>
+<p><strong>信息核验日期</strong>：2026-08-06（以下「访问日期」同）。</p>
+<hr>
+<h2 id="vs">一、怎么读本文：事实 vs 建议</h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>写法</th>
+<th>你该怎么用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事实</strong></td>
+<td>复述法规/官方解读中可核对的要求，并附出处与访问日期</td>
+<td>过审材料、PRD「合规约束」章节可引用，但仍需法务确认适用性</td>
+</tr>
+<tr>
+<td><strong>建议</strong></td>
+<td>为降低产品与组织风险而推荐的设计/流程</td>
+<td>可写入 checklist，但不是「做了就一定合规」的保证</td>
+</tr>
+<tr>
+<td><strong>需法务 / 待核验</strong></td>
+<td>司法口径不一、细则待落地、或本文未核到一手结论</td>
+<td>上线闸门必须升级到法务/合规，禁止产品自行拍板写进对外承诺</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_1">二、中国监管地图（产品视角）</h2>
+<h3 id="_2">事实：核心规范与适用边界</h3>
+<table>
+<thead>
+<tr>
+<th>规范</th>
+<th>对产品最相关的要点（摘要）</th>
+<th>出处（访问 2026-08-06）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>《生成式人工智能服务管理暂行办法》（2023-08-15 起施行）</td>
+<td>向<strong>境内公众</strong>提供文本/图片/音频/视频等生成服务适用；未向境内公众提供的研发/内部应用，办法明确不适用。提供者须签服务协议；训练数据合法来源与个保；内容禁止清单；图片/视频等按深度合成规定标识；违法内容处置与投诉举报；具有舆论属性或社会动员能力的服务须安全评估，并按算法推荐规定履行算法备案等手续</td>
+<td><a href="https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm">中国网信网全文</a>；<a href="https://www.gov.cn/zhengce/202307/content_6892001.htm">网信办负责人答记者问（中国政府网转载）</a></td>
+</tr>
+<tr>
+<td>《中华人民共和国个人信息保护法》</td>
+<td>目的明确与最小必要（第 6 条）；同意须充分知情、自愿、明确，法定单独同意从规定（第 14 条）；敏感个人信息须单独同意等（第 28–30 条）；个人查阅/复制/删除等权利（第 45、47 条等）；向境外提供须告知并取得单独同意等（第 39 条等）</td>
+<td><a href="https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm">网信办转载全文</a>；<a href="http://www.npc.gov.cn/c2/c30834/202108/t20210820_313088.html">中国人大网</a></td>
+</tr>
+<tr>
+<td>《互联网信息服务深度合成管理规定》</td>
+<td>深度合成内容的隐式标识与（易混淆场景）显著标识等要求；《暂行办法》第 12 条明确图片、视频等生成内容按该规定标识</td>
+<td><a href="https://www.cac.gov.cn/2022-12/11/c_1672221949354811.htm">中国网信网全文</a></td>
+</tr>
+<tr>
+<td>《人工智能生成合成内容标识办法》（2025-09-01 起施行）</td>
+<td>细化显式/隐式标识；文本/音频/图片/视频/虚拟场景的显式标识要求；传播平台核验与提示；应用分发上架核验标识材料等</td>
+<td><a href="https://www.cac.gov.cn/2025-03/14/c_1743654684782215.htm">中国网信网通知及全文</a>；<a href="https://www.cac.gov.cn/2025-03/14/c_1743654685896173.htm">答记者问</a></td>
+</tr>
+<tr>
+<td>《互联网信息服务算法推荐管理规定》</td>
+<td>《暂行办法》第 17 条要求：具有舆论属性或社会动员能力的生成式 AI 服务，按该规定履行算法备案和变更、注销等手续</td>
+<td><a href="https://www.cac.gov.cn/2022-01/04/c_1642894606364259.htm">中国网信网全文</a></td>
+</tr>
+</tbody>
+</table>
+<p><strong>事实（答记者问口径）</strong>：监管方式上强调包容审慎与分类分级；提供者范围包括通过 API 等方式提供服务的组织或个人。出处见上表答记者问链接。</p>
+<h3 id="_3">建议：先判「你是不是提供者」</h3>
+<ul>
+<li>面向中国用户开放的对话、写作、绘图、语音合成、开放 API 等，默认按「生成式人工智能服务提供者」准备合规材料。</li>
+<li>仅内部研发、不对境内公众提供服务的，可能不适用《暂行办法》正文义务，但仍可能落入个保法、网络安全法、数据安全法及行业规章——<strong>需法务</strong>确认边界。</li>
+<li>「调用海外模型 API」不自动免除你作为面向用户产品方的提供者责任；数据出境与供应商条款另见 <a href="data-compliance.html">data-compliance.md</a>。</li>
+</ul>
+<hr>
+<h2 id="_4">三、产品过审 / 上线可勾选清单（中国为主）</h2>
+<p>下列勾选项是<strong>建议</strong>的工作分解。带「事实依据」的条目对应上文法规义务；具体是否适用于你的产品形态，<strong>需法务</strong>裁定。</p>
+<h3 id="a">A. 立项与方案设计</h3>
+<ul>
+<li>[ ] <strong>适用范围判定</strong>：是否向境内公众提供生成文本/图片/音频/视频等内容？（事实：暂行办法第 2 条）</li>
+<li>[ ] <strong>服务协议</strong>：是否与注册使用者签订服务协议，明确双方权利义务？（事实：暂行办法第 9 条）</li>
+<li>[ ] <strong>适用人群 / 场合 / 用途</strong>：是否公开说明，并有未成年人过度依赖/沉迷的防范措施设计？（事实：暂行办法第 10 条）</li>
+<li>[ ] <strong>内容安全策略</strong>：是否将暂行办法第 4 条禁止内容类型映射为产品拦截类别、人工复核与应急下线流程？（建议：映射表 + 责任人）</li>
+<li>[ ] <strong>歧视与偏见</strong>：训练数据选择、提示策略、评测集是否覆盖民族/地域/性别等歧视风险的抽检？（事实义务在第 4、7 条；落地为建议流程）</li>
+<li>[ ] <strong>模型与数据来源</strong>：基础模型与训练/微调数据来源是否可说明合法、可审计？涉及个保与知识产权的路径是否单独评审？（事实：暂行办法第 7 条；训练细节 → <a href="data-compliance.html">data-compliance.md</a>）</li>
+<li>[ ] <strong>个人信息最小化</strong>：是否收集非必要个人信息？输入与使用记录的留存是否有合法依据与期限？（事实：暂行办法第 11 条 + 个保法第 6 条）</li>
+<li>[ ] <strong>敏感个人信息</strong>：医疗、金融账户、生物识别等是否单独同意、单独告知必要性？（事实：个保法第 28–30 条）</li>
+<li>[ ] <strong>数据用于训练/改进</strong>：告知、同意/退出、安全例外是否在产品里说清楚？（建议；细节清单 → <a href="data-compliance.html">data-compliance.md</a>）</li>
+<li>[ ] <strong>出境与第三方模型</strong>：中国用户数据是否出境？是否触发评估/标准合同/认证等路径？（建议闸门；政策问答见 data-compliance 参考资料）</li>
+<li>[ ] <strong>选型合规维度</strong>：模型部署地、日志留存、内容审核能力是否进入选型？（建议；参见 <a href="../cost-and-tech/model-selection-framework.html">模型选型决策框架</a>）</li>
+</ul>
+<h3 id="b">B. 标识、备案与安全评估</h3>
+<ul>
+<li>[ ] <strong>显式 / 隐式标识</strong>：图片、视频等及《标识办法》列明场景是否按要求添加显式标识，并在文件元数据添加隐式标识？（事实：暂行办法第 12 条；深度合成规定；标识办法第 4–5 条，自 2025-09-01 施行）</li>
+<li>[ ] <strong>导出/下载仍带标识</strong>：提供下载、复制、导出时，文件是否仍含符合要求的显式标识？（事实：标识办法第 4 条第二款）</li>
+<li>[ ] <strong>用户协议中的标识说明</strong>：是否说明标识方法与样式，并提示用户相关义务？（事实：标识办法第 8 条）</li>
+<li>[ ] <strong>无显式标识特例</strong>：若应要求提供无显式标识内容，是否已用协议明确用户责任，并依法留存相关日志不少于六个月？（事实：标识办法第 9 条；适用条件<strong>需法务</strong>）</li>
+<li>[ ] <strong>舆论属性 / 社会动员能力判定</strong>：产品是否落入「须开展安全评估 + 算法备案」？（事实：暂行办法第 17 条；判定标准<strong>需法务/合规</strong>，不可由业务自行「感觉不像」跳过）</li>
+<li>[ ] <strong>算法备案材料</strong>：备案/变更/注销流程与材料（含标识相关材料）是否排期？（事实：暂行办法第 17 条；标识办法第 12 条）</li>
+<li>[ ] <strong>应用商店上架</strong>：分发平台要求说明是否提供 AI 生成合成服务及核验标识材料时，材料是否齐备？（事实：标识办法第 7 条）</li>
+</ul>
+<h3 id="c">C. 上线前验收</h3>
+<ul>
+<li>[ ] <strong>违法内容处置</strong>：发现违法内容时的停止生成/传输/消除、模型侧整改、向主管部门报告路径是否演练过？（事实：暂行办法第 14 条）</li>
+<li>[ ] <strong>滥用处置</strong>：对利用服务从事违法活动的使用者，警示、限权、停服与记录保存是否可执行？（事实：暂行办法第 14 条）</li>
+<li>[ ] <strong>投诉举报入口</strong>：入口是否便捷，流程与反馈时限是否公示？（事实：暂行办法第 15 条）</li>
+<li>[ ] <strong>个保权利通道</strong>：查阅、复制、更正、补充、删除请求是否有 SLA 与工单闭环？（事实：暂行办法第 11 条；个保法第 45、47 条等）</li>
+<li>[ ] <strong>标注规范（若自建标注）</strong>：规则是否清晰可操作，是否有质量抽检与人员培训？（事实：暂行办法第 8 条；实操 → <a href="annotation-guideline.html">标注规范怎么写</a>）</li>
+<li>[ ] <strong>运行时安全</strong>：若含 Agent/工具调用，是否完成信任边界与高风险动作确认评审？（建议 → <a href="../ai-product-operations/guardrails-and-agent-security.html">guardrails-and-agent-security.md</a>）</li>
+<li>[ ] <strong>对外承诺审查</strong>：隐私政策、营销文案中关于「不训练」「不上云」「绝对安全」等表述是否与真实技术路径一致？（建议；避免不实承诺）</li>
+</ul>
+<h3 id="d">D. 上线后运营</h3>
+<ul>
+<li>[ ] <strong>持续监测</strong>：内容违规率、投诉工单、标识缺失、越权调用等是否有看板与升级阈值？（建议）</li>
+<li>[ ] <strong>模型/Prompt/工具变更</strong>：重大变更是否触发合规复评与（如适用）备案变更？（建议；备案义务以法第 17 条及备案规则为准）</li>
+<li>[ ] <strong>日志与证据</strong>：处置记录、报告材料、标识与版本信息是否可按监管检查要求说明？（事实：暂行办法第 19 条要求配合说明训练数据、标注规则、算法机制等）</li>
+<li>[ ] <strong>法规跟踪</strong>：标识办法、出境规定、行业细则是否有人负责季度复核？（建议）</li>
+</ul>
+<hr>
+<h2 id="_5">四、中 / 欧 / 美对照摘要（每格含出处）</h2>
+<p>下表只做<strong>产品设计对照</strong>，不是合规意见书。欧盟与美国单元格均为摘要；落地以当地顾问意见为准。</p>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>中国</th>
+<th>欧盟</th>
+<th>美国</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>主框架</strong></td>
+<td>生成式 AI 专项规章 + 网安/数安/个保等上位法；对向境内公众提供的生成服务设提供者义务</td>
+<td>《人工智能法案》Regulation (EU) 2024/1689：风险分级监管的横向 AI 立法；另叠加 GDPR 管个人数据</td>
+<td><strong>无</strong>与中欧同构的统一联邦「生成式 AI 法」；常见路径是行业法 + 州隐私法 + 联邦部门执法，辅以自愿框架</td>
+</tr>
+<tr>
+<td><strong>出处</strong></td>
+<td><a href="https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm">暂行办法</a>（访问 2026-08-06）</td>
+<td><a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng">EUR-Lex 2024/1689</a>（访问 2026-08-06）；实施时间表见该法规 Art. 113 及后续修订，<strong>待核验</strong>你方法务对适用日落的结论。另见简化修订 <a href="https://eur-lex.europa.eu/eli/reg/2026/1744/">2026/1744</a>（访问 2026-08-06）</td>
+<td><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF 官网</a>（自愿风险管理框架，访问 2026-08-06）</td>
+</tr>
+<tr>
+<td><strong>内容 / 输出治理侧重</strong></td>
+<td>明确禁止生成法定有害内容；违法内容须处置、整改并报告；强调社会主义核心价值观等要求</td>
+<td>禁止不可接受风险用途；高风险系统有一套合格评定与义务；通用 AI / GPAI 另有透明度与（视情形）更严义务——<strong>摘要级，细节需法务按角色（provider/deployer）核对</strong></td>
+<td>更分散：平台政策、州法、行业监管与消费者保护（虚假宣传、不公平做法等）并行；无单一「内容价值观」联邦清单可对标中国第 4 条</td>
+</tr>
+<tr>
+<td><strong>出处</strong></td>
+<td>暂行办法第 4、14 条，同上</td>
+<td>2024/1689 风险路径见 EUR-Lex 文本（访问 2026-08-06）</td>
+<td>无单一联邦对照条文；产品侧建议同时看 FTC/州 AG 执法动态，<strong>待核验</strong>具体州与行业</td>
+</tr>
+<tr>
+<td><strong>个人数据</strong></td>
+<td>个保法全流程义务；暂行办法要求不得非法留存可识别输入与使用记录等</td>
+<td>GDPR（EU）2016/679：合法基础、目的限制、数据主体权利、跨境传输机制等</td>
+<td>联邦层面分散（如特定行业）+ 州法（如加州 CPRA 等）；与 GDPR/个保法不是一一映射</td>
+</tr>
+<tr>
+<td><strong>出处</strong></td>
+<td><a href="https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm">个保法</a>；暂行办法第 11 条（访问 2026-08-06）</td>
+<td><a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng/">GDPR EUR-Lex</a>（访问 2026-08-06）</td>
+<td>州法需按目标市场单列；本文不展开，<strong>需法务</strong></td>
+</tr>
+<tr>
+<td><strong>透明度 / 标识</strong></td>
+<td>深度合成规定 +《标识办法》：显式/隐式标识、传播环节提示、分发核验</td>
+<td>AI Act 对特定系统/合成内容有透明度等要求（摘要）；个人数据处理透明度另见 GDPR</td>
+<td>无统一联邦「AI 生成内容强制标识」立法可对标；平台与州级规则可能额外要求，<strong>待核验</strong>目标州</td>
+</tr>
+<tr>
+<td><strong>出处</strong></td>
+<td><a href="https://www.cac.gov.cn/2025-03/14/c_1743654684782215.htm">标识办法</a>（访问 2026-08-06）</td>
+<td>2024/1689 + GDPR，同上（访问 2026-08-06）</td>
+<td>无统一联邦出处；勿写成「美国不要求标识」</td>
+</tr>
+<tr>
+<td><strong>备案 / 上市前义务</strong></td>
+<td>舆论属性或社会动员能力：安全评估 + 算法备案等（暂行办法第 17 条）</td>
+<td>高风险等情形下有符合性评估、登记等义务（视系统类型与角色）</td>
+<td>通常无「算法备案」联邦对标物；政府采购、关键基础设施、受监管行业可能另有要求，<strong>需法务</strong></td>
+</tr>
+<tr>
+<td><strong>出处</strong></td>
+<td>暂行办法第 17 条；<a href="https://www.cac.gov.cn/2022-01/04/c_1642894606364259.htm">算法推荐管理规定</a>（访问 2026-08-06）</td>
+<td>EUR-Lex 2024/1689（访问 2026-08-06）</td>
+<td>NIST AI RMF 为自愿实践，不是备案制（访问 2026-08-06）</td>
+</tr>
+<tr>
+<td><strong>生成内容版权</strong></td>
+<td>见下一节；司法与登记实践仍在发展，<strong>需法务</strong></td>
+<td>成员国著作权法 + 欧盟层讨论并行；本文不给权属结论，<strong>需法务</strong></td>
+<td>版权局强调人类作者要件；纯 AI 生成通常难以登记为受保护作品（见下节出处）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议（出海产品）</strong>：不要假设「做完中国内容审核 = 满足 GDPR/AI Act」，也不要假设「做完 GDPR = 满足中国标识与备案」。按市场拆合规包：中国包（内容+标识+备案评估+个保）、欧盟包（AI Act 角色判定 + GDPR）、美国包（州隐私 + 版权与宣传合规 + 行业许可）。</p>
+<hr>
+<h2 id="_6">五、生成内容版权：产品该做什么、什么不能写死</h2>
+<h3 id="_7">事实（有官方出处的部分）</h3>
+<table>
+<thead>
+<tr>
+<th>管辖</th>
+<th>可核对口径</th>
+<th>出处（访问 2026-08-06）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>中国（服务规范）</td>
+<td>提供者应尊重知识产权；训练数据涉及知识产权的，不得侵害他人依法享有的知识产权</td>
+<td>暂行办法第 4、7 条，<a href="https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm">全文</a></td>
+</tr>
+<tr>
+<td>美国（登记政策）</td>
+<td>美国版权局政策声明：人类作者身份是登记要件；含 AI 生成材料的作品须披露，申请人仅可主张人类贡献部分</td>
+<td><a href="https://www.copyright.gov/ai/ai_policy_guidance.pdf">Copyright Registration Guidance: Works Containing Material Generated by Artificial Intelligence</a>（2023-03-16 起）；汇总页 <a href="https://www.copyright.gov/ai/">copyright.gov/ai</a></td>
+</tr>
+<tr>
+<td>美国（研究报告）</td>
+<td>版权局《Copyright and Artificial Intelligence》Part 2：输出受保护须有人类对表达要素的充分决定；仅提供提示通常不够</td>
+<td><a href="https://copyright.gov/ai/Copyright-and-Artificial-Intelligence-Part-2-Copyrightability-Report.pdf">Part 2 报告 PDF</a>；<a href="https://www.copyright.gov/newsnet/2025/1060.html">NewsNet 1060</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="_8">需法务（禁止写成产品结论）</h3>
+<ul>
+<li>中国法下「纯 AI 生成 / 人机协作」作品是否构成作品、权利归用户还是平台：<strong>需法务</strong>（判例与登记实践可能因案而异，本文不总结具体判决结论）。</li>
+<li>用户用生成内容商用、二次传播时，第三方版权（训练语料或输出雷同）的责任在用户协议中如何分配：<strong>需法务</strong>起草，产品不能口头保证「绝对不侵权」。</li>
+<li>欧盟成员国对 AI 输出独创性与权利归属的具体规则：<strong>需法务</strong>按上线国家确认。</li>
+<li>开源模型许可、API 服务条款对「输出权利」的合同约定是否覆盖你的商业模式：<strong>需法务 + 采购</strong>核对，不能只看营销页。</li>
+</ul>
+<h3 id="_9">建议（产品与协议层，仍须法务审）</h3>
+<ul>
+<li>在生成结果附近提供「可能不准确 / 可能与既有作品相似」的预期管理，避免暗示「已获版权」或「可任意商用」。</li>
+<li>对高风险商用场景（广告主视觉、出版物、商标近似检索等）设置人工复核或专业模式，而不是默认一键商用。</li>
+<li>用户协议区分：平台对模型输出的授权范围、用户自有材料的权利、侵权投诉与下架流程（类 notice-and-takedown）。</li>
+<li>对外宣传禁止使用「法院已确认 AI 作品版权归本公司」等无法引用生效裁判与法务确认的表述。</li>
+</ul>
+<hr>
+<h2 id="_10">六、和相邻文章的分工</h2>
+<table>
+<thead>
+<tr>
+<th>文章</th>
+<th>分工</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>本文</strong></td>
+<td>上线前总清单：适用性、内容安全、标识、备案评估、个保入口、投诉处置、中欧美对照、版权产品动作</td>
+</tr>
+<tr>
+<td><a href="data-compliance.html">data-compliance.md</a></td>
+<td>用户数据能否进训练、厂商默认政策、告知/退出/脱敏、出境门槛</td>
+</tr>
+<tr>
+<td><a href="../ai-product-operations/guardrails-and-agent-security.html">guardrails-and-agent-security.md</a></td>
+<td>Prompt 注入、工具越权、审计与高风险确认等运行时安全</td>
+</tr>
+<tr>
+<td><a href="../cost-and-tech/model-selection-framework.html">model-selection-framework.md</a></td>
+<td>选型四要素中的合规维度（部署位置、审计、成本权衡）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_11">相关阅读</h2>
+<ul>
+<li><a href="../../04-interview/basics/genai-compliance-for-pm.html">生成式 AI 产品上线前，PM 的合规清单有哪些?</a>（面试框架题；细节以本文为准）</li>
+<li><a href="data-compliance.html">数据合规红线：用户数据能不能用来训练</a></li>
+<li><a href="annotation-guideline.html">标注规范怎么写：PM 写规范，标注质量就是产品质量</a></li>
+<li><a href="../ai-product-operations/guardrails-and-agent-security.html">AI 安全与 Agent 权限：把「能做什么」变成可治理的边界</a></li>
+<li><a href="../cost-and-tech/model-selection-framework.html">模型选型决策框架：效果、成本、延迟、合规四要素</a></li>
+<li><a href="../ai-product-operations/ai-product-metrics.html">AI 产品指标体系：从业务结果到成本与风险</a></li>
+</ul>
+<hr>
+<h2 id="_12">参考资料</h2>
+<h3 id="_13">中国</h3>
+<ul>
+<li><a href="https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm">生成式人工智能服务管理暂行办法</a> — 国家互联网信息办公室等，2026-08-06 访问</li>
+<li><a href="https://www.gov.cn/zhengce/202307/content_6892001.htm">国家互联网信息办公室有关负责人就《生成式人工智能服务管理暂行办法》答记者问</a> — 中国政府网转载，2026-08-06 访问</li>
+<li><a href="https://www.cac.gov.cn/2021-08/20/c_1631050028355286.htm">中华人民共和国个人信息保护法</a> — 网信办转载；另见 <a href="http://www.npc.gov.cn/c2/c30834/202108/t20210820_313088.html">中国人大网</a>，2026-08-06 访问</li>
+<li><a href="https://www.cac.gov.cn/2022-12/11/c_1672221949354811.htm">互联网信息服务深度合成管理规定</a> — 国家互联网信息办公室等，2026-08-06 访问</li>
+<li><a href="https://www.cac.gov.cn/2025-03/14/c_1743654684782215.htm">人工智能生成合成内容标识办法</a> — 四部门，2025-09-01 起施行；<a href="https://www.cac.gov.cn/2025-03/14/c_1743654685896173.htm">答记者问</a>，2026-08-06 访问</li>
+<li><a href="https://www.cac.gov.cn/2022-01/04/c_1642894606364259.htm">互联网信息服务算法推荐管理规定</a> — 国家互联网信息办公室等，2026-08-06 访问</li>
+</ul>
+<h3 id="_14">欧盟 / 美国（对照）</h3>
+<ul>
+<li><a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng">Regulation (EU) 2024/1689 (AI Act)</a> — EUR-Lex，2026-08-06 访问</li>
+<li><a href="https://eur-lex.europa.eu/eli/reg/2026/1744/">Regulation (EU) 2026/1744 (Digital Omnibus on AI，修订 AI Act 等)</a> — EUR-Lex，2026-08-06 访问</li>
+<li><a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng/">Regulation (EU) 2016/679 (GDPR)</a> — EUR-Lex，2026-08-06 访问</li>
+<li><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI Risk Management Framework</a> — NIST，2026-08-06 访问</li>
+<li><a href="https://www.copyright.gov/ai/">U.S. Copyright Office — Copyright and Artificial Intelligence</a> — 含登记指引与 Part 2 报告入口，2026-08-06 访问</li>
+</ul>
+<h3 id="_15">选题来源（非法规依据）</h3>
+<ul>
+<li>磊叔《关于 AI 产品经理的 100 个问题》Q86–89 — 仅作选题结构启发，<a href="https://my.feishu.cn/wiki/Rl6zw6lp2ipOnnkBVxwc5urRnLc">飞书链接</a></li>
+</ul>
+</main>
+</body>
+</html>

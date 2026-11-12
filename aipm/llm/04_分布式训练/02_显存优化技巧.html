@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>标准用法（包裹一层）</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 04_分布式训练/02_显存优化技巧.md</span></div>
+<main>
+<p>﻿# 显存优化技巧</p>
+<h2 id="_1">面试高频考点</h2>
+<ul>
+<li>训练一个模型需要多少显存？怎么计算？</li>
+<li>梯度检查点（Gradient Checkpointing）牺牲了什么换显存？</li>
+<li>FP16 和 BF16 的区别，训练时用哪个？</li>
+<li>为什么 Adam 优化器比 SGD 占更多显存？</li>
+<li>ZeRO 的三个阶段分别分片什么？</li>
+<li>Flash Attention 如何节省显存？</li>
+</ul>
+<hr>
+<h2 id="_2">一、显存占用全景图</h2>
+<p><strong>细化理解：</strong> 训练显存主要花在参数、梯度、优化器状态、激活和临时 buffer 上。Adam 会额外保存一阶、二阶矩，激活则随 batch size、序列长度和层数增长。优化前先判断瓶颈来源：参数放不下、激活太大、优化器太重，对应的解决方案完全不同。</p>
+<h3 id="_3">训练时的显存五大来源</h3>
+<p><img alt="ZeRO 原论文图：参数、梯度、优化器状态的分片显存对比" src="https://ar5iv.labs.arxiv.org/html/1910.02054/assets/x1.png"></p>
+<blockquote>
+<p>图源：<code>ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</code> 论文 HTML 图。</p>
+</blockquote>
+<p>混合精度训练（AdamW），参数量 Φ 时单卡显存占用：</p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>精度</th>
+<th>占用</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型参数（前向用）</td>
+<td>FP16/BF16</td>
+<td>2Φ bytes</td>
+<td>当前训练用的低精度副本</td>
+</tr>
+<tr>
+<td>梯度</td>
+<td>FP16/BF16</td>
+<td>2Φ bytes</td>
+<td>反向传播产生</td>
+</tr>
+<tr>
+<td>Adam 一阶矩 m</td>
+<td>FP32</td>
+<td>4Φ bytes</td>
+<td>动量平均（β₁≈0.9）</td>
+</tr>
+<tr>
+<td>Adam 二阶矩 v</td>
+<td>FP32</td>
+<td>4Φ bytes</td>
+<td>平方梯度平均（β₂≈0.999）</td>
+</tr>
+<tr>
+<td>FP32 主权重</td>
+<td>FP32</td>
+<td>4Φ bytes</td>
+<td>优化器更新用，避免精度损失</td>
+</tr>
+<tr>
+<td><strong>合计</strong></td>
+<td></td>
+<td><strong>16Φ bytes/参数</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="llama-7b">LLaMA-7B 训练显存估算</h3>
+<pre><code>模型状态：16 × 7 × 10⁹ bytes ≈ 112 GB
++ 激活值（batch=4, seq=4096）：~30-50 GB
++ 临时变量、CUDA Workspace：~5-10 GB
+
+总计约 150-170 GB
+单张 80GB A100 完全放不下，必须用并行或优化技术
+</code></pre>
+<h3 id="_4">推理时的显存</h3>
+<pre><code>推理显存 = 模型权重 + KV Cache + 临时变量
+
+LLaMA-7B (FP16, batch=8, seq=2048):
+  权重: 14 GB
+  KV Cache: 2 × 32 × 32 × 128 × 2048 × 8 × 2 ≈ 8.6 GB
+  临时变量: ~2 GB
+  总计: ~25 GB
+
+→ 单张 24GB 显卡（如 RTX 4090）勉强能跑，3090 不够
+→ 解决方案：量化（INT8 减半，INT4 减 75%）
+</code></pre>
+<hr>
+<h2 id="amp">二、混合精度训练（AMP）</h2>
+<h3 id="fp32">为什么需要 FP32 主权重？</h3>
+<pre><code>FP16 的精度问题：
+  最小正数：6 × 10⁻⁸
+  常见梯度更新量：~10⁻⁷ 到 10⁻⁹
+
+  当 grad × lr ≈ 10⁻⁹ 时（比 FP16 最小数还小）
+  → FP16 round 后变成 0
+  → 权重停止更新！
+
+混合精度的解决：
+  - 前向/反向用 FP16/BF16（快）
+  - 优化器维护一份 FP32 主权重（精度高）
+  - 更新时：FP32_weight = FP32_weight + lr × FP32_gradient
+  - 然后 FP32 → FP16 复制回训练副本
+</code></pre>
+<h3 id="fp16-vs-bf16">FP16 vs BF16 详细对比</h3>
+<pre><code>FP16 (IEEE 754 half precision):
+  ┌─┬─────┬──────────┐
+  │S│ EEEEE│ MMMMMMMMMM │   1 + 5 + 10 = 16 bits
+  └─┴─────┴──────────┘
+  动态范围：[6e-8, 6e+4]   ← 范围小，易溢出/下溢
+  精度：~3.3 位十进制
+
+BF16 (Brain Floating Point):
+  ┌─┬────────┬───────┐
+  │S│ EEEEEEEE│ MMMMMMM │   1 + 8 + 7 = 16 bits
+  └─┴────────┴───────┘
+  动态范围：[1e-38, 3e+38]  ← 与 FP32 完全相同
+  精度：~2.4 位十进制 ← 比 FP16 略低
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>FP16</th>
+<th>BF16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>动态范围</td>
+<td>小</td>
+<td>大（与 FP32 同）</td>
+</tr>
+<tr>
+<td>精度</td>
+<td>高</td>
+<td>略低</td>
+</tr>
+<tr>
+<td>是否需要 Loss Scaling</td>
+<td><strong>是</strong></td>
+<td>否</td>
+</tr>
+<tr>
+<td>适用硬件</td>
+<td>V100, T4</td>
+<td><strong>A100, H100, TPU</strong></td>
+</tr>
+<tr>
+<td>现代 LLM 选择</td>
+<td>较少</td>
+<td><strong>主流</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="loss-scalingfp16">Loss Scaling（FP16 必备技巧）</h3>
+<pre><code>问题：FP16 的最小正数 ~6e-8，但梯度可能小到 1e-9 → underflow → 权重不更新
+
+解决：将 loss 乘以一个大数（scale factor，通常 2¹² 到 2¹⁵）：
+  scaled_loss = loss * scale_factor    ← 放大
+  scaled_loss.backward()                 ← 反向，梯度也被放大
+  optimizer.step() 之前：
+    grad / scale_factor                  ← 还原
+    if 梯度溢出（出现 inf/NaN）:
+      跳过这一步，scale_factor /= 2
+    else:
+      scale_factor *= 2  （定期增大）
+
+PyTorch 的 GradScaler 自动管理：
+  scaler = torch.cuda.amp.GradScaler()
+  with autocast(): loss = model(x)
+  scaler.scale(loss).backward()
+  scaler.step(optimizer)
+  scaler.update()
+</code></pre>
+<hr>
+<h2 id="gradient-checkpointing">三、梯度检查点（Gradient Checkpointing）</h2>
+<h3 id="_5">原理：用计算换显存</h3>
+<pre><code>标准反向传播：
+  前向：层1 → 层2 → 层3 → ... → 层N，每层激活值都存下来
+  反向：从层N 向前，用存下的激活值计算梯度
+  显存：O(N) 层的激活值
+
+梯度检查点：
+  前向：每隔 K 层存一个 checkpoint，其余层只算不存
+  反向：到达每个 checkpoint 时，重新做一次前向计算补全激活值，再算梯度
+  显存：O(N/K) checkpoints + 当前段激活值
+
+最优 K = √N → 显存从 O(N) 降到 O(√N)
+计算代价：约多 30%（一次额外前向）
+</code></pre>
+<h3 id="pytorch">PyTorch 实现</h3>
+<pre><code class="language-python">from torch.utils.checkpoint import checkpoint
+
+# 标准用法（包裹一层）
+output = checkpoint(layer, input, use_reentrant=False)
+
+# Sequential 风格（每个 block 都做 checkpoint）
+class TransformerBlock(nn.Module):
+    def forward(self, x):
+        return checkpoint(self._inner_forward, x, use_reentrant=False)
+
+    def _inner_forward(self, x):
+        x = x + self.attention(self.norm1(x))
+        x = x + self.ffn(self.norm2(x))
+        return x
+</code></pre>
+<h3 id="selective-recomputation">Selective Recomputation（选择性重算）</h3>
+<p>不是所有层都该 checkpoint：
+- <strong>Attention</strong>：计算便宜但激活值大 → checkpoint 收益高
+- <strong>FFN</strong>：计算昂贵但激活值小 → checkpoint 收益低</p>
+<p>NVIDIA Megatron 的策略：只对 Attention 做 checkpoint，FFN 保留激活值。</p>
+<hr>
+<h2 id="zerozero-redundancy-optimizer">四、ZeRO（Zero Redundancy Optimizer）三阶段</h2>
+<p>ZeRO 是 DeepSpeed 的核心，本质是<strong>把训练状态分片到所有 GPU 上</strong>：</p>
+<pre><code>                  Baseline (DDP)            ZeRO-3
+                  ─────────────             ──────
+                  GPU 0: [全部状态]          GPU 0: [1/N 状态]
+                  GPU 1: [全部状态]          GPU 1: [1/N 状态]
+                  ...                       ...
+                  GPU N: [全部状态]          GPU N: [1/N 状态]
+                  ↑ 每张卡有完整副本           ↑ 每张卡只存 1/N
+</code></pre>
+<h3 id="zero">ZeRO 三阶段递进</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>分片内容</th>
+<th>单卡显存 (Φ)</th>
+<th>通信增量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Baseline (DDP)</strong></td>
+<td>不分片，每卡完整副本</td>
+<td>16Φ</td>
+<td>只 AllReduce 梯度</td>
+</tr>
+<tr>
+<td><strong>ZeRO-1</strong></td>
+<td>优化器状态（m, v, FP32 weight）</td>
+<td>4Φ + 12Φ/N</td>
+<td>同 DDP</td>
+</tr>
+<tr>
+<td><strong>ZeRO-2</strong></td>
+<td>+ 梯度</td>
+<td>4Φ + 14Φ/N</td>
+<td>同 DDP</td>
+</tr>
+<tr>
+<td><strong>ZeRO-3</strong></td>
+<td>+ <strong>参数本身</strong></td>
+<td>16Φ/N</td>
+<td><strong>+50%</strong>（需 all-gather 参数）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zero-3">ZeRO-3 的工作流程</h3>
+<pre><code>训练第 i 层时：
+  1. 该层参数当前不在本卡 → AllGather 从其他卡获取完整参数
+  2. 本卡用完整参数计算前向/反向
+  3. 用完立即丢弃完整参数，只保留自己负责的 1/N
+
+类似&quot;按需借书&quot;：
+  - 不是把整个图书馆复制到每个家里
+  - 需要看哪本就借哪本，看完还回去
+  - 显存（家里空间）少 N 倍，但要多跑几次图书馆（通信增加）
+</code></pre>
+<h3 id="zero-offload-zero-infinity">ZeRO-Offload / ZeRO-Infinity</h3>
+<pre><code>ZeRO-Offload：将优化器状态卸载到 CPU 内存
+  → 单卡可训练 10x 大小的模型
+  → 速度损失 ~30%（CPU↔GPU 数据搬运）
+
+ZeRO-Infinity：进一步卸载到 NVMe SSD
+  → 理论上单机可训练 1T 参数模型
+  → 速度损失更大，仅适合实验性场景
+</code></pre>
+<hr>
+<h2 id="gradient-accumulation">五、梯度累积（Gradient Accumulation）</h2>
+<h3 id="batch">问题：希望大 batch 训练但显存不够</h3>
+<p>大 batch 通常对训练稳定性和最终效果有益，但显存有限。</p>
+<h3 id="micro-batch">解决：累积多个 micro-batch 的梯度</h3>
+<pre><code class="language-python">accumulation_steps = 8
+optimizer.zero_grad()
+
+for i, (input, label) in enumerate(dataloader):
+    loss = model(input, label) / accumulation_steps   # 缩放 loss
+    loss.backward()                                     # 累积梯度，不立即更新
+
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+
+# 等价效果：batch_size = 实际 batch_size × accumulation_steps
+# 显存占用：仅与 micro-batch 相关
+</code></pre>
+<h3 id="ddp-no_sync">与 DDP 的配合：no_sync()</h3>
+<pre><code class="language-python"># 错误用法：每个 micro-step 都触发 AllReduce → 浪费通信
+for i, batch in enumerate(loader):
+    loss = model(batch).backward()  # 每次都 AllReduce
+    if (i+1) % 8 == 0:
+        optimizer.step()
+
+# 正确用法：只在最后一个 micro-step 触发 AllReduce
+for i, batch in enumerate(loader):
+    if (i+1) % 8 != 0:
+        with model.no_sync():       # 跳过 AllReduce
+            loss = model(batch).backward()
+    else:
+        loss = model(batch).backward()  # 触发 AllReduce
+        optimizer.step()
+</code></pre>
+<hr>
+<h2 id="_6">六、其他显存优化技术</h2>
+<h3 id="8-bit-adambitsandbytes">8-bit Adam（bitsandbytes）</h3>
+<pre><code>将优化器状态量化为 INT8 存储：
+  FP32 m, v (各 4Φ) → INT8 (各 1Φ)
+  显存节省：8Φ → 2Φ，节省 75%
+
+实现：
+  - 块状量化（block-wise）：每 2048 个元素独立 scale
+  - 动态范围调整：跟踪 m, v 的实际范围
+  - 精度损失极小（&lt; 0.5%）
+
+代码：
+  from bitsandbytes.optim import AdamW8bit
+  optimizer = AdamW8bit(model.parameters(), lr=1e-4)
+</code></pre>
+<h3 id="paged-optimizerqlora">Paged Optimizer（QLoRA 使用）</h3>
+<pre><code>利用 NVIDIA Unified Memory：
+  - 优化器状态在 GPU 显存
+  - GPU 显存不够时 → 自动换出到 CPU RAM
+  - 需要时 → 自动换入
+
+类似操作系统的虚拟内存分页
+QLoRA 用此方案让 65B 模型可在 48GB GPU 上微调
+</code></pre>
+<h3 id="flash-attention-attention">Flash Attention 节省 Attention 显存</h3>
+<pre><code>标准 Attention:
+  存储 N×N 的 attention matrix → O(N²) 显存
+  对于 seq_len=8192，FP16 下 = 8192×8192×2 = 128 MB（每层）
+
+Flash Attention:
+  Tiling + Online Softmax，不存储完整 attention matrix
+  显存：O(N) （只存最终输出）
+
+  对于 seq_len=8192，节省 128 MB × 32 层 = 4 GB（per batch per head group）
+</code></pre>
+<hr>
+<h2 id="_7">七、综合显存优化策略</h2>
+<h3 id="_8">优先级（从无损到有损）</h3>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>技术</th>
+<th>显存节省</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>BF16 混合精度</td>
+<td>~50% (vs FP32)</td>
+<td><strong>无</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Flash Attention</td>
+<td>O(N²)→O(N)</td>
+<td><strong>无</strong>（更快）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>梯度累积</td>
+<td>无（但能用更大 effective batch）</td>
+<td><strong>无</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>梯度检查点</td>
+<td>~60-70% 激活值</td>
+<td>+30% 计算</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ZeRO-1/2</td>
+<td>优化器/梯度 1/N</td>
+<td>+0% 通信</td>
+</tr>
+<tr>
+<td>6</td>
+<td>8-bit Adam</td>
+<td>优化器状态 75%</td>
+<td>&lt; 0.5% 精度</td>
+</tr>
+<tr>
+<td>7</td>
+<td>ZeRO-3</td>
+<td>参数 1/N</td>
+<td>+50% 通信</td>
+</tr>
+<tr>
+<td>8</td>
+<td>LoRA / QLoRA</td>
+<td>99% 训练参数</td>
+<td>表达力受限</td>
+</tr>
+<tr>
+<td>9</td>
+<td>CPU Offload</td>
+<td>看情况</td>
+<td>大幅速度损失</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_9">实战配方</h3>
+<pre><code>单机 8 卡训练 LLaMA-7B 全量微调：
+  ✓ BF16 + ZeRO-2 + Flash Attention
+  ✓ Gradient Checkpointing
+  ✓ batch=4 per GPU, accumulation=4 → effective batch=128
+
+单卡训练 LLaMA-65B：
+  ✓ QLoRA (NF4 量化基础模型)
+  ✓ LoRA r=16
+  ✓ Paged Optimizer
+  ✓ Gradient Checkpointing
+</code></pre>
+<hr>
+<h2 id="_10">八、面试延伸</h2>
+<p><strong>Q：为什么 Adam 比 SGD 多占 3 倍显存？</strong></p>
+<blockquote>
+<p>SGD 只需要梯度（2Φ bytes，FP16）。Adam 额外需要：① 一阶矩 m（4Φ，FP32）；② 二阶矩 v（4Φ，FP32）。合计 8Φ 额外显存。如果再算上 FP32 主权重（4Φ），Adam 优化器状态共 12Φ 是模型参数的 3 倍。这就是为什么大模型训练显存压力主要来自优化器，也是 ZeRO-1 优先分片优化器状态的原因。</p>
+</blockquote>
+<p><strong>Q：梯度检查点一定选每隔一层保存吗？</strong></p>
+<blockquote>
+<p>不是。理论最优是每隔 √N 层保存一次（显存从 O(N) 降到 O(√N)，计算代价 +30%）。实践中通常按 Transformer Block 粒度做 checkpoint（每个 Block 一个），实现简单且效果接近最优。Megatron 的 Selective Recomputation 进一步优化：只对 Attention 做 checkpoint（计算便宜激活值大），FFN 保留激活值（计算贵但激活值小），整体效率更高。</p>
+</blockquote>
+<p><strong>Q：显存不够训练时，优先用哪个优化手段？</strong></p>
+<blockquote>
+<p>优先级（按"代价小"排序）：① BF16 混合精度（无损必开）；② Flash Attention（无损必开）；③ 梯度累积（无损，等效大 batch）；④ 梯度检查点（+30% 计算）；⑤ ZeRO-2（多卡场景）；⑥ 8-bit Adam（极小精度损失）；⑦ ZeRO-3（多卡 + 通信开销）；⑧ LoRA/QLoRA（限制可训练参数）；⑨ CPU Offload（最后手段，速度大幅下降）。</p>
+</blockquote>
+<p><strong>Q：FSDP 和 ZeRO-3 是什么关系？</strong></p>
+<blockquote>
+<p>二者原理相同——都是把参数、梯度、优化器状态分片到所有 GPU。区别：FSDP 是 PyTorch 原生实现（更新维护好、生态好），ZeRO-3 是 DeepSpeed 实现（特性更丰富，有 Offload/Infinity 等扩展）。生产环境中：用 PyTorch + transformers → 选 FSDP；用 DeepSpeed 框架 → 选 ZeRO-3。两者性能基本相当。</p>
+</blockquote>
+<hr>
+<h2 id="_11">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZeRO: Memory Optimizations Toward Training Trillion Parameter Models (Rajbhandari et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/1910.02054">arxiv.org/abs/1910.02054</a></td>
+</tr>
+<tr>
+<td>FlashAttention-2 (Dao et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2307.08691">arxiv.org/abs/2307.08691</a></td>
+</tr>
+<tr>
+<td>QLoRA: Efficient Finetuning of Quantized LLMs (Dettmers et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2305.14314">arxiv.org/abs/2305.14314</a></td>
+</tr>
+<tr>
+<td>Training Deep Nets with Sublinear Memory Cost — 梯度检查点原始论文 (Chen et al., 2016)</td>
+<td><a href="https://arxiv.org/abs/1604.06174">arxiv.org/abs/1604.06174</a></td>
+</tr>
+<tr>
+<td>8-bit Optimizers via Block-wise Quantization (Dettmers et al., ICLR 2022)</td>
+<td><a href="https://arxiv.org/abs/2110.02861">arxiv.org/abs/2110.02861</a></td>
+</tr>
+<tr>
+<td>FSDP: Fully Sharded Data Parallel (Zhao et al., 2023)</td>
+<td><a href="https://arxiv.org/abs/2304.11277">arxiv.org/abs/2304.11277</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_12">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1mm42137X8/">动画理解PyTorch大模型分布式训练：DP、DDP、DeepSpeed ZeRO</a></td>
+<td>5.5万播放，含ZeRO显存优化原理的直观演示</td>
+</tr>
+<tr>
+<td>📖 PyTorch Docs</td>
+<td><a href="https://docs.pytorch.org/docs/stable/fsdp.html">FullyShardedDataParallel</a></td>
+<td>FSDP 官方文档，理解参数/梯度/优化器分片</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

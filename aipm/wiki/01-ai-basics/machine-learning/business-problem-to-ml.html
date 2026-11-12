@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分类、回归、聚类:业务问题如何映射到 ML 问题</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">wiki / 01-ai-basics/machine-learning/business-problem-to-ml.md</span></div>
+<main>
+<h1 id="ml">分类、回归、聚类:业务问题如何映射到 ML 问题</h1>
+<h2 id="pm">为什么 PM 要懂这个</h2>
+<p>工程师问你"这个需求你想要分类还是回归",很多刚入门的 AI PM 会愣住。这不是工程师在为难你——这是 AI 产品经理最基础的"翻译"能力:把一句业务话("帮我们找出容易流失的用户")准确翻译成一个 ML 问题("这是一个二分类问题,输出是流失概率")。翻译错了,轻则模型交付的东西不是业务想要的,重则整个项目返工。</p>
+<p>机器学习里能解决的问题,绝大多数可以归到三类基本任务里:<strong>分类、回归、聚类</strong>。搞懂这三类任务的输出形态,你就有了做翻译的词典。</p>
+<h2 id="_1">三类任务,一张表说清楚</h2>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>要回答的问题</th>
+<th>输出形态</th>
+<th>生活类比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分类(Classification)</td>
+<td>"这个东西属于哪一类?"</td>
+<td>离散的类别标签(是/否,或 A/B/C 多选一)</td>
+<td>老师给作文打等级:优/良/中/差</td>
+</tr>
+<tr>
+<td>回归(Regression)</td>
+<td>"这个东西的数值大概是多少?"</td>
+<td>连续的数字</td>
+<td>老师给作文打具体分数:87 分</td>
+</tr>
+<tr>
+<td>聚类(Clustering)</td>
+<td>"这些东西能不能自动分成几堆?"</td>
+<td>没有预先定义的分组标签,由算法自己发现分组</td>
+<td>没有年级概念时,老师按学生水平自己摸索着分层</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分类和回归都属于监督学习</strong>(需要历史标注数据学"输入→输出"的映射),<strong>聚类属于无监督学习</strong>(不需要标签,自己找数据里的结构),背景概念可参考 <a href="ml-three-paradigms.html">机器学习三大范式</a>。</p>
+<p>分类和回归最容易混淆的地方在于:很多业务问题"看起来"是在问一个数字,但业务真正要的其实是一个分类判断,反过来也一样。这也是"翻译"最容易出错的地方,下面用真实场景拆解。</p>
+<h2 id="ml_1">翻译对照表:业务问题 → ML 问题</h2>
+<table>
+<thead>
+<tr>
+<th>业务问题</th>
+<th>翻译成的 ML 问题</th>
+<th>输出形态</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>这个用户下个月会不会流失?</td>
+<td>二分类</td>
+<td>流失概率(0~1 之间的小数,业务侧再设阈值判断"是/否")</td>
+<td>概率比 0/1 硬判断更有用,可以用来排优先级做召回</td>
+</tr>
+<tr>
+<td>这笔交易是不是欺诈?</td>
+<td>二分类(也可结合无监督异常检测)</td>
+<td>欺诈概率</td>
+<td>欺诈样本极少,常和"异常检测"配合使用</td>
+</tr>
+<tr>
+<td>这个用户未来一年的价值(LTV)大概是多少?</td>
+<td>回归</td>
+<td>具体金额,如 328.5 元</td>
+<td>直接影响是否值得为这个用户投入营销资源</td>
+</tr>
+<tr>
+<td>这套二手房大概能卖多少钱?</td>
+<td>回归</td>
+<td>具体价格</td>
+<td>房产、二手车定价类产品的核心模型</td>
+</tr>
+<tr>
+<td>用户在信息流里接下来最可能点开哪条内容?</td>
+<td>排序问题(本质是多个候选各自的分类/回归打分后排序)</td>
+<td>每条候选内容的点击概率,再按概率排序</td>
+<td>推荐系统的核心链路,严格说是"排序"而非单纯分类</td>
+</tr>
+<tr>
+<td>这封邮件/这条评论是不是垃圾内容?</td>
+<td>二分类</td>
+<td>是/否 + 置信度</td>
+<td>内容审核类产品的基础任务</td>
+</tr>
+<tr>
+<td>这张医学影像上有没有异常病灶?</td>
+<td>分类(良性/恶性/正常等多分类)</td>
+<td>类别 + 置信度,通常还需标出位置(检测任务)</td>
+<td>医疗场景对误判容忍度极低,精确率召回率的权衡尤其关键</td>
+</tr>
+<tr>
+<td>这条客服工单该转给哪个部门处理?</td>
+<td>多分类</td>
+<td>部门标签</td>
+<td>智能客服工单路由的常见应用</td>
+</tr>
+<tr>
+<td>下个月这个门店大概能卖多少件货?</td>
+<td>回归(时间序列预测)</td>
+<td>具体数量</td>
+<td>库存、供应链预测类问题</td>
+</tr>
+<tr>
+<td>现有几十万用户,能不能自动分成几类做差异化运营?</td>
+<td>聚类</td>
+<td>分组标签(如"高价值稳定型""价格敏感型")</td>
+<td>业务还没有现成分组标准,靠算法先探索,再人工定义每组含义</td>
+</tr>
+<tr>
+<td>客户的信用等级应该评为几级?</td>
+<td>分类(多分类,如 A/B/C/D 四级)</td>
+<td>等级标签</td>
+<td>如果业务要的是"具体违约概率"而非"等级",应翻译成回归</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_2">翻译错了会怎样</h2>
+<p><strong>把连续问题硬做成分类,丢失了排序能力</strong>。比如"预测续费概率"如果被简化成"续费/不续费"的二分类,业务在做资源分配时就没法区分"90% 概率续费"和"51% 概率续费"——这两类用户该被同等对待吗?显然不该。概率(回归输出)天然自带排序信息,业务用阈值一刀切,损失的是运营的精细化空间。</p>
+<p><strong>把该分类的问题做成回归,过度追求不必要的精度</strong>。比如业务只需要把客户分成"高/中/低"三档风险,却要求模型精确预测出一个违约概率的小数点后两位,不仅增加了建模难度,后续解释和落地也更麻烦。业务决策的实际颗粒度是多少,模型的输出颗粒度就该对齐到多少,不多不少。</p>
+<p><strong>该用聚类探索,却直接上监督学习</strong>。业务说"帮我把用户分个类",如果团队还没有任何"正确分组"的标签数据,直接套监督学习是无米下锅——正确的路径是先用聚类做探索性分析,让算法先摸出几种自然分组,业务再给每组起名字、定策略,后续如果要规模化判断"新用户属于哪组",才是监督学习该出场的时候。</p>
+<p><strong>分类阈值业务不参与,拍脑袋定 0.5</strong>。多数分类模型输出的其实是概率,工程默认用 0.5 作为"是/否"的分界线,但这个阈值直接决定了误报率和漏报率的权衡——业务必须参与阈值的确定,而不是当成技术细节甩给工程师,这一点和 <a href="precision-vs-recall.html">精确率 vs 召回率</a> 的权衡是同一件事。</p>
+<p><strong>把排序问题简化成单纯分类</strong>。推荐、搜索这类"选出最好的几个"的问题,本质是比较多个候选的相对优劣,而不是孤立判断每个候选"好/不好"。只做二分类会丢失候选之间的相对排序关系,业务体验会明显打折扣。</p>
+<h2 id="ml_2">哪些业务问题不该用 ML</h2>
+<p>不是所有问题都适合往 ML 里套,遇到下面几种情况,更好的答案往往是"不用 ML":</p>
+<ul>
+<li><strong>规则清晰、样本量小,用 if-else 就能解决</strong>。比如"订单金额超过 1 万自动转人工审核",这是一条业务规则,不需要模型学习,用 ML 反而增加了不必要的不确定性和维护成本。</li>
+<li><strong>需要强可解释性和确定性的场景</strong>。法律条款判定、金融合规红线检查,这类场景一旦出错难以追责解释,ML 模型的"黑箱"特性(尤其是复杂模型)和这种场景的诉求是冲突的,规则引擎或专家系统更合适。</li>
+<li><strong>历史数据量不足以学出统计规律</strong>。ML 本质是"从大量历史样本里总结重复出现的模式",如果某类事件一年只发生几次,模型学不出稳定规律,容易被噪音带偏。</li>
+<li><strong>一次性、不重复的决策</strong>。比如"要不要收购这家公司",没有大量同类历史案例可学,ML 派不上用场,这类决策该靠人的判断和框架分析。</li>
+<li><strong>目标本身无法被量化或稳定标注</strong>。比如"这个 logo 设计好不好看",如果找十个人标注,意见严重不一致,模型学到的只是"标注者内部意见分歧"的噪音,而不是稳定信号——这种时候先要做的是把目标拆解成能被一致判断的更小维度(比如"是否符合品牌规范""视觉平衡度"),而不是直接丢给模型。</li>
+</ul>
+<h2 id="pm_1">PM 做这套翻译的实操步骤</h2>
+<ol>
+<li><strong>先问业务决策</strong>:这个模型的输出,最终要支撑哪个具体决策?(要不要给用户发优惠券?要不要人工复核这笔交易?)</li>
+<li><strong>倒推需要的输出粒度</strong>:这个决策需要一个数字、一个类别,还是一个分组?粒度决定了是回归、分类还是聚类。</li>
+<li><strong>确认有没有历史标签</strong>:有干净的历史标注数据 → 监督学习(分类/回归);没有标签、只是想探索结构 → 聚类。</li>
+<li><strong>和工程师对齐后再往下走</strong>:把翻译结果讲给工程师听,让他们确认"这确实是个 XX 问题",而不是等模型交付了才发现输出形态和业务预期对不上。</li>
+</ol>
+<p>这套翻译能力练熟了,你在需求评审时就能一句话点破问题的本质,省掉后续大量的返工成本。</p>
+<h2 id="_3">相关阅读</h2>
+<ul>
+<li><a href="ml-three-paradigms.html">机器学习三大范式:监督学习 / 无监督学习 / 强化学习</a></li>
+<li><a href="datasets-and-overfitting.html">训练集/验证集/测试集与过拟合:为什么 demo 惊艳、上线拉胯</a></li>
+<li><a href="../../04-interview/basics/precision-vs-recall.html">精确率和召回率的区别?举一个产品中需要权衡的例子</a></li>
+<li><a href="../glossary.html">AI 术语速查表</a></li>
+</ul>
+<h2 id="_4">参考资料</h2>
+<ul>
+<li><a href="https://developers.google.com/machine-learning/crash-course">Machine Learning Crash Course</a> — Google for Developers,2026-07 访问</li>
+</ul>
+</main>
+</body>
+</html>

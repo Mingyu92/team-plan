@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>预训练数据处理</title>
+<style>
+:root {
+  --bg:#fbfbf9; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e4e2dd;
+  --accent:#2f6f4f; --code-bg:#f4f3ef; --card:#ffffff;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; background:rgba(251,251,249,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  padding:10px 24px; display:flex; gap:16px; align-items:center; font-size:14px;
+}
+.topbar a { color:var(--accent); text-decoration:none; font-weight:600; }
+.topbar a:hover { text-decoration:underline; }
+.topbar .crumb { color:var(--muted); }
+main { max-width:820px; margin:0 auto; padding:32px 24px 120px; }
+h1 { font-size:28px; line-height:1.35; margin:0 0 24px; letter-spacing:-.01em; }
+h2 { font-size:21px; margin:40px 0 14px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:17px; margin:28px 0 10px; }
+h4 { font-size:16px; margin:22px 0 8px; }
+p, li { color:#242424; }
+a { color:var(--accent); }
+code { background:var(--code-bg); padding:2px 5px; border-radius:4px; font-size:.9em;
+        font-family:"JetBrains Mono",Consolas,Menlo,monospace; }
+pre { background:var(--code-bg); padding:14px 16px; border-radius:8px; overflow:auto;
+       border:1px solid var(--line); font-size:13.5px; line-height:1.6; }
+pre code { background:none; padding:0; }
+blockquote { margin:16px 0; padding:2px 16px; border-left:3px solid var(--accent);
+              background:#f6f8f6; color:#333; }
+table { border-collapse:collapse; width:100%; margin:18px 0; font-size:14.5px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+th { background:#f2f1ec; font-weight:600; }
+hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+img { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+<div class="topbar"><a href="../index.html">← 返回学习路线</a><span class="crumb">llm / 02_训练与对齐/09_预训练数据处理.md</span></div>
+<main>
+<h1 id="_1">预训练数据处理</h1>
+<h2 id="_2">面试高频考点</h2>
+<ul>
+<li>预训练数据如何清洗？去重用什么方法？</li>
+<li>数据配比（Data Mixture）如何影响模型能力？</li>
+<li>Common Crawl 的数据质量问题怎么处理？</li>
+<li>为什么说"数据比模型更重要"？</li>
+<li>数据治理链路里最容易踩坑的环节是什么？</li>
+<li>文档级去重和 token 级去重分别解决什么问题？</li>
+</ul>
+<hr>
+<h2 id="_3">数据来源与规模</h2>
+<p><strong>细化理解：</strong> 预训练数据不是越多越好，而是要兼顾规模、质量、覆盖面和风险。网页数据带来广覆盖，代码数据增强程序能力，论文和书籍提升长文本与专业表达，合成数据可以补任务格式但容易放大模型偏差。数据配比会直接影响模型能力画像，因此现代训练通常会做多轮数据 ablation。</p>
+<p>主流预训练数据集的构成（以 LLaMA 3 为例，15T tokens）：</p>
+<table>
+<thead>
+<tr>
+<th>数据来源</th>
+<th>占比</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web 网页（Common Crawl）</td>
+<td>~80%</td>
+<td>规模最大，质量参差不齐</td>
+</tr>
+<tr>
+<td>代码（GitHub）</td>
+<td>~8%</td>
+<td>高质量，提升推理能力</td>
+</tr>
+<tr>
+<td>书籍（Books）</td>
+<td>~5%</td>
+<td>长文本，提升连贯性</td>
+</tr>
+<tr>
+<td>学术论文（ArXiv 等）</td>
+<td>~3%</td>
+<td>专业知识</td>
+</tr>
+<tr>
+<td>维基百科</td>
+<td>~2%</td>
+<td>高质量百科知识</td>
+</tr>
+<tr>
+<td>其他（对话、新闻等）</td>
+<td>~2%</td>
+<td>多样性</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-mermaid">flowchart LR
+    A[&quot;原始多源语料&lt;br/&gt;网页/代码/书籍/论文/百科&quot;] --&gt; B[&quot;解析与标准化&quot;]
+    B --&gt; C[&quot;质量过滤&quot;]
+    C --&gt; D[&quot;去重&quot;]
+    D --&gt; E[&quot;安全与隐私过滤&quot;]
+    E --&gt; F[&quot;配比采样&quot;]
+    F --&gt; G[&quot;Tokenizer 统计与抽样验收&quot;]
+    G --&gt; H[&quot;进入预训练语料池&quot;]
+</code></pre>
+<p>真正的大头工作不是"找到数据"，而是把数据从"能抓到"变成"能放心训练"。</p>
+<hr>
+<h2 id="_4">数据清洗流程</h2>
+<h3 id="1">1. 语言过滤</h3>
+<p>用 fastText 等语言识别模型过滤非目标语言内容。</p>
+<p>工程上通常还要补两层：</p>
+<ul>
+<li><strong>编码修复</strong>：修复乱码、非法 UTF-8、HTML 转义残留。</li>
+<li><strong>文档边界校正</strong>：很多网页抽取后会把导航栏、页脚、评论区、正文混在一起，需要做模板剥离。</li>
+</ul>
+<h3 id="2">2. 质量过滤</h3>
+<ul>
+<li><strong>启发式规则</strong>：过滤过短/过长文本、特殊字符比例过高、重复 n-gram 比例过高的文档</li>
+<li><strong>质量分类器</strong>：训练一个分类器区分高质量（维基百科级别）和低质量文本</li>
+<li><strong>困惑度过滤</strong>：用小型语言模型计算困惑度，过滤难以理解的文本</li>
+</ul>
+<p>可以把它理解成三层筛子：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>作用</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>规则过滤</td>
+<td>快速剔除脏数据</td>
+<td>便宜、稳定</td>
+<td>覆盖面有限</td>
+</tr>
+<tr>
+<td>分类器过滤</td>
+<td>学习高低质量边界</td>
+<td>更灵活</td>
+<td>依赖标注样本</td>
+</tr>
+<tr>
+<td>LM 打分</td>
+<td>从语言流畅性和自然性角度判断</td>
+<td>效果强</td>
+<td>成本高</td>
+</tr>
+</tbody>
+</table>
+<p>很多工业系统会先用规则过滤掉 80% 明显垃圾，再对候选集跑质量分类器，而不是把所有文档都扔给语言模型。</p>
+<h3 id="3-deduplication">3. 去重（Deduplication）</h3>
+<p><strong>细化理解：</strong> 去重既节省算力，也降低模型记忆和评测污染。文档级去重能清掉完全重复网页，片段级或 MinHash 去重能处理转载、模板页和轻微改写。去重过强也会误伤合法重复模式，例如 API 文档、代码模板和法律条文，所以工程上要结合抽样审查。</p>
+<p>去重是预训练数据处理最关键的步骤之一，重复数据会导致模型记忆而非泛化。</p>
+<p><strong>精确去重</strong>：URL 去重、MD5 哈希匹配（完全相同的文档）</p>
+<p><strong>模糊去重（MinHash LSH）</strong>：
+1. 对每个文档计算 MinHash 签名（用多个哈希函数）
+2. 通过 LSH（局部敏感哈希）找到签名相似的文档对
+3. 去除 Jaccard 相似度超过阈值（如 0.8）的重复文档</p>
+<p><strong>n-gram 去重</strong>：在 token 级别检测重复片段（suffix array 方法，LLaMA 使用）</p>
+<p><strong>去重效果</strong>：FineWeb 数据集通过去重将 Common Crawl 从 90T tokens 压缩到 15T tokens，同时质量显著提升。</p>
+<h3 id="vs">文档级去重 vs 片段级去重</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>文档级去重</th>
+<th>片段级去重</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标</td>
+<td>删除整篇重复网页/文档</td>
+<td>删除大规模重复段落、模板内容</td>
+</tr>
+<tr>
+<td>方法</td>
+<td>URL、MD5、MinHash</td>
+<td>n-gram、suffix array、shingling</td>
+</tr>
+<tr>
+<td>适合问题</td>
+<td>镜像站、转载站、整页拷贝</td>
+<td>页脚模板、重复免责声明、批量洗稿</td>
+</tr>
+</tbody>
+</table>
+<p>两者都要做。只做文档级去重，会留下大量"不完全相同但高度重复"的内容；只做片段级去重，又会保留整页镜像垃圾。</p>
+<h3 id="4">4. 毒性与安全过滤</h3>
+<ul>
+<li>过滤色情、暴力、仇恨言论等有害内容</li>
+<li>过滤包含个人隐私信息（PII）的文本（邮箱、电话、身份证号）</li>
+</ul>
+<p>这一层的目标不是把世界上所有负面内容删干净，而是控制数据分布，避免模型在普通交互中异常容易生成有害模式。对于医疗、法律、金融等高风险场景，还会额外加领域敏感过滤规则。</p>
+<hr>
+<h2 id="data-mixture">数据配比策略（Data Mixture）</h2>
+<p>不同领域数据的比例对模型能力影响显著：</p>
+<p><strong>代码数据的重要性</strong>：研究发现增加代码比例可以提升模型的推理能力（即使是非代码任务）。LLaMA 3 代码数据占比远高于 LLaMA 2。</p>
+<p><strong>多轮动态配比（DoReMi、Data Mixing Laws）</strong>：
+- 不同训练阶段使用不同配比（前期偏重多样性，后期偏重高质量）
+- 可通过小模型实验确定最优配比后再大规模训练</p>
+<h3 id="_5">为什么配比比直觉更重要</h3>
+<p>模型不是平均地吸收所有数据，而是会被高频模式塑形：</p>
+<ul>
+<li>代码比例高，通常会提升结构化推理、符号操作和工具使用倾向。</li>
+<li>高质量长文本比例高，通常会提升连贯性和长程依赖建模。</li>
+<li>社交媒体和低质量网页比例过高，容易把口语噪声、模板废话、错误事实也学进去。</li>
+</ul>
+<p>所以"加更多数据"只有在<strong>新增数据质量和分布合理</strong>时才成立。</p>
+<h3 id="_6">一个常见的数据混合策略</h3>
+<ol>
+<li>先按来源切桶：网页、代码、论文、书籍、百科、对话。</li>
+<li>每桶内先做质量分层：高、中、低。</li>
+<li>小模型预实验，比较不同 mixture 对下游验证集的影响。</li>
+<li>大模型正式训练时分阶段调整采样权重，而不是全程固定。</li>
+</ol>
+<hr>
+<h2 id="sft">SFT 数据格式规范</h2>
+<p>有监督微调数据通常用对话格式：</p>
+<pre><code class="language-json">{
+  &quot;messages&quot;: [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;你是一个有帮助的助手&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;什么是梯度消失？&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;梯度消失是指...&quot;}
+  ]
+}
+</code></pre>
+<p>要注意，SFT 数据虽然不属于预训练数据，但它跟预训练数据治理是一脉相承的：格式统一、角色定义清晰、去重和泄漏控制同样重要。</p>
+<p><strong>偏好数据格式（DPO/RLHF）</strong>：</p>
+<pre><code class="language-json">{
+  &quot;prompt&quot;: &quot;请解释量子纠缠&quot;,
+  &quot;chosen&quot;: &quot;量子纠缠是一种...&quot;,
+  &quot;rejected&quot;: &quot;量子纠缠就是...&quot;
+}
+</code></pre>
+<hr>
+<h2 id="_7">重要数据集</h2>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>规模</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Common Crawl</td>
+<td>PB 级</td>
+<td>最大网页语料，需大量清洗</td>
+</tr>
+<tr>
+<td>FineWeb</td>
+<td>15T tokens</td>
+<td>HuggingFace 清洗版 CC，质量高</td>
+</tr>
+<tr>
+<td>RedPajama</td>
+<td>1.2T tokens</td>
+<td>LLaMA 开源复现数据集</td>
+</tr>
+<tr>
+<td>Dolma</td>
+<td>3T tokens</td>
+<td>AI2 开源，含详细数据卡片</td>
+</tr>
+<tr>
+<td>The Pile</td>
+<td>825GB</td>
+<td>22 种来源，学术界常用</td>
+</tr>
+<tr>
+<td>StarCoder</td>
+<td>300B tokens</td>
+<td>代码数据，多语言</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_8">工程实践视角</h2>
+<h3 id="_9">真实数据管线长什么样</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;抓取/导入&quot;] --&gt; B[&quot;HTML/Markdown/PDF 解析&quot;]
+    B --&gt; C[&quot;正文提取与模板剥离&quot;]
+    C --&gt; D[&quot;语言识别与质量过滤&quot;]
+    D --&gt; E[&quot;文档级去重&quot;]
+    E --&gt; F[&quot;片段级去重&quot;]
+    F --&gt; G[&quot;PII/毒性过滤&quot;]
+    G --&gt; H[&quot;抽样人工验收&quot;]
+    H --&gt; I[&quot;训练集分桶与配比&quot;]
+</code></pre>
+<h3 id="_10">三个最常见的工程坑</h3>
+<ol>
+<li>
+<p><strong>只看自动指标，不做人抽样</strong><br>
+   过滤器分数再漂亮，也可能留下导航栏、广告文案、乱码和半截正文。</p>
+</li>
+<li>
+<p><strong>数据切分在去重之前做</strong><br>
+   这样会让原本重复的整篇文档被切成不同 chunk，重复更难发现。</p>
+</li>
+<li>
+<p><strong>训练集和评测集隔离不严格</strong><br>
+   一旦泄漏，loss 和 benchmark 分数都会虚高，后面很难判断真实收益。</p>
+</li>
+</ol>
+<h3 id="_11">一个实用的质量验收清单</h3>
+<ul>
+<li>随机抽 100 篇文档，人工看正文占比是否够高。</li>
+<li>统计不同来源的 token 占比，检查是否偏桶。</li>
+<li>用 n-gram overlap 或 MinHash 对验证集做泄漏扫描。</li>
+<li>检查 PII 召回率，至少覆盖邮箱、手机号、身份证、地址等模式。</li>
+</ul>
+<hr>
+<h2 id="_12">面试延伸</h2>
+<p><strong>Q：为什么说"数据比模型架构更重要"？</strong></p>
+<blockquote>
+<p>Chinchilla Scaling Law 表明，对于给定的计算预算，增加数据量比增加模型参数量更有效。LLaMA 用较小的模型（7B）训练更多 token（1T+），效果优于同期更大的模型。</p>
+</blockquote>
+<p><strong>Q：MinHash 去重的时间复杂度是多少？</strong></p>
+<blockquote>
+<p>MinHash 签名计算是 O(d×k)（d 为文档长度，k 为哈希函数数量）。LSH 的查找接近 O(1)。整体可以高效处理万亿级 token 的数据集。</p>
+</blockquote>
+<p><strong>Q：预训练数据中的重复对模型有什么影响？</strong></p>
+<blockquote>
+<p>重复数据会导致模型过度记忆（memorization）而非泛化，增加训练 loss 对重复内容的权重，降低模型的多样性和创造力，还可能导致版权风险。</p>
+</blockquote>
+<p><strong>Q：为什么 Common Crawl 不能直接拿来训？</strong></p>
+<blockquote>
+<p>因为它本质上是原始网页快照，包含大量模板页、SEO 垃圾、导航栏、版权声明、乱码、低质量转载和重复站点。直接训练会让模型把这些噪声也当成语言分布的一部分，浪费算力并污染输出风格。</p>
+</blockquote>
+<p><strong>Q：数据处理里最值钱的能力是什么？</strong></p>
+<blockquote>
+<p>不是会不会写爬虫，而是能不能建立一套稳定的数据治理闭环：知道什么是高质量、怎样度量、怎样抽样复核、怎样避免训练和评测污染。这决定了你能否持续迭代，而不是一次性清洗完就结束。</p>
+</blockquote>
+<hr>
+<h2 id="_13">常见误区</h2>
+<h3 id="1_1">误区 1：数据越多越好</h3>
+<p>错。低质量数据会稀释高质量模式，甚至拖累模型。更多数据只有在质量和分布可控时才有意义。</p>
+<h3 id="2_1">误区 2：去重只影响训练成本</h3>
+<p>不止。去重还直接影响泛化、记忆风险、版权风险和 benchmark 污染。</p>
+<h3 id="3">误区 3：质量过滤就是删脏话</h3>
+<p>真正难的是识别"看起来像自然语言、但信息密度极低"的文档，例如 SEO 软文、自动洗稿、模板拼接页。</p>
+<h3 id="4_1">误区 4：配比可以靠经验一次定死</h3>
+<p>不现实。不同模型规模、tokenizer、训练阶段和目标能力，对最优 mixture 的偏好都可能不同。</p>
+<hr>
+<h2 id="_14">学完可以做什么</h2>
+<ol>
+<li>用 Common Crawl 小样本或开源网页语料做一个迷你清洗管线，比较清洗前后的文本质量。</li>
+<li>实现一次 MinHash 去重，观察重复率和 token 压缩比。</li>
+<li>设计一个小型 data mixture 实验，对比"多加代码数据"对数学/代码 benchmark 的影响。</li>
+</ol>
+<hr>
+<h2 id="_15">原始论文</h2>
+<table>
+<thead>
+<tr>
+<th>论文</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scaling Laws for Neural Language Models (Kaplan et al., 2020)</td>
+<td><a href="https://arxiv.org/abs/2001.08361">arxiv.org/abs/2001.08361</a></td>
+</tr>
+<tr>
+<td>Training Compute-Optimal LLMs / Chinchilla (Hoffmann et al., 2022)</td>
+<td><a href="https://arxiv.org/abs/2203.15556">arxiv.org/abs/2203.15556</a></td>
+</tr>
+<tr>
+<td>Deduplicating Training Data Makes Language Models Better</td>
+<td><a href="https://arxiv.org/abs/2107.06499">arxiv.org/abs/2107.06499</a></td>
+</tr>
+<tr>
+<td>Dolma: Open Corpus for Language Model Pretraining (AI2, 2024)</td>
+<td><a href="https://arxiv.org/abs/2402.00159">arxiv.org/abs/2402.00159</a></td>
+</tr>
+<tr>
+<td>FineWeb: Decanting the Web for Finest Text Data (HuggingFace, 2024)</td>
+<td><a href="https://arxiv.org/abs/2406.17557">arxiv.org/abs/2406.17557</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_16">延伸阅读与视频</h2>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1mqrTBvEaf/">Andrej Karpathy【中英】从零构建GPT（重制版）</a></td>
+<td>4.6万播放，Karpathy亲授预训练全流程，包含数据处理</td>
+</tr>
+<tr>
+<td>📺 B站</td>
+<td><a href="https://www.bilibili.com/video/BV1darmBcE4A/">翁家翌：OpenAI、强化学习、Infra、后训练全访谈</a></td>
+<td>110万播放，OpenAI内部预训练工程实践深度访谈</td>
+</tr>
+<tr>
+<td>📖 Hugging Face Blog</td>
+<td><a href="https://huggingface.co/blog/fineweb">FineWeb: decanting the web for finest text data</a></td>
+<td>网页语料过滤、去重、质量评估的公开工程案例</td>
+</tr>
+<tr>
+<td>📖 AI2 Dolma</td>
+<td><a href="https://huggingface.co/datasets/allenai/dolma">Dolma dataset</a></td>
+<td>开放预训练语料，可参考其来源配比和数据说明</td>
+</tr>
+<tr>
+<td>📖 Common Crawl</td>
+<td><a href="https://commoncrawl.org/">Common Crawl</a></td>
+<td>大规模网页语料入口，理解原始网页数据为什么需要清洗</td>
+</tr>
+<tr>
+<td>📖 Datatrove</td>
+<td><a href="https://github.com/huggingface/datatrove">Hugging Face datatrove</a></td>
+<td>大规模数据处理、过滤、去重、pipeline 编排工具</td>
+</tr>
+<tr>
+<td>📖 KenLM</td>
+<td><a href="https://github.com/kpu/kenlm">KenLM</a></td>
+<td>常用于语言模型困惑度过滤和文本质量打分的工具</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>
