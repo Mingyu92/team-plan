@@ -95,6 +95,30 @@
   tr.total td{background:#f7f3ea;font-weight:700;color:var(--navy);border-top:2px solid var(--navy);}
   .empty{color:#c8c3b6;}
 
+  /* 当月计划（三栏） */
+  .plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start;}
+  .plan-col{background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .plan-col h3{margin:0;padding:12px 16px 10px;font-size:14px;color:var(--navy);letter-spacing:.06em;
+               background:#f2eee4;border-bottom:1px solid var(--line);
+               display:flex;justify-content:space-between;align-items:baseline;font-weight:700;}
+  .plan-col h3 small{font-size:11.5px;font-weight:400;color:var(--muted);letter-spacing:0;}
+  .plan-item{padding:13px 16px 14px;border-top:1px dotted #eee7d8;}
+  .plan-item:first-of-type{border-top:0;}
+  .plan-item .head{display:flex;align-items:baseline;gap:8px;}
+  .plan-tag{font-size:11px;color:var(--orange);background:#fff4ec;border:1px solid #f0d5c6;
+            border-radius:999px;padding:1px 8px;white-space:nowrap;}
+  .plan-item .target{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--navy);
+                     font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .plan-item .target em{font-style:normal;font-size:10.5px;font-weight:400;color:var(--muted);margin-right:3px;}
+  .plan-text{margin-top:6px;font-size:13.5px;color:#3c414a;line-height:1.55;}
+  .plan-note{margin-top:5px;font-size:11.5px;color:var(--muted);line-height:1.5;}
+  .plan-prog{display:flex;align-items:center;gap:9px;margin-top:9px;}
+  .plan-prog .mini-bar{height:6px;}
+  .plan-prog .pv{font-size:11px;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .plan-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+             margin:14px 0 0;font-size:11.5px;color:var(--muted);}
+  .plan-foot a{color:var(--navy);text-decoration:underline;}
+
   /* 思维导图 */
   .mindmap{padding:20px 16px;}
   #mind{display:block;width:100%;}
@@ -189,6 +213,7 @@
     .top{grid-template-columns:1fr;}
     .axis{grid-template-columns:1fr;padding-top:0;}
     .axis::before,.stage::before{display:none;}
+    .plan-grid{grid-template-columns:1fr;}
     h1{font-size:28px;}
     table.track td.item{white-space:normal;}
   }
@@ -292,6 +317,15 @@
         <tr class="total"><td class="who">合计</td><td colspan="2" class="num">+5</td><td colspan="3" class="num">+5</td><td colspan="2" class="num">+4</td></tr>
       </tbody>
     </table>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 id="plan-title">11 月计划</h2></div>
+    <div class="plan-grid" id="plan-grid"></div>
+    <p class="plan-foot">
+      <span id="plan-src"></span>
+      <a href="https://q1e2yfc2bey.feishu.cn/share/base/view/shrcnOnF3GUFW1EPX7HtOoJSQ4g" target="_blank" rel="noopener">打开飞书原表 ↗</a>
+    </p>
   </section>
 
   <section>
@@ -1270,13 +1304,183 @@
       valEl.textContent = v + ' / ' + c.goal + c.unit;
     }
     wrap.querySelector('[data-act="plus"]').addEventListener('click', function(){
-      store['c-' + c.key] = Math.min(999, (store['c-' + c.key] || 0) + 1); save(); paint();
+      store['c-' + c.key] = Math.min(999, (store['c-' + c.key] || 0) + 1); save(); paint(); paintPlanBars();
     });
     wrap.querySelector('[data-act="minus"]').addEventListener('click', function(){
-      store['c-' + c.key] = Math.max(0, (store['c-' + c.key] || 0) - 1); save(); paint();
+      store['c-' + c.key] = Math.max(0, (store['c-' + c.key] || 0) - 1); save(); paint(); paintPlanBars();
     });
     paint();
   });
+
+  /* ============ 当月计划（数据来自飞书「月计划表」，由 sync_plan.py 生成） ============ */
+  /* PLAN_DATA_START */
+  var PLAN = {
+      "label": "2026 年 11 月 · 月计划",
+      "syncedAt": "2026-11-12",
+      "groups": [
+          {
+              "name": "个人成长",
+              "items": [
+                  {
+                      "tag": "读书",
+                      "text": "《领导力的5个层级》+《中层领导力》",
+                      "target": 2,
+                      "note": "两周一本"
+                  },
+                  {
+                      "tag": "音频",
+                      "text": "B阶段音频 + 厦门团队筛选的音频 + 往年往期两个月的内圈领导力",
+                      "target": 30,
+                      "note": "每天 1 条"
+                  },
+                  {
+                      "tag": "参加活动",
+                      "text": "达标内圈领导力",
+                      "target": 10,
+                      "note": "每周 2–3 次"
+                  },
+                  {
+                      "tag": "应用，改变量",
+                      "text": "每天复盘五层对话；用更少时间做更多 PHP 和会面，把生意时间利用率提上来",
+                      "target": 30,
+                      "note": "每天 1 次"
+                  }
+              ]
+          },
+          {
+              "name": "营业额",
+              "items": [
+                  {
+                      "tag": "开启对话",
+                      "text": "开启对话 40 个",
+                      "target": 40,
+                      "note": "每天 1.3 个"
+                  },
+                  {
+                      "tag": "第一天下单/长客会",
+                      "text": "第一天下单 200PV",
+                      "target": 200,
+                      "note": ""
+                  },
+                  {
+                      "tag": "客户营业额",
+                      "text": "营业额 50PV",
+                      "target": 50,
+                      "note": ""
+                  },
+                  {
+                      "tag": "98项自测表",
+                      "text": "98 项自测表 4 个",
+                      "target": 4,
+                      "note": "每周 1 个"
+                  },
+                  {
+                      "tag": "分享链接",
+                      "text": "分享链接 8 条",
+                      "target": 8,
+                      "note": "每周 2 条"
+                  }
+              ]
+          },
+          {
+              "name": "建立网络",
+              "items": [
+                  {
+                      "tag": "五层对话",
+                      "text": "200个 buffer，每个 8 分钟；25 分钟一个 DTM；线下能熟练分享故事（每天跟 5 个人 say hi）",
+                      "target": 200,
+                      "note": "200 个/月 = 每天 10 个 = 每周 28 个（周三~周二）；每天约 32 分钟纯对话时间，另加跟进"
+                  },
+                  {
+                      "tag": "会面1",
+                      "text": "每周约到 2 人会面",
+                      "target": 8,
+                      "note": "平均每周约 2.3 个"
+                  },
+                  {
+                      "tag": "电话会议",
+                      "text": "",
+                      "target": null,
+                      "note": ""
+                  },
+                  {
+                      "tag": "会面复盘",
+                      "text": "把会面1 再精进：可以线下做会面1；单场不超过 40 分钟",
+                      "target": null,
+                      "note": "本月目标：会面1 单场 ≤40 分钟（不是场次数）"
+                  },
+                  {
+                      "tag": "PHP",
+                      "text": "回复一个 PHP 不超过 5 分钟",
+                      "target": null,
+                      "note": "本月目标：单条回复 ≤5 分钟"
+                  },
+                  {
+                      "tag": "团队建设",
+                      "text": "基础骨干奖：第 2 腿再往下放 1 人、第 3 腿再往下放 1 人",
+                      "target": 2,
+                      "note": "目标：达成基础骨干奖（2000 分）"
+                  }
+              ]
+          }
+      ]
+  };
+  /* PLAN_DATA_END */
+
+  // 这几项和下面的计数器是同一件事，进度直接读计数器的值
+  var PLAN_LINK = { '读书': 'book', '开启对话': 'talk', '分享链接': 'link' };
+
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+    });
+  }
+
+  function renderPlan(){
+    var grid = document.getElementById('plan-grid');
+    if(!grid) return;
+    if(!PLAN || !PLAN.groups || !PLAN.groups.length){ return; }
+    grid.innerHTML = '';
+    PLAN.groups.forEach(function(g){
+      var col = document.createElement('div');
+      col.className = 'plan-col';
+      col.innerHTML = '<h3>' + esc(g.name) + '<small>' + g.items.length + ' 项</small></h3>';
+      g.items.forEach(function(it){
+        var d = document.createElement('div');
+        d.className = 'plan-item';
+        var html = '<div class="head">';
+        if(it.tag) html += '<span class="plan-tag">' + esc(it.tag) + '</span>';
+        if(it.target != null) html += '<span class="target"><em>目标</em>' + it.target + '</span>';
+        html += '</div>';
+        if(it.text) html += '<div class="plan-text">' + esc(it.text) + '</div>';
+        if(it.note) html += '<div class="plan-note">' + esc(it.note) + '</div>';
+        if(PLAN_LINK[it.tag] && it.target){
+          html += '<div class="plan-prog" data-ck="' + PLAN_LINK[it.tag] + '" data-target="' + it.target + '">' +
+                  '<div class="mini-bar"><i></i></div><span class="pv"></span></div>';
+        }
+        d.innerHTML = html;
+        col.appendChild(d);
+      });
+      grid.appendChild(col);
+    });
+    var src = document.getElementById('plan-src');
+    if(src && PLAN.label) src.textContent = PLAN.label + ' · 同步于 ' + PLAN.syncedAt;
+    var title = document.getElementById('plan-title');
+    if(title && PLAN.label){
+      var m = PLAN.label.match(/(\d+)\s*月/);
+      if(m) title.textContent = m[1] + ' 月计划';
+    }
+    paintPlanBars();
+  }
+
+  function paintPlanBars(){
+    Array.prototype.slice.call(document.querySelectorAll('.plan-prog')).forEach(function(el){
+      var v = store['c-' + el.dataset.ck] || 0;
+      var goal = +el.dataset.target || 0;
+      el.querySelector('.mini-bar i').style.width = (goal ? Math.min(100, Math.round(v / goal * 100)) : 0) + '%';
+      el.querySelector('.pv').textContent = v + ' / ' + goal;
+    });
+  }
 
   /* ============ 启动 ============ */
   function start(){
@@ -1359,6 +1563,7 @@
     renderStages();
     renderMind();
     render();
+    renderPlan();
   }
 
   function renderCountdowns(){
