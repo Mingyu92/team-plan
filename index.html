@@ -115,6 +115,21 @@
   .plan-prog{display:flex;align-items:center;gap:9px;margin-top:9px;}
   .plan-prog .mini-bar{height:6px;}
   .plan-prog .pv{font-size:11px;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .plan-track{margin-top:10px;padding-top:9px;border-top:1px dotted #eee7d8;display:flex;flex-direction:column;gap:8px;}
+  .pt-row{display:flex;align-items:center;gap:8px;}
+  .pt-label{flex:0 0 auto;font-size:11.5px;color:var(--muted);line-height:1.2;}
+  .pt-label small{display:block;font-size:10px;color:#b0a99b;font-variant-numeric:tabular-nums;}
+  .pt-row .mini-bar{height:7px;}
+  .pt-val{flex:0 0 auto;min-width:46px;text-align:right;font-size:11.5px;font-weight:600;
+          color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .pt-step{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:#fff;
+           color:var(--navy);font-size:13px;line-height:1;cursor:pointer;padding:0;
+           display:flex;align-items:center;justify-content:center;}
+  .pt-step:hover{border-color:var(--orange);color:var(--orange);}
+  .pt-input{flex:0 0 auto;width:54px;border:1px solid var(--line);border-radius:4px;padding:2px 6px;
+            font-family:inherit;font-size:12px;color:var(--navy);text-align:right;
+            font-variant-numeric:tabular-nums;outline:none;}
+  .pt-input:focus{border-color:var(--orange);}
   .plan-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
              margin:14px 0 0;font-size:11.5px;color:var(--muted);}
   .plan-foot a{color:var(--navy);text-decoration:underline;}
@@ -1430,6 +1445,100 @@
   // 这几项和下面的计数器是同一件事，进度直接读计数器的值
   var PLAN_LINK = { '读书': 'book', '开启对话': 'talk', '分享链接': 'link' };
 
+  // 这几项要现场记数：每天 10 个 buffer（周按周三～周二）、每周 2 个会面、本月营业额 PV
+  var PLAN_TRACK = {
+    '五层对话':  { rows: [ { label:'今天', target:10, kind:'daily',    unit:' 个' },
+                          { label:'本周', target:28, kind:'weekdays',  unit:' 个' } ] },
+    '会面1':     { rows: [ { label:'本周', target:2,  kind:'week',     unit:' 个' } ] },
+    '客户营业额': { rows: [ { label:'本月', target:50, kind:'month', unit:' PV', input:true } ] }
+  };
+
+  function pad2(n){ return ('0' + n).slice(-2); }
+  function monthKeyStr(){ var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth()+1); }
+  // 她的一周是周三～周二
+  function weekStartWed(){
+    var d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - ((d.getDay() + 4) % 7));
+    return d;
+  }
+  function weekRangeText(){
+    var s = weekStartWed(), e = new Date(s); e.setDate(s.getDate() + 6);
+    return (s.getMonth()+1) + '/' + s.getDate() + '–' + (e.getMonth()+1) + '/' + e.getDate();
+  }
+  function ptKey(kind){
+    if(kind === 'daily') return 'buf-' + ymd(new Date());
+    if(kind === 'week')  return 'hm-' + ymd(weekStartWed());
+    if(kind === 'month') return 'rev-' + monthKeyStr();
+    return null;
+  }
+  function ptValue(kind){
+    if(kind === 'weekdays'){
+      var s = weekStartWed(), sum = 0;
+      for(var i = 0; i < 7; i++){
+        var d = new Date(s); d.setDate(s.getDate() + i);
+        sum += (+store['buf-' + ymd(d)] || 0);
+      }
+      return sum;
+    }
+    var k = ptKey(kind);
+    return k ? (+store[k] || 0) : 0;
+  }
+
+  function planTrackHTML(tag){
+    var spec = PLAN_TRACK[tag], h = '<div class="plan-track">';
+    spec.rows.forEach(function(row){
+      var label = row.label;
+      if(row.kind === 'week' || row.kind === 'weekdays'){
+        label += '<small>' + weekRangeText() + '</small>';
+      }
+      h += '<div class="pt-row" data-kind="' + row.kind + '" data-target="' + row.target +
+           '" data-unit="' + esc(row.unit || '') + '">' +
+           '<span class="pt-label">' + label + '</span>' +
+           '<div class="mini-bar"><i></i></div><span class="pt-val"></span>';
+      if(row.input){
+        h += '<input class="pt-input" type="number" inputmode="numeric" min="0" step="1" aria-label="营业额">';
+      } else if(row.kind !== 'weekdays'){
+        h += '<button class="pt-step" type="button" data-act="minus" aria-label="减一">−</button>' +
+             '<button class="pt-step" type="button" data-act="plus" aria-label="加一">+</button>';
+      }
+      h += '</div>';
+    });
+    return h + '</div>';
+  }
+
+  function paintPlanTracks(){
+    Array.prototype.slice.call(document.querySelectorAll('.pt-row')).forEach(function(row){
+      var kind = row.dataset.kind, target = +row.dataset.target || 0;
+      var v = ptValue(kind);
+      row.querySelector('.mini-bar i').style.width =
+        (target ? Math.min(100, Math.round(v / target * 100)) : 0) + '%';
+      row.querySelector('.pt-val').textContent = v + ' / ' + target + (row.dataset.unit || '');
+      var inp = row.querySelector('.pt-input');
+      if(inp && document.activeElement !== inp) inp.value = v;
+    });
+  }
+
+  (function bindPlanTrack(){
+    var grid = document.getElementById('plan-grid');
+    if(!grid) return;
+    grid.addEventListener('click', function(e){
+      var b = e.target.closest ? e.target.closest('.pt-step') : null;
+      if(!b) return;
+      var row = b.closest('.pt-row'), k = ptKey(row.dataset.kind);
+      if(!k) return;
+      var v = (+store[k] || 0) + (b.dataset.act === 'plus' ? 1 : -1);
+      store[k] = Math.max(0, v);
+      save(); paintPlanTracks();
+    });
+    grid.addEventListener('change', function(e){
+      if(!e.target.classList || !e.target.classList.contains('pt-input')) return;
+      var row = e.target.closest('.pt-row'), k = ptKey(row.dataset.kind);
+      if(!k) return;
+      store[k] = Math.max(0, Math.round(+e.target.value || 0));
+      save(); paintPlanTracks();
+    });
+  })();
+
   function esc(s){
     return String(s).replace(/[&<>"]/g, function(c){
       return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
@@ -1454,6 +1563,7 @@
         html += '</div>';
         if(it.text) html += '<div class="plan-text">' + esc(it.text) + '</div>';
         if(it.note) html += '<div class="plan-note">' + esc(it.note) + '</div>';
+        if(PLAN_TRACK[it.tag]) html += planTrackHTML(it.tag);
         if(PLAN_LINK[it.tag] && it.target){
           html += '<div class="plan-prog" data-ck="' + PLAN_LINK[it.tag] + '" data-target="' + it.target + '">' +
                   '<div class="mini-bar"><i></i></div><span class="pv"></span></div>';
@@ -1471,6 +1581,7 @@
       if(m) title.textContent = m[1] + ' 月计划';
     }
     paintPlanBars();
+    paintPlanTracks();
   }
 
   function paintPlanBars(){
