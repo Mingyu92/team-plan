@@ -131,6 +131,46 @@
             font-variant-numeric:tabular-nums;outline:none;}
   .pt-input:focus{border-color:var(--orange);}
   .pt-hint{font-size:11px;color:#8c8579;line-height:1.45;}
+  .plan-item{position:relative;}
+
+  /* 点出来的小圆点（每天 buffer / 每周会面） */
+  .pt-row.dots-row{flex-wrap:wrap;}
+  .pt-row.dots-row .pt-val{margin-left:auto;}
+  .pt-row.dots-row .buf-dots{flex:1 1 100%;margin-top:7px;}
+  .buf-dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1;}
+  .buf-dot{width:19px;height:19px;border-radius:50%;border:1.5px solid #d5cfc0;background:#fff;cursor:pointer;
+           padding:0;transition:transform .12s, background .15s, border-color .15s;}
+  .buf-dot:hover{transform:scale(1.18);border-color:var(--orange);}
+  .buf-dot.on{background:var(--orange);border-color:var(--orange);}
+  .buf-dot.pop{transform:scale(1.35);}
+
+  /* 本月 buffer 热力格 */
+  .buf-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px;}
+  .buf-cell{height:23px;border-radius:4px;border:1px solid #e6dfd0;background:#fbf9f4;color:#a9a294;
+            font-size:10.5px;line-height:1;display:flex;align-items:center;justify-content:center;
+            cursor:pointer;user-select:none;transition:background .15s, transform .12s, color .15s;}
+  .buf-cell:hover{transform:translateY(-1px);}
+  .buf-cell.lv1{background:#fde3d3;border-color:#f6cfb6;color:#b3764f;}
+  .buf-cell.lv2{background:#f9c9a9;border-color:#f0b189;color:#8a4b26;}
+  .buf-cell.lv3{background:#ef9c69;border-color:#e2864f;color:#fff;}
+  .buf-cell.lv4{background:var(--orange);border-color:#c85f32;color:#fff;font-weight:600;}
+  .buf-cell.future{opacity:.32;cursor:default;}
+  .buf-cell.future:hover{transform:none;}
+  .buf-cell.sel{outline:2px solid var(--navy);outline-offset:1px;}
+  .buf-cell.pop{transform:scale(1.22);}
+  .buf-edit{display:flex;align-items:center;gap:8px;margin-top:9px;min-height:22px;font-size:11.5px;color:var(--navy);}
+  .buf-edit .be-day{font-weight:600;font-variant-numeric:tabular-nums;}
+  .buf-edit .be-done{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;
+                     font-size:11px;padding:1px 9px;cursor:pointer;font-family:inherit;margin-left:auto;}
+  .buf-edit .be-done:hover{border-color:var(--navy);color:var(--navy);}
+  .stat-chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;
+             color:var(--orange);background:#fff4ec;border:1px solid #f0d5c6;border-radius:999px;padding:1px 10px;}
+  .float1{position:absolute;pointer-events:none;font-size:13px;font-weight:700;color:var(--orange);
+          transform:translate(-50%,0);animation:floatUp .85s ease-out forwards;z-index:5;}
+  @keyframes floatUp{from{opacity:1;transform:translate(-50%,0) scale(1);}
+                     60%{opacity:1;} to{opacity:0;transform:translate(-50%,-26px) scale(1.25);}}
+  .mini-bar.tappable{cursor:pointer;}
+  .mini-bar.tappable:hover i{filter:brightness(1.08);}
   .plan-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
              margin:14px 0 0;font-size:11.5px;color:var(--muted);}
   .plan-foot a{color:var(--navy);text-decoration:underline;}
@@ -1258,8 +1298,9 @@
     }
   }
 
-  function cheer(){
+  function cheer(msg){
     var el = document.getElementById('cheer');
+    el.textContent = msg || '今天 4 件事全做完了，恭喜！';
     el.classList.add('show');
     setTimeout(function(){ el.classList.remove('show'); }, 4200);
 
@@ -1506,6 +1547,58 @@
     ];
   }
 
+  var bufSel = null;   // 热力格里正选中的那一天
+
+  function bufLevel(v){
+    if(v <= 0) return 0;
+    if(v <= 3) return 1;
+    if(v <= 6) return 2;
+    if(v <= 9) return 3;
+    return 4;
+  }
+  function bufferDays(){
+    var now = new Date(), start = bufferCfg().startDay || 1, out = [];
+    for(var day = start; day <= daysInMonth(); day++){
+      out.push({ day: day, key: ymd(new Date(now.getFullYear(), now.getMonth(), day)),
+                 future: day > now.getDate() });
+    }
+    return out;
+  }
+  // 从今天（今天还没记就从昨天）往回数，连着有记录的天数
+  function bufferStreak(){
+    var now = new Date(), start = bufferCfg().startDay || 1, n = 0;
+    var d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if(!(+store['buf-' + ymd(d)] || 0)) d.setDate(d.getDate() - 1);
+    while(d.getMonth() === now.getMonth() && d.getDate() >= start){
+      if(!(+store['buf-' + ymd(d)] || 0)) break;
+      n++; d.setDate(d.getDate() - 1);
+    }
+    return n;
+  }
+  function dotsHTML(target){
+    var h = '<div class="buf-dots">';
+    for(var i = 1; i <= target; i++){
+      h += '<button class="buf-dot" type="button" data-n="' + i + '" aria-label="记 ' + i + ' 个"></button>';
+    }
+    return h + '</div>';
+  }
+  function float1(host, anchor, text){
+    var box = host.closest('.plan-item') || host;
+    var r = anchor.getBoundingClientRect(), b = box.getBoundingClientRect();
+    var s = document.createElement('span');
+    s.className = 'float1';
+    s.textContent = text;
+    s.style.left = (r.left - b.left + r.width / 2) + 'px';
+    s.style.top  = (r.top - b.top) + 'px';
+    box.appendChild(s);
+    setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 900);
+  }
+  function celebrateRow(row){
+    var kind = row.dataset.kind, target = row.dataset.target;
+    if(kind === 'daily') cheer('今天 ' + target + ' 个 buffer，漂亮！');
+    else if(kind === 'week') cheer('这周的会面约够了，牛！');
+  }
+
   function planTrackHTML(tag, item){
     var rows = (tag === '五层对话') ? bufferRows(item.target) : PLAN_TRACK[tag].rows;
     var h = '<div class="plan-track">';
@@ -1513,15 +1606,15 @@
       var sub = row.kind === 'week' ? weekRangeText()
               : (row.kind === 'monthdays' ? monthRangeText(row.startDay) : '');
       var label = row.label + (sub ? '<small>' + sub + '</small>' : '');
-      h += '<div class="pt-row" data-kind="' + row.kind + '" data-target="' + row.target +
+      var dots = (row.kind === 'daily' || row.kind === 'week') && row.target <= 12;
+      var dotsWrap = dots && row.target > 4;   // 点多的时候换一行排
+      h += '<div class="pt-row' + (dotsWrap ? ' dots-row' : '') + '" data-kind="' + row.kind + '" data-target="' + row.target +
            '" data-start="' + (row.startDay || '') + '" data-unit="' + esc(row.unit || '') + '">' +
            '<span class="pt-label">' + label + '</span>' +
-           '<div class="mini-bar"><i></i></div><span class="pt-val"></span>';
+           (dots ? dotsHTML(row.target) : '<div class="mini-bar"><i></i></div>') +
+           '<span class="pt-val"></span>';
       if(row.input){
         h += '<input class="pt-input" type="number" inputmode="numeric" min="0" step="1" aria-label="营业额">';
-      } else if(row.kind === 'daily' || row.kind === 'week'){
-        h += '<button class="pt-step" type="button" data-act="minus" aria-label="减一">−</button>' +
-             '<button class="pt-step" type="button" data-act="plus" aria-label="加一">+</button>';
       }
       h += '</div>';
       if(row.hint){
@@ -1529,6 +1622,7 @@
              '" data-start="' + (row.startDay || 1) + '"></div>';
       }
     });
+    if(tag === '五层对话') h += '<div class="buf-grid"></div><div class="buf-edit"></div>';
     return h + '</div>';
   }
 
@@ -1536,12 +1630,16 @@
     Array.prototype.slice.call(document.querySelectorAll('.pt-row')).forEach(function(row){
       var target = +row.dataset.target || 0;
       var v = ptValue(row);
-      row.querySelector('.mini-bar i').style.width =
-        (target ? Math.min(100, Math.round(v / target * 100)) : 0) + '%';
+      var fill = row.querySelector('.mini-bar i');
+      if(fill) fill.style.width = (target ? Math.min(100, Math.round(v / target * 100)) : 0) + '%';
       row.querySelector('.pt-val').textContent = v + ' / ' + target + (row.dataset.unit || '');
+      Array.prototype.slice.call(row.querySelectorAll('.buf-dot')).forEach(function(dot, i){
+        dot.classList.toggle('on', i < v);
+      });
       var inp = row.querySelector('.pt-input');
       if(inp && document.activeElement !== inp) inp.value = v;
     });
+
     Array.prototype.slice.call(document.querySelectorAll('.pt-hint')).forEach(function(el){
       var target = +el.dataset.target || 0;
       var need = target - bufferSum(+el.dataset.start || 1);
@@ -1550,26 +1648,92 @@
         ? '这一段够了'
         : '还剩 ' + left + ' 天，还差 ' + need + ' 个，每天要 ' + Math.ceil(need / left) + ' 个';
     });
+
+    // 本月 buffer 热力格
+    var bg = document.querySelector('.buf-grid');
+    if(bg){
+      var html = '';
+      bufferDays().forEach(function(d){
+        var v = +store['buf-' + d.key] || 0;
+        html += '<div class="buf-cell lv' + bufLevel(v) + (d.future ? ' future' : '') +
+                (bufSel === d.key ? ' sel' : '') + '" data-key="' + d.key + '" data-day="' + d.day + '">' +
+                d.day + '</div>';
+      });
+      bg.innerHTML = html;
+    }
+
+    var be = document.querySelector('.buf-edit');
+    if(be){
+      if(bufSel){
+        var v = +store['buf-' + bufSel] || 0;
+        be.innerHTML = '<span class="be-day">' + (+bufSel.slice(5,7)) + '/' + (+bufSel.slice(8,10)) +
+                       ' · ' + v + ' 个</span>' +
+                       '<button class="pt-step" type="button" data-act="minus" aria-label="减一">−</button>' +
+                       '<button class="pt-step" type="button" data-act="plus" aria-label="加一">+</button>' +
+                       '<button class="be-done" type="button">好了</button>';
+      } else {
+        var s = bufferStreak();
+        be.innerHTML = '<span class="stat-chip">🔥 ' + (s ? '连续记了 ' + s + ' 天' : '还没连起来') + '</span>';
+      }
+    }
   }
 
   (function bindPlanTrack(){
     var grid = document.getElementById('plan-grid');
     if(!grid) return;
+
     grid.addEventListener('click', function(e){
-      var b = e.target.closest ? e.target.closest('.pt-step') : null;
-      if(!b) return;
-      var row = b.closest('.pt-row'), k = ptKey(row.dataset.kind);
-      if(!k) return;
-      var v = (+store[k] || 0) + (b.dataset.act === 'plus' ? 1 : -1);
-      store[k] = Math.max(0, v);
-      save(); paintPlanTracks();
+      var t = e.target;
+
+      // 点小圆点：直接点到第几个
+      var dot = t.closest && t.closest('.buf-dot');
+      if(dot){
+        var row = dot.closest('.pt-row'), k = ptKey(row.dataset.kind);
+        if(!k) return;
+        var cur = +store[k] || 0, n = +dot.dataset.n;
+        store[k] = (cur === n) ? n - 1 : n;      // 再点一下最亮那颗就退回一个
+        save();
+        dot.classList.add('pop');
+        setTimeout(function(){ dot.classList.remove('pop'); }, 170);
+        paintPlanTracks();
+        var row2 = dot.closest('.pt-row');
+        if(store[k] >= (+row2.dataset.target || 0) && cur < (+row2.dataset.target || 0)) celebrateRow(row2);
+        else if(store[k] > cur) float1(row2, dot, '+1');
+        return;
+      }
+
+      // 点热力格选一天
+      var cell = t.closest && t.closest('.buf-cell');
+      if(cell){
+        if(cell.classList.contains('future')) return;
+        bufSel = cell.dataset.key;
+        paintPlanTracks();
+        return;
+      }
+
+      // 选中的那天：− / +
+      var step = t.closest && t.closest('.pt-step');
+      if(step && step.closest('.buf-edit')){
+        if(!bufSel) return;
+        var bk = 'buf-' + bufSel;
+        store[bk] = Math.max(0, (+store[bk] || 0) + (step.dataset.act === 'plus' ? 1 : -1));
+        save(); paintPlanTracks();
+        var hint = document.querySelector('.pt-hint');
+        if(hint && bufferSum(+hint.dataset.start || 1) >= (+hint.dataset.target || 0)) cheer('这个月的 buffer 给完了！');
+        return;
+      }
+
+      if(t.closest && t.closest('.be-done')){ bufSel = null; paintPlanTracks(); }
     });
+
     grid.addEventListener('change', function(e){
       if(!e.target.classList || !e.target.classList.contains('pt-input')) return;
       var row = e.target.closest('.pt-row'), k = ptKey(row.dataset.kind);
       if(!k) return;
+      var before = +store[k] || 0;
       store[k] = Math.max(0, Math.round(+e.target.value || 0));
       save(); paintPlanTracks();
+      if(store[k] >= (+row.dataset.target || 0) && before < (+row.dataset.target || 0)) cheer('营业额达标，厉害！');
     });
   })();
 
