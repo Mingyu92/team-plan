@@ -25,6 +25,8 @@
   .page{max-width:1240px;margin:0 auto;padding:48px 44px 64px;}
 
   header{border-bottom:2px solid var(--navy);padding-bottom:20px;margin-bottom:34px;}
+  .hub-link{display:inline-block;margin-bottom:10px;font-size:12.5px;color:var(--muted);text-decoration:none;letter-spacing:.04em;}
+  .hub-link:hover{color:var(--orange);}
   .kicker{font-size:12.5px;letter-spacing:.2em;color:var(--orange);font-weight:600;margin-bottom:8px;}
   h1{font-size:38px;line-height:1.22;margin:0;font-weight:700;color:var(--navy);letter-spacing:.01em;}
   h1 em{font-style:normal;color:var(--orange);}
@@ -284,6 +286,7 @@
 <div class="page">
 
   <header>
+    <a class="hub-link" id="hub-link" href="home.html">← 工作台</a>
     <div class="kicker">2026 年 11 月 — 2027 年 5 月</div>
     <h1>团队计划：<em>20 人 → 25 人 → 30 人</em></h1>
   </header>
@@ -1839,6 +1842,13 @@
   }
 
   start();
+
+  /* 本地打开时，「← 工作台」指到本机那份 */
+  (function(){
+    if(location.protocol !== 'file:') return;
+    var a = document.getElementById('hub-link');
+    if(a) a.href = 'file:///C:/Users/14374/workbench/index.html';
+  })();
 
   /* 登录弹窗 */
   (function bindLogin(){

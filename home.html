@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>诗媛的工作台 · 专利 / 求职 / 生意</title>
+<style>
+  :root{
+    --ink:#1f2430;
+    --navy:#1B3A63;
+    --orange:#D96B3C;
+    --blue:#2f6fb5;
+    --cream:#FAF7F0;
+    --paper:#ffffff;
+    --line:#ded9cd;
+    --muted:#7b7a76;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--cream);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1120px;margin:0 auto;padding:52px 40px 64px;}
+
+  header{border-bottom:2px solid var(--navy);padding-bottom:22px;}
+  .kicker{font-size:12.5px;letter-spacing:.2em;color:var(--orange);font-weight:600;margin-bottom:8px;}
+  h1{font-size:36px;line-height:1.2;margin:0;font-weight:700;color:var(--navy);letter-spacing:.01em;}
+  h1 em{font-style:normal;color:var(--orange);}
+  .lede{margin:10px 0 0;color:var(--muted);font-size:14px;}
+
+  .chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px;}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+        color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 13px;
+        font-variant-numeric:tabular-nums;}
+  .chip b{color:var(--orange);font-weight:700;}
+  .chip.hot{border-color:#f0d5c6;background:#fff4ec;}
+
+  .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:34px;align-items:start;}
+
+  .lane{background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;
+        transition:transform .16s, box-shadow .16s, border-color .16s;}
+  .lane:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(27,58,99,.10);}
+  .lane.patent{border-top:4px solid var(--navy);}
+  .lane.job{border-top:4px solid var(--blue);}
+  .lane.biz{border-top:4px solid var(--orange);}
+
+  .lane-head{padding:18px 20px 14px;}
+  .lane-head h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;display:flex;align-items:center;gap:9px;}
+  .lane-head h2 .ico{font-size:19px;line-height:1;}
+  .lane-head p{margin:6px 0 0;font-size:12.5px;color:var(--muted);}
+
+  .primary{display:flex;align-items:center;gap:10px;margin:0 14px 12px;padding:14px 16px;
+           background:var(--navy);color:#fff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600;
+           transition:filter .15s, transform .12s;}
+  .lane.job .primary{background:var(--blue);}
+  .lane.biz .primary{background:var(--orange);}
+  .primary:hover{filter:brightness(1.08);transform:translateX(2px);}
+  .primary .go{margin-left:auto;font-weight:400;opacity:.85;font-size:13px;white-space:nowrap;}
+
+  .links{list-style:none;margin:0;padding:4px 8px 14px;}
+  .links li{margin:0;}
+  .links a{display:flex;align-items:baseline;gap:9px;padding:9px 12px;border-radius:6px;
+           color:#3a3f47;text-decoration:none;font-size:14px;transition:background .12s, color .12s;}
+  .links a:hover{background:#f6f3ea;color:var(--navy);}
+  .links a .arrow{margin-left:auto;color:#c9c3b5;font-size:12px;transition:transform .15s, color .15s;}
+  .links a:hover .arrow{transform:translateX(3px);color:var(--orange);}
+  .tag{font-size:10.5px;font-weight:600;border-radius:999px;padding:1px 7px;white-space:nowrap;
+       border:1px solid #e3dccd;color:#9a9385;background:#fbf9f4;}
+  .tag.online{color:#2f6fb5;border-color:#cfdff2;background:#f2f7fd;}
+  .tag.feishu{color:#3f7d5e;border-color:#d3e6dc;background:#f2f9f5;}
+  .tag.local{color:#a9734e;border-color:#f0dccb;background:#fdf6f0;}
+
+  .lane-foot{margin:0;padding:0 20px 16px;font-size:11.5px;color:#a9a294;}
+
+  .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
+       background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
+       box-shadow:0 10px 26px rgba(27,58,99,.25);opacity:0;pointer-events:none;transition:.18s;z-index:20;}
+  .tip.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  footer{margin-top:42px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:#9a9a94;}
+
+  @media (max-width:940px){
+    .page{padding:32px 18px 48px;}
+    .lanes{grid-template-columns:1fr;}
+    h1{font-size:27px;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="kicker">三条线 · 一个入口</div>
+    <h1>诗媛的<em>工作台</em></h1>
+    <p class="lede">写专利 · 找工作 · 做生意 —— 常用的页面都在这，点一下就过去。</p>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <main class="lanes">
+
+    <section class="lane patent">
+      <div class="lane-head">
+        <h2><span class="ico">📄</span>写专利</h2>
+        <p>11 月 30 日毕业要求 · 已有 5 个候选点</p>
+      </div>
+      <a class="primary" href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblyIyxLIb6Kw6uA&view=vew5VrQ31I" target="_blank" rel="noopener">
+        专利冲刺清单 <span class="go">飞书 ›</span>
+      </a>
+      <ul class="links">
+        <li><a href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblchxXlsnDA2vHV" target="_blank" rel="noopener">
+          5 个候选点（主申请 / 从属 / 分案）<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
+        <li><a href="file:///C:/Users/14374/patent-analysis-20261027/guide.html" data-local>
+          创新点答辩 · 逐页讲解<span class="tag local">本地</span><span class="arrow">›</span></a></li>
+        <li><a href="file:///D:/HTTPTMMD/KG/reports/" data-local>
+          KG 报告目录（所有汇报稿）<span class="tag local">本地</span><span class="arrow">›</span></a></li>
+      </ul>
+    </section>
+
+    <section class="lane job">
+      <div class="lane-head">
+        <h2><span class="ico">🎯</span>找工作</h2>
+        <p>2027 届校招 · AI 产品经理方向</p>
+      </div>
+      <a class="primary" href="file:///C:/Users/14374/ai-pm-prep/learn/index.html" data-local>
+        AI PM 学习路线 <span class="go">本地 ›</span>
+      </a>
+      <ul class="links">
+        <li><a href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
+          今日岗位<span class="tag local">本地</span><span class="arrow">›</span></a></li>
+        <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/%E7%AE%80%E5%8E%86%E5%AE%A1%E9%98%85-%E8%B5%84%E6%B7%B1PM-30%E9%97%AE.html" data-local>
+          简历审阅 · 30 问<span class="tag local">本地</span><span class="arrow">›</span></a></li>
+        <li><a href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblF1FG5JPFY3hOX" target="_blank" rel="noopener">
+          求职追踪（2027.3 开投再用）<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
+      </ul>
+    </section>
+
+    <section class="lane biz">
+      <div class="lane-head">
+        <h2><span class="ico">📈</span>做生意</h2>
+        <p>团队 20 → 25 → 30 人 · 12.20 / 3.6 / 5.15</p>
+      </div>
+      <a class="primary" href="https://mingyu92.github.io/team-plan/" target="_blank" rel="noopener">
+        团队计划 <span class="go">打开 ›</span>
+      </a>
+      <ul class="links">
+        <li><a href="https://mingyu92.github.io/goal-2027/" target="_blank" rel="noopener">
+          26.9—27.9 年度目标 · 五步路线<span class="tag online">在线</span><span class="arrow">›</span></a></li>
+        <li><a href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg" target="_blank" rel="noopener">
+          生意进展（会面 / 五层对话 / 日工作量）<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
+        <li><a href="https://q1e2yfc2bey.feishu.cn/base/SIz1bAaW2a6TVJs7t7tcErFrnEb" target="_blank" rel="noopener">
+          加人数据统计<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    带「本地」的链接是这台电脑上的文件，得从本机的 index.html 打开才能跳；手机上看得到但点不动。
+  </footer>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+(function(){
+  // 顶上的日期与倒计时
+  var CHIPS = [
+    { key:'today', label:'今天' },
+    { key:'patent', label:'专利截止', date:'2026-11-30', warn:true },
+    { key:'bali', label:'巴厘岛大会', date:'2026-12-20' }
+  ];
+  var now = new Date(); now.setHours(0,0,0,0);
+  function ymd(d){ return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
+  function daysTo(str){
+    var p = str.split('-'), t = new Date(+p[0], +p[1]-1, +p[2]);
+    return Math.round((t - now) / 86400000);
+  }
+  var box = document.getElementById('chips');
+  CHIPS.forEach(function(c){
+    var el = document.createElement('span');
+    el.className = 'chip';
+    if(c.key === 'today'){
+      el.textContent = '今天是 ' + (now.getMonth()+1) + ' 月 ' + now.getDate() + ' 日';
+    } else {
+      var d = daysTo(c.date);
+      el.innerHTML = c.label + ' <b>' + (d > 0 ? '还剩 ' + d + ' 天' : (d === 0 ? '就是今天' : '已过 ' + (-d) + ' 天')) + '</b>';
+      if(c.warn && d > 0 && d <= 20) el.classList.add('hot');
+    }
+    box.appendChild(el);
+  });
+
+  // 本地文件：从网上打开时点了给个提示
+  var isLocal = location.protocol === 'file:';
+  var tip = document.getElementById('tip'), timer = null;
+  function showTip(text){
+    tip.textContent = text;
+    tip.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(function(){ tip.classList.remove('show'); }, 3200);
+  }
+  Array.prototype.slice.call(document.querySelectorAll('a[data-local]')).forEach(function(a){
+    a.addEventListener('click', function(e){
+      if(isLocal) return;
+      e.preventDefault();
+      showTip('这个页面是电脑上的本地文件，从本机的 index.html 打开才跳得过去。');
+    });
+  });
+})();
+</script>
+</body>
+</html>
