@@ -130,6 +130,7 @@
             font-family:inherit;font-size:12px;color:var(--navy);text-align:right;
             font-variant-numeric:tabular-nums;outline:none;}
   .pt-input:focus{border-color:var(--orange);}
+  .pt-hint{font-size:11px;color:#8c8579;line-height:1.45;}
   .plan-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
              margin:14px 0 0;font-size:11.5px;color:var(--muted);}
   .plan-foot a{color:var(--navy);text-decoration:underline;}
@@ -1445,16 +1446,20 @@
   // 这几项和下面的计数器是同一件事，进度直接读计数器的值
   var PLAN_LINK = { '读书': 'book', '开启对话': 'talk', '分享链接': 'link' };
 
-  // 这几项要现场记数：每天 10 个 buffer（周按周三～周二）、每周 2 个会面、本月营业额 PV
+  // buffer：从每月 10 号记到月底，整段 200 个；每天记 10 个
+  var BUFFER_PLAN = { '2026-11': { startDay: 10, target: 200 } };
+  var BUFFER_DAILY = 10;
+
+  // 会面按周记、营业额按月记
   var PLAN_TRACK = {
-    '五层对话':  { rows: [ { label:'今天', target:10, kind:'daily',    unit:' 个' },
-                          { label:'本周', target:28, kind:'weekdays',  unit:' 个' } ] },
-    '会面1':     { rows: [ { label:'本周', target:2,  kind:'week',     unit:' 个' } ] },
+    '会面1':     { rows: [ { label:'本周', target:2,  kind:'week',  unit:' 个' } ] },
     '客户营业额': { rows: [ { label:'本月', target:50, kind:'month', unit:' PV', input:true } ] }
   };
 
   function pad2(n){ return ('0' + n).slice(-2); }
   function monthKeyStr(){ var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth()+1); }
+  function daysInMonth(){ var d = new Date(); return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); }
+
   // 她的一周是周三～周二
   function weekStartWed(){
     var d = new Date(); d.setHours(0,0,0,0);
@@ -1465,56 +1470,85 @@
     var s = weekStartWed(), e = new Date(s); e.setDate(s.getDate() + 6);
     return (s.getMonth()+1) + '/' + s.getDate() + '–' + (e.getMonth()+1) + '/' + e.getDate();
   }
+  function monthRangeText(start){
+    var m = new Date().getMonth() + 1;
+    return m + '/' + start + '–' + m + '/' + daysInMonth();
+  }
+  function bufferCfg(){ return BUFFER_PLAN[monthKeyStr()] || {}; }
+  // 从 start 号累到今天
+  function bufferSum(start){
+    var now = new Date(), sum = 0;
+    for(var day = start; day <= now.getDate(); day++){
+      sum += (+store['buf-' + ymd(new Date(now.getFullYear(), now.getMonth(), day))] || 0);
+    }
+    return sum;
+  }
   function ptKey(kind){
     if(kind === 'daily') return 'buf-' + ymd(new Date());
     if(kind === 'week')  return 'hm-' + ymd(weekStartWed());
     if(kind === 'month') return 'rev-' + monthKeyStr();
     return null;
   }
-  function ptValue(kind){
-    if(kind === 'weekdays'){
-      var s = weekStartWed(), sum = 0;
-      for(var i = 0; i < 7; i++){
-        var d = new Date(s); d.setDate(s.getDate() + i);
-        sum += (+store['buf-' + ymd(d)] || 0);
-      }
-      return sum;
-    }
+  function ptValue(row){
+    var kind = row.dataset.kind;
+    if(kind === 'monthdays') return bufferSum(+row.dataset.start || 1);
     var k = ptKey(kind);
     return k ? (+store[k] || 0) : 0;
   }
 
-  function planTrackHTML(tag){
-    var spec = PLAN_TRACK[tag], h = '<div class="plan-track">';
-    spec.rows.forEach(function(row){
-      var label = row.label;
-      if(row.kind === 'week' || row.kind === 'weekdays'){
-        label += '<small>' + weekRangeText() + '</small>';
-      }
+  // 五层对话：今天 + 10 号到月底这一段
+  function bufferRows(itemTarget){
+    var cfg = bufferCfg();
+    return [
+      { label:'今天', target: BUFFER_DAILY, kind:'daily', unit:' 个' },
+      { label:'本月', target: (cfg.target || itemTarget || 200), kind:'monthdays',
+        startDay: (cfg.startDay || 1), unit:' 个', hint: true }
+    ];
+  }
+
+  function planTrackHTML(tag, item){
+    var rows = (tag === '五层对话') ? bufferRows(item.target) : PLAN_TRACK[tag].rows;
+    var h = '<div class="plan-track">';
+    rows.forEach(function(row){
+      var sub = row.kind === 'week' ? weekRangeText()
+              : (row.kind === 'monthdays' ? monthRangeText(row.startDay) : '');
+      var label = row.label + (sub ? '<small>' + sub + '</small>' : '');
       h += '<div class="pt-row" data-kind="' + row.kind + '" data-target="' + row.target +
-           '" data-unit="' + esc(row.unit || '') + '">' +
+           '" data-start="' + (row.startDay || '') + '" data-unit="' + esc(row.unit || '') + '">' +
            '<span class="pt-label">' + label + '</span>' +
            '<div class="mini-bar"><i></i></div><span class="pt-val"></span>';
       if(row.input){
         h += '<input class="pt-input" type="number" inputmode="numeric" min="0" step="1" aria-label="营业额">';
-      } else if(row.kind !== 'weekdays'){
+      } else if(row.kind === 'daily' || row.kind === 'week'){
         h += '<button class="pt-step" type="button" data-act="minus" aria-label="减一">−</button>' +
              '<button class="pt-step" type="button" data-act="plus" aria-label="加一">+</button>';
       }
       h += '</div>';
+      if(row.hint){
+        h += '<div class="pt-hint" data-target="' + row.target +
+             '" data-start="' + (row.startDay || 1) + '"></div>';
+      }
     });
     return h + '</div>';
   }
 
   function paintPlanTracks(){
     Array.prototype.slice.call(document.querySelectorAll('.pt-row')).forEach(function(row){
-      var kind = row.dataset.kind, target = +row.dataset.target || 0;
-      var v = ptValue(kind);
+      var target = +row.dataset.target || 0;
+      var v = ptValue(row);
       row.querySelector('.mini-bar i').style.width =
         (target ? Math.min(100, Math.round(v / target * 100)) : 0) + '%';
       row.querySelector('.pt-val').textContent = v + ' / ' + target + (row.dataset.unit || '');
       var inp = row.querySelector('.pt-input');
       if(inp && document.activeElement !== inp) inp.value = v;
+    });
+    Array.prototype.slice.call(document.querySelectorAll('.pt-hint')).forEach(function(el){
+      var target = +el.dataset.target || 0;
+      var need = target - bufferSum(+el.dataset.start || 1);
+      var left = daysInMonth() - new Date().getDate() + 1;
+      el.textContent = need <= 0
+        ? '这一段够了'
+        : '还剩 ' + left + ' 天，还差 ' + need + ' 个，每天要 ' + Math.ceil(need / left) + ' 个';
     });
   }
 
@@ -1563,7 +1597,7 @@
         html += '</div>';
         if(it.text) html += '<div class="plan-text">' + esc(it.text) + '</div>';
         if(it.note) html += '<div class="plan-note">' + esc(it.note) + '</div>';
-        if(PLAN_TRACK[it.tag]) html += planTrackHTML(it.tag);
+        if(PLAN_TRACK[it.tag] || it.tag === '五层对话') html += planTrackHTML(it.tag, it);
         if(PLAN_LINK[it.tag] && it.target){
           html += '<div class="plan-prog" data-ck="' + PLAN_LINK[it.tag] + '" data-target="' + it.target + '">' +
                   '<div class="mini-bar"><i></i></div><span class="pv"></span></div>';
