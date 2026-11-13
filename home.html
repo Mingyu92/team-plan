@@ -191,18 +191,26 @@
 
   /* 起不动 · 不想干的时候按这里 */
   .stuck{background:linear-gradient(180deg,#fff8f1,#fffdfb);border:1px solid #f0dcc9;
-         border-radius:8px;padding:18px 22px 18px;}
-  .stuck-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+         border-radius:8px;padding:18px 22px 20px;}
   .stuck h2{margin:0;font-size:19px;color:var(--navy);letter-spacing:.04em;
             display:flex;align-items:center;gap:8px;}
   .stuck h2 .ico{font-size:17px;line-height:1;}
-  .stuck-lede{margin:6px 0 0;font-size:13px;line-height:1.7;color:#6b6862;max-width:660px;}
+  .stuck-lede{margin:6px 0 0;font-size:13px;line-height:1.7;color:#6b6862;max-width:680px;}
   .stuck-lede b{color:var(--orange);font-weight:600;}
-  .stuck-side{flex:0 0 auto;text-align:right;}
-  .stuck-num{font-size:26px;font-weight:700;line-height:1;color:var(--orange);font-variant-numeric:tabular-nums;}
-  .stuck-cap{margin-top:5px;font-size:11.5px;color:#a9a294;}
 
-  .st-states{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px;}
+  .st-appt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px;padding:9px 14px;
+           border-radius:6px;background:#fff;border:1px solid #e6dfd2;font-size:13px;color:#5a6068;}
+  .st-appt[hidden]{display:none;}
+  .st-appt b{color:var(--navy);font-variant-numeric:tabular-nums;}
+  .st-appt.due{background:#fff4ec;border-color:#f0c9ae;}
+  .st-appt.due b{color:var(--orange);}
+  .st-appt .acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
+
+  .st-body{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px;margin-top:14px;}
+  .st-main,.st-side{min-width:0;}
+  .st-side{display:flex;flex-direction:column;gap:12px;}
+
+  .st-states{display:flex;gap:8px;flex-wrap:wrap;}
   .st-state{font:inherit;font-size:12.5px;font-weight:600;color:#6b6862;background:#fff;
             border:1px solid #ecdfd0;border-radius:999px;padding:6px 14px;cursor:pointer;
             transition:background .14s,border-color .14s,color .14s,transform .12s;}
@@ -214,30 +222,55 @@
           padding:11px 14px;font-size:13.5px;line-height:1.75;color:#4a5058;}
   .st-say p{margin:0;}
   .st-say p.quiet{font-size:12.5px;color:#a9a294;}
+  .st-ifthen{margin:0 0 9px;padding:0 0 9px;border-bottom:1px dashed #eee6da;
+             font-size:12.5px;line-height:1.7;color:#8a6a52;}
+  .st-ifthen[hidden]{display:none;}
+  .st-ifthen b{color:var(--orange);font-weight:600;}
   .st-say-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
   .st-say-acts:empty{margin-top:0;}
   .st-say-acts a,.st-say-acts button{font:inherit;font-size:12.5px;font-weight:600;text-decoration:none;
     color:var(--navy);background:#f7f3ec;border:1px solid #e6dfd2;border-radius:999px;padding:5px 13px;
     cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
   .st-say-acts a:hover,.st-say-acts button:hover{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .st-ifopen{margin-top:10px;border:0;background:none;padding:0;font:inherit;font-size:11.5px;
+             color:#b4ad9e;cursor:pointer;}
+  .st-ifopen:hover{color:var(--orange);}
+  .st-ifedit{margin-top:9px;}
+  .st-ifedit[hidden]{display:none;}
+  .st-ifedit input{display:block;width:100%;font:inherit;font-size:13px;color:var(--ink);
+    background:#fff;border:1px solid var(--line);border-radius:6px;padding:7px 10px;}
+  .st-ifedit input:focus{outline:none;border-color:#f0c9ae;box-shadow:0 0 0 3px rgba(217,107,60,.08);}
+  .st-ifedit .row{display:flex;align-items:center;gap:9px;margin-top:7px;flex-wrap:wrap;}
+  .st-ifedit .row span{font-size:11.5px;color:#b4ad9e;}
+
+  .st-mini{font:inherit;font-size:12px;font-weight:600;color:var(--navy);background:#fff;
+           border:1px solid #e6dfd2;border-radius:999px;padding:5px 12px;cursor:pointer;
+           white-space:nowrap;transition:background .14s,border-color .14s,color .14s;}
+  .st-mini:hover{background:var(--navy);border-color:var(--navy);color:#fff;}
 
   .st-dump{margin-top:10px;}
-  .st-dump[hidden]{display:none;}
+  .st-dump[hidden],.st-post[hidden]{display:none;}
   .st-dump textarea{display:block;width:100%;min-height:92px;resize:vertical;font:inherit;font-size:13.5px;
     line-height:1.8;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
   .st-dump textarea:focus{outline:none;border-color:#f0c9ae;box-shadow:0 0 0 3px rgba(217,107,60,.08);}
   .st-dump-cap{margin:6px 0 0;font-size:11.5px;color:#b4ad9e;}
 
-  .st-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px;}
-  .st-card{display:flex;flex-direction:column;gap:3px;background:#fff;border:1px solid #ecdfd0;
-           border-left:3px solid #e9cdb8;border-radius:6px;padding:11px 13px;text-decoration:none;color:inherit;
+  .st-post{margin-top:10px;background:#fff;border:1px solid #e6dfd2;border-radius:6px;padding:11px 14px;}
+  .st-post p{margin:0 0 9px;font-size:12.5px;line-height:1.7;color:#6b6862;}
+  .st-post .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .st-post input[type=datetime-local]{font:inherit;font-size:13px;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:6px;padding:6px 9px;}
+
+  .st-cards{display:flex;flex-direction:column;gap:7px;margin-top:14px;}
+  .st-card{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #ecdfd0;
+           border-left:3px solid #e9cdb8;border-radius:6px;padding:9px 13px;text-decoration:none;color:inherit;
            transition:transform .14s,box-shadow .14s,border-left-color .14s,background .14s;}
-  .st-card:hover{transform:translateY(-2px);border-left-color:var(--orange);background:#fffaf6;
+  .st-card:hover{transform:translateX(2px);border-left-color:var(--orange);background:#fffaf6;
                  box-shadow:0 8px 18px rgba(217,107,60,.10);}
-  .st-card .who{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:#b4ad9e;}
-  .st-card .what{font-size:13.5px;line-height:1.65;color:#3a3f47;}
+  .st-card .who{flex:0 0 84px;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#b4ad9e;}
+  .st-card .what{flex:1;min-width:0;font-size:13.5px;line-height:1.65;color:#3a3f47;}
   .st-card .what b{color:var(--navy);font-weight:600;}
-  .st-card .meta{margin-top:auto;padding-top:5px;font-size:11.5px;color:#b4ad9e;font-variant-numeric:tabular-nums;}
+  .st-card .meta{flex:0 0 auto;font-size:11px;color:#b4ad9e;font-variant-numeric:tabular-nums;}
 
   .st-timer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px;
             padding-top:14px;border-top:1px dashed #eeddcc;}
@@ -249,7 +282,7 @@
   .st-go.run{background:var(--navy);}
   .st-go .ico{font-size:10px;line-height:1;}
   .st-go.run .ico{opacity:.7;}
-  .st-hint{margin:0;flex:1 1 220px;min-width:0;font-size:12px;line-height:1.7;color:#a9a294;}
+  .st-hint{margin:0;flex:1 1 200px;min-width:0;font-size:12px;line-height:1.7;color:#a9a294;}
   .st-hint.on{color:var(--navy);}
   .st-durs{display:flex;gap:5px;}
   .st-dur{font:inherit;font-size:12px;font-weight:600;color:#8d8880;background:#fff;border:1px solid #ecdfd0;
@@ -258,15 +291,60 @@
   .st-dur:hover:not(:disabled){border-color:#f0c9ae;color:var(--orange);}
   .st-dur.on{background:#fff4ec;border-color:#f0c9ae;color:var(--orange);}
   .st-dur:disabled{opacity:.4;cursor:default;}
-  .st-week{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:9px;}
+
+  .st-prep{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px;}
+  .st-prep-cap{font-size:11.5px;color:#b4ad9e;}
+  .st-pchk{font:inherit;font-size:11.5px;color:#8d8880;background:#fff;border:1px solid #ecdfd0;
+           border-radius:999px;padding:4px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+           transition:background .14s,border-color .14s,color .14s;}
+  .st-pchk i{font-style:normal;font-size:10px;color:#cfc7b7;}
+  .st-pchk:hover{border-color:#f0c9ae;}
+  .st-pchk.done{background:#f5faf7;border-color:#d5e8dd;color:#5f7f6b;}
+  .st-pchk.done i{color:#3f7d5e;}
+  .st-prep a{margin-left:auto;font-size:11.5px;color:var(--navy);text-decoration:none;
+             border-bottom:1px solid #cfd8e6;}
+  .st-prep a:hover{color:var(--orange);border-color:#f0d5c6;}
+
+  .st-panel{background:#fff;border:1px solid #ece4d8;border-radius:7px;padding:12px 14px;}
+  .st-today-line{margin:0;font-size:12.5px;color:#8d8a83;}
+  .st-today-line b{font-size:19px;font-weight:700;color:var(--orange);margin:0 2px;
+                   font-variant-numeric:tabular-nums;}
+  .st-week{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;}
   .st-week-cap{font-size:11.5px;color:#b4ad9e;white-space:nowrap;}
-  .st-wcells{display:flex;gap:5px;}
-  .st-w{width:30px;height:30px;border-radius:5px;border:1px solid #ecdfd0;background:#fff;
-        display:grid;place-items:center;font-size:11.5px;font-weight:700;color:#d3ccbc;
+  .st-wcells{display:flex;gap:4px;}
+  .st-w{width:26px;height:26px;border-radius:5px;border:1px solid #ecdfd0;background:#fff;
+        display:grid;place-items:center;font-size:11px;font-weight:700;color:#d3ccbc;
         font-variant-numeric:tabular-nums;}
   .st-w[data-lv="1"]{background:#fdf1e8;border-color:#f2ddcc;color:#c47a4a;}
   .st-w[data-lv="2"]{background:#fbdcc7;border-color:#f0cdb4;color:#a95c2c;}
   .st-w[data-lv="3"]{background:var(--orange);border-color:var(--orange);color:#fff;}
+
+  .st-done-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .st-panel h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.06em;color:#a9a294;}
+  .st-done-head span{font-size:11.5px;color:#b4ad9e;font-variant-numeric:tabular-nums;}
+  .st-done-form{display:flex;gap:6px;margin-top:9px;}
+  .st-done-form input{flex:1;min-width:0;font:inherit;font-size:13px;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:6px;padding:7px 10px;}
+  .st-done-form input:focus{outline:none;border-color:#f0c9ae;box-shadow:0 0 0 3px rgba(217,107,60,.08);}
+  .st-done-form button{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:600;color:#fff;
+    background:var(--navy);border:0;border-radius:6px;padding:7px 12px;cursor:pointer;}
+  .st-done-form button:hover{filter:brightness(1.12);}
+  .st-done-list{list-style:none;margin:9px 0 0;padding:0;display:flex;flex-direction:column;gap:5px;
+                max-height:184px;overflow:auto;}
+  .st-done-list li{display:flex;align-items:baseline;gap:7px;font-size:12.5px;line-height:1.55;color:#4a5058;}
+  .st-done-list .at{flex:0 0 auto;font-size:10.5px;color:#c3bcac;font-variant-numeric:tabular-nums;}
+  .st-done-list .tx{flex:1;min-width:0;overflow-wrap:anywhere;}
+  .st-done-list .x{flex:0 0 auto;border:0;background:none;color:#dcd6c8;font-size:13px;line-height:1;
+                   cursor:pointer;padding:0 2px;}
+  .st-done-list .x:hover{color:var(--orange);}
+  .st-done-empty{margin:9px 0 0;font-size:11.5px;line-height:1.7;color:#b4ad9e;}
+
+  .st-why{margin-top:16px;padding-top:12px;border-top:1px dashed #eeddcc;font-size:12.5px;color:#8d8a83;}
+  .st-why summary{cursor:pointer;font-size:12px;letter-spacing:.04em;color:#a9a294;}
+  .st-why summary:hover{color:var(--orange);}
+  .st-why ul{margin:9px 0 0;padding-left:18px;}
+  .st-why li{margin:6px 0;line-height:1.78;}
+  .st-why b{color:#6b6862;font-weight:600;}
 
   .habits{margin-top:38px;background:var(--paper);border:1px solid var(--line);
           border-top:4px solid var(--orange);border-radius:8px;padding:22px 24px 24px;}
@@ -545,9 +623,9 @@
     .jn-cols{grid-template-columns:1fr 1fr;gap:22px;}
     .jn-col.wide{grid-column:1 / -1;}
     .stuck{padding:16px 16px 18px;}
+    .st-body{grid-template-columns:1fr;gap:16px;}
     .st-cards{grid-template-columns:1fr;}
-    .stuck-side{text-align:left;}
-    .st-week{justify-content:flex-start;}
+    .st-prep a{margin-left:0;}
   }
 
   @media (max-width:640px){
@@ -557,6 +635,9 @@
     .jobnow{padding:18px 16px 20px;}
     .jn-stats{grid-template-columns:1fr 1fr;}
     .jn-cols{grid-template-columns:1fr;}
+    .st-card{flex-wrap:wrap;gap:4px 10px;}
+    .st-card .who{flex:0 0 100%;}
+    .st-card .meta{margin-left:auto;}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -593,63 +674,121 @@
   </nav>
 
   <section class="stuck" id="stuck" aria-labelledby="stuckTitle">
-    <div class="stuck-top">
-      <div>
-        <h2 id="stuckTitle"><span class="ico">🪫</span>起不动 · 就在这按一下</h2>
-        <p class="stuck-lede">不想干不是你一个人的毛病 —— 卡住的时候，那件事在脑子里还是一团，没有一个具体的第一步。这里只做一件事：<b>把第一步缩到 2 分钟</b>。</p>
+    <h2 id="stuckTitle"><span class="ico">🪫</span>起不动 · 就在这按一下</h2>
+    <p class="stuck-lede">不想干不是你一个人的毛病：不是懒，是那件事在脑子里还是一团，或者一想到它就难受、想躲。这块只做一件事 —— <b>把第一步缩到 2 分钟</b>。</p>
+
+    <div class="st-appt" id="stAppt" hidden>
+      <span id="stApptText"></span>
+      <span class="acts">
+        <button class="st-mini" type="button" id="stApptGo">现在就动</button>
+        <button class="st-mini" type="button" id="stApptX">取消</button>
+      </span>
+    </div>
+
+    <div class="st-body">
+      <div class="st-main">
+
+        <div class="st-states" id="stStates" role="group" aria-label="现在是什么感觉">
+          <button class="st-state" type="button" data-k="messy">脑子一团乱</button>
+          <button class="st-state" type="button" data-k="tired">就是没劲</button>
+          <button class="st-state" type="button" data-k="avoid">不想面对那件事</button>
+          <button class="st-state" type="button" data-k="lost">不知道先干哪个</button>
+          <button class="st-state" type="button" data-k="nope">今天真的不想干</button>
+        </div>
+
+        <div class="st-say" id="stSay" aria-live="polite">
+          <p class="st-ifthen" id="stIfthen" hidden></p>
+          <p class="quiet" id="stSayText">点一个状态，这一步怎么迈就清楚了。</p>
+          <div class="st-say-acts" id="stSayActs"></div>
+          <div class="st-ifedit" id="stIfthenEdit" hidden>
+            <input id="stIfthenIn" type="text" placeholder="如果我又开始刷手机，我就先打开专利表写一行。">
+            <div class="row">
+              <button class="st-mini" type="button" id="stIfthenSave">存下</button>
+              <span>卡住的时候我先念这句给你听 · 只存在这台电脑上</span>
+            </div>
+          </div>
+          <button class="st-ifopen" type="button" id="stIfthenOpen">✎ 给自己写一句「如果我…就…」</button>
+        </div>
+
+        <div class="st-dump" id="stDump" hidden>
+          <textarea id="stDumpText" placeholder="一行一条，想到什么写什么。不用整理，也不用排序。"></textarea>
+          <p class="st-dump-cap">存在这台电脑上，只有你能看见。明天自动换一张空白的。</p>
+        </div>
+
+        <div class="st-post" id="stPost" hidden>
+          <p>那就跟它约个钟点 —— 别约「今晚」，约几点几分。到点这块会跳出来喊你。</p>
+          <div class="row">
+            <input type="datetime-local" id="stWhen">
+            <button class="st-mini" type="button" id="stWhenOk">约好</button>
+            <button class="st-mini" type="button" id="stWhenX">算了</button>
+          </div>
+        </div>
+
+        <div class="st-cards">
+          <a class="st-card" href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblchxXlsnDA2vHV" target="_blank" rel="noopener">
+            <span class="who">专利 · 11/30</span>
+            <span class="what">打开 5 个候选点，只动<b>候选 1</b> 那一段：它替谁解决了什么麻烦。</span>
+            <span class="meta">5 分钟 · 写不顺就停</span>
+          </a>
+          <a class="st-card" href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
+            <span class="who">求职 · 零投递</span>
+            <span class="what">打开今日岗位，挑一家投出去。<b>v10 已经定了</b>，投之前不用再改。</span>
+            <span class="meta">5 分钟 · 投出去一家就算赢</span>
+          </a>
+          <a class="st-card" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnQ5FyWss9zbc18TJcEaPSie" target="_blank" rel="noopener">
+            <span class="who">生意 · 一个数</span>
+            <span class="what">打开加人数据表单，把今天的那一个数填进去。</span>
+            <span class="meta">2 分钟 · 一个就够</span>
+          </a>
+        </div>
+
+        <div class="st-timer">
+          <button class="st-go" id="stGo" type="button"><span class="ico">▶</span><span id="stGoLabel">先干 2 分钟</span></button>
+          <div class="st-durs" id="stDurs" role="group" aria-label="计时多长">
+            <button class="st-dur on" type="button" data-m="2">2</button>
+            <button class="st-dur" type="button" data-m="5">5</button>
+            <button class="st-dur" type="button" data-m="10">10</button>
+            <button class="st-dur" type="button" data-m="25">25</button>
+          </div>
+          <button class="st-mini" type="button" id="stAgain" hidden>再来一轮</button>
+          <p class="st-hint" id="stHint">难的不是坚持，是开始。到点可以停。</p>
+        </div>
+
+        <div class="st-prep">
+          <span class="st-prep-cap">开工前顺手：</span>
+          <button class="st-pchk" type="button" data-p="0"><i>○</i>别的窗口关掉</button>
+          <button class="st-pchk" type="button" data-p="1"><i>○</i>手机反面朝下</button>
+          <a href="#boost">🎧 放首歌</a>
+        </div>
       </div>
-      <div class="stuck-side">
-        <div class="stuck-num" id="stCount">0</div>
-        <div class="stuck-cap" id="stCap">今天还没动过</div>
-        <div class="st-week"><span class="st-week-cap">最近七天</span><span class="st-wcells" id="stWeekCells"></span></div>
-      </div>
+
+      <aside class="st-side">
+        <div class="st-panel">
+          <p class="st-today-line">今天启动了 <b id="stCount">0</b> 次</p>
+          <div class="st-week"><span class="st-week-cap">最近七天</span><span class="st-wcells" id="stWeekCells"></span></div>
+        </div>
+        <div class="st-panel">
+          <div class="st-done-head"><h3>今天做成的</h3><span id="stDoneN">0 件</span></div>
+          <form class="st-done-form" id="stDoneForm" autocomplete="off">
+            <input id="stDoneIn" type="text" placeholder="一句就行，不用大">
+            <button type="submit">记上</button>
+          </form>
+          <ul class="st-done-list" id="stDoneList"></ul>
+          <p class="st-done-empty" id="stDoneEmpty">做完一件就写一句 —— 不然一天下来只记得没做的。</p>
+        </div>
+      </aside>
     </div>
 
-    <div class="st-states" id="stStates" role="group" aria-label="现在是什么感觉">
-      <button class="st-state" type="button" data-k="messy">脑子一团乱</button>
-      <button class="st-state" type="button" data-k="tired">就是没劲</button>
-      <button class="st-state" type="button" data-k="avoid">不想面对那件事</button>
-      <button class="st-state" type="button" data-k="lost">不知道先干哪个</button>
-    </div>
-
-    <div class="st-say" id="stSay" aria-live="polite">
-      <p class="quiet" id="stSayText">点一个状态，这一步怎么迈就清楚了。</p>
-      <div class="st-say-acts" id="stSayActs"></div>
-    </div>
-
-    <div class="st-dump" id="stDump" hidden>
-      <textarea id="stDumpText" placeholder="一行一条，想到什么写什么。不用整理，也不用排序。"></textarea>
-      <p class="st-dump-cap">存在这台电脑上，只有你能看见。明天自动换一张空白的。</p>
-    </div>
-
-    <div class="st-cards">
-      <a class="st-card" href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblchxXlsnDA2vHV" target="_blank" rel="noopener">
-        <span class="who">专 利 · 11/30 前</span>
-        <span class="what">打开 5 个候选点，只动<b>候选 1</b> 那一段：它替谁解决了什么麻烦。</span>
-        <span class="meta">5 分钟 · 写不顺就停</span>
-      </a>
-      <a class="st-card" href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
-        <span class="who">求 职 · 一次都还没投</span>
-        <span class="what">打开今日岗位，挑一家投出去。<b>v10 已经定了</b>，投之前不用再改。</span>
-        <span class="meta">5 分钟 · 投出去一家就算赢</span>
-      </a>
-      <a class="st-card" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnQ5FyWss9zbc18TJcEaPSie" target="_blank" rel="noopener">
-        <span class="who">生 意 · 每天一个数</span>
-        <span class="what">打开加人数据表单，把今天的那一个数填进去。</span>
-        <span class="meta">2 分钟 · 一个就够</span>
-      </a>
-    </div>
-
-    <div class="st-timer">
-      <button class="st-go" id="stGo" type="button"><span class="ico">▶</span><span id="stGoLabel">先干 2 分钟</span></button>
-      <div class="st-durs" id="stDurs" role="group" aria-label="计时多长">
-        <button class="st-dur on" type="button" data-m="2">2</button>
-        <button class="st-dur" type="button" data-m="5">5</button>
-        <button class="st-dur" type="button" data-m="10">10</button>
-        <button class="st-dur" type="button" data-m="25">25</button>
-      </div>
-      <p class="st-hint" id="stHint">难的不是坚持，是开始。到点可以停。</p>
-    </div>
+    <details class="st-why">
+      <summary>这块是按什么做的（点开看）</summary>
+      <ul>
+        <li><b>拖延不是时间问题，是情绪问题。</b>一想到那件事就难受，于是刷手机把难受先哄过去。所以先让「开始」这件事不难受，而不是先讲道理。</li>
+        <li><b>难的是开始，不是坚持。</b>真动了之后，做了一半的事会一直挂在脑子里拉你回去。所以只要 2 分钟，剩下的交给那股劲。</li>
+        <li><b>说得越具体越动得起来。</b>「如果我 X，我就 Y」这种句子比「我要努力」管用得多 —— 所以留了一句你自己写的话。</li>
+        <li><b>自责会让下一次更拖。</b>所以「今天真的不想干」留了正当出口：不是放弃，是约个钟点，到点再动。</li>
+        <li><b>看得见的小进展才撑得住。</b>所以有「今天做成的」—— 写一句就算，不用大。</li>
+      </ul>
+    </details>
   </section>
 
   <main class="lanes">
@@ -1910,7 +2049,7 @@
   if(auth) syncAll(); else setSync('login');
 })();
 
-// 起不动：选一个状态 → 一句对策；2 分钟计时器；本机记「今天开始了几次」
+// 起不动：状态 → 一句对策；计时器；约时间；今天做成的。全部只存本机
 (function(){
   var sec = document.getElementById('stuck');
   if(!sec) return;
@@ -1927,23 +2066,26 @@
     if(d.getHours() < ROLL) d.setDate(d.getDate() - 1);
     return ymd(d);
   }
+  function hhmm(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function stamp(iso){
+    var d = new Date(iso);
+    return (d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + hhmm(d);
+  }
+  function ls(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lss(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+  function lj(k, d){ try{ var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } }
+  function sj(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function arr(v){ return Array.isArray(v) ? v : []; }
+
   var today = dayKey();
 
-  function getN(k){
-    try{ var v = parseInt(localStorage.getItem('st:' + k) || '0', 10); return isNaN(v) ? 0 : v; }
-    catch(e){ return 0; }
-  }
-  function addN(k){
-    try{ localStorage.setItem('st:' + k, String(getN(k) + 1)); }catch(e){}
-  }
-
+  /* ── 今天启动了几次 + 最近七天 ── */
+  function getN(k){ var v = parseInt(ls('st:' + k) || '0', 10); return isNaN(v) ? 0 : v; }
+  function addN(k){ lss('st:' + k, String(getN(k) + 1)); }
   var nEl = document.getElementById('stCount');
-  var capEl = document.getElementById('stCap');
   var cellsEl = document.getElementById('stWeekCells');
   function paintCount(){
-    var n = getN(today);
-    nEl.textContent = n;
-    capEl.textContent = n ? '今天启动了 ' + n + ' 次' : '今天还没动过';
+    nEl.textContent = getN(today);
     cellsEl.innerHTML = '';
     for(var i = 6; i >= 0; i--){
       var k = shift(today, -i), c = getN(k), b = document.createElement('span');
@@ -1954,17 +2096,72 @@
       cellsEl.appendChild(b);
     }
   }
-  paintCount();
 
-  // —— 计时器 ——
+  /* ── 今天做成的 ── */
+  var dList = document.getElementById('stDoneList');
+  var dN = document.getElementById('stDoneN');
+  var dIn = document.getElementById('stDoneIn');
+  var dEmpty = document.getElementById('stDoneEmpty');
+  function paintDone(){
+    var a = arr(lj('done:' + today, []));
+    dN.textContent = a.length + ' 件';
+    dList.innerHTML = '';
+    a.forEach(function(it, i){
+      var li = document.createElement('li');
+      var at = document.createElement('span'); at.className = 'at'; at.textContent = it.at || '';
+      var tx = document.createElement('span'); tx.className = 'tx'; tx.textContent = it.t || '';
+      var x = document.createElement('button');
+      x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.title = '删掉这条';
+      x.addEventListener('click', function(){
+        var b = arr(lj('done:' + today, []));
+        b.splice(i, 1); sj('done:' + today, b); paintDone();
+      });
+      li.appendChild(at); li.appendChild(tx); li.appendChild(x);
+      dList.appendChild(li);
+    });
+    dEmpty.hidden = a.length > 0;
+  }
+  document.getElementById('stDoneForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var v = dIn.value.trim();
+    if(!v) return;
+    var a = arr(lj('done:' + today, []));
+    a.push({ t: v, at: hhmm(new Date()) });
+    sj('done:' + today, a);
+    dIn.value = '';
+    paintDone();
+  });
+
+  /* ── 开工前顺手三件事 ── */
+  var pBtns = Array.prototype.slice.call(sec.querySelectorAll('.st-pchk'));
+  function paintPrep(){
+    var a = arr(lj('prep:' + today, [])).slice();
+    pBtns.forEach(function(b, i){
+      var on = !!a[i];
+      b.classList.toggle('done', on);
+      var mark = b.querySelector('i');
+      if(mark) mark.textContent = on ? '✓' : '○';
+    });
+  }
+  pBtns.forEach(function(b, i){
+    b.addEventListener('click', function(){
+      var a = arr(lj('prep:' + today, [])).slice();
+      a[i] = a[i] ? 0 : 1;
+      sj('prep:' + today, a);
+      paintPrep();
+    });
+  });
+
+  /* ── 计时器 ── */
   var go = document.getElementById('stGo');
   var goLabel = document.getElementById('stGoLabel');
+  var goIco = go.querySelector('.ico');
   var hint = document.getElementById('stHint');
+  var againBtn = document.getElementById('stAgain');
   var durBtns = Array.prototype.slice.call(sec.querySelectorAll('.st-dur'));
   var mins = 2, left = 0, endAt = 0, tick = null, running = false;
-  var goIco = go.querySelector('.ico');
   var HINT = '难的不是坚持，是开始。到点可以停。';
-  // 按真实时间算，不数 tick —— 她切去干活那个标签页，浏览器会限流后台定时器
+  // 按真实时间算，不数 tick —— 她会切去干活那个标签页，浏览器会限流后台定时器
   function remain(){ return Math.max(0, Math.ceil((endAt - Date.now()) / 1000)); }
 
   function paintGo(){
@@ -1978,31 +2175,35 @@
       goLabel.textContent = '先干 ' + mins + ' 分钟';
     }
   }
+  function setHint(text, on){
+    hint.className = 'st-hint' + (on ? ' on' : '');
+    hint.textContent = text;
+  }
   function halt(){
     if(tick){ clearInterval(tick); tick = null; }
     running = false;
     durBtns.forEach(function(b){ b.disabled = false; });
     paintGo();
   }
-  function say(text, on){
-    hint.className = 'st-hint' + (on ? ' on' : '');
-    hint.textContent = text;
-  }
-  function done(){
-    halt();
-    addN(today); paintCount();
-    say(mins + ' 分钟到了。接着干也好，收工也好 —— 今天算动过了。', true);
-  }
   function begin(){
+    againBtn.hidden = true;
     left = mins * 60; endAt = Date.now() + mins * 60000; running = true;
     durBtns.forEach(function(b){ b.disabled = true; });
-    say('现在只做手上这一件。别切窗口，别先去看别的。', true);
+    setHint('现在只做手上这一件。别切窗口，别先去看别的。', true);
     paintGo();
     tick = setInterval(function(){
       left = remain();
-      if(left <= 0){ done(); return; }
+      if(left <= 0){ finish(); return; }
       paintGo();
     }, 1000);
+  }
+  function finish(){
+    halt();
+    againBtn.hidden = false;
+    addN(today); paintCount();
+    setHint(mins + ' 分钟到了。' + (mins >= 10
+      ? '接着干或者收工，今天都算动过了。'
+      : '刚热身完是最容易接上的时候 —— 再来一轮，或者趁那股劲直接干下去。'), true);
   }
   go.addEventListener('click', function(){
     if(running){
@@ -2010,51 +2211,58 @@
       halt();
       if(kept){
         addN(today); paintCount();
-        say('停了也算。真正的门槛是「开始」，你已经过了。', true);
+        setHint('停了也算。真正的门槛是「开始」，你已经过了。', true);
       }else{
-        say('不到一分钟不算数。再来一次，这次就 ' + mins + ' 分钟。', false);
+        setHint('不到一分钟不算数。再来一次，这次就 ' + mins + ' 分钟。', false);
       }
     }else{
       begin();
     }
   });
+  againBtn.addEventListener('click', function(){ begin(); });
   durBtns.forEach(function(b){
     b.addEventListener('click', function(){
       if(running) return;
       mins = parseInt(b.getAttribute('data-m'), 10) || 2;
       durBtns.forEach(function(x){ x.classList.toggle('on', x === b); });
-      say(HINT, false);
+      setHint(HINT, false);
       paintGo();
     });
   });
 
-  // —— 四个状态 → 一句对策 + 一个能点的动作 ——
+  /* ── 五个状态 → 一句对策 + 一个能点的动作 ── */
   var SAY = {
     messy:{
-      t:'不是事情多，是它们全在脑子里打转，转一圈什么也没落下。现在就往外倒：一行一条，想到什么写什么，不整理也不排序。',
+      t:'不是事多，是它们全在脑子里转圈 —— 脑子里一次装不下这么多，装不下就一件也动不了。往外倒：一行一条，不整理也不排序。',
       acts:[{ label:'开始往外倒', act:'dump' }]
     },
     tired:{
-      t:'别等有劲。劲是动出来的 —— 挑手上最小的一件，按 2 分钟，做完就允许自己停。',
+      t:'没劲是结果，不是原因。坐着等，越等越没劲；动两分钟，劲才回来。挑手上最小的一件。',
       acts:[{ label:'按下去 · 2 分钟', act:'go' }]
     },
     avoid:{
-      t:'那就只面对它 2 分钟：打开那个文件或者那张表，别的窗口全关。2 分钟后真想关就关，没人拦你。',
+      t:'你怕的不是这件事，是脑子里给它画的那张像。真打开了，它通常只有原来的一半大。只面对 2 分钟，别的窗口全关。',
       acts:[{ label:'按下去 · 2 分钟', act:'go' }]
     },
     lost:{
-      t:'按日期排：11 月 30 日的专利 → 求职（一次都还没投）→ 生意日常。今天只动最上面那个，别的一概不想。',
+      t:'按日期：11 月 30 日的专利 → 求职（一次都还没投）→ 生意日常。今天只动最上面那个，别的一概不想。',
       acts:[
         { label:'专利冲刺表', href:'https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblyIyxLIb6Kw6uA&view=vew5VrQ31I', out:true },
         { label:'找工作那一块', href:'#jobnow' },
         { label:'加人数据表单', href:'https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnQ5FyWss9zbc18TJcEaPSie', out:true }
       ]
+    },
+    nope:{
+      t:'那就别硬来 —— 硬着头皮做的，多半明天还得重做。给它约个具体钟点，写下来，到点我来喊你。',
+      acts:[{ label:'约个时间', act:'post' }]
     }
   };
   var sayText = document.getElementById('stSayText');
   var sayActs = document.getElementById('stSayActs');
   var dump = document.getElementById('stDump');
   var dText = document.getElementById('stDumpText');
+  var postBox = document.getElementById('stPost');
+  var whenEl = document.getElementById('stWhen');
   var stateBtns = Array.prototype.slice.call(sec.querySelectorAll('.st-state'));
 
   function pick(k){
@@ -2078,32 +2286,122 @@
       el.addEventListener('click', function(ev){
         if(a.act === 'dump'){ ev.preventDefault(); dump.hidden = false; dText.focus(); }
         else if(a.act === 'go'){ ev.preventDefault(); if(!running) begin(); }
+        else if(a.act === 'post'){ ev.preventDefault(); openPost(); }
       });
       sayActs.appendChild(el);
     });
     dump.hidden = (k !== 'messy');
+    postBox.hidden = (k !== 'nope');
+    if(k === 'nope') openPost();
   }
   stateBtns.forEach(function(b){
     b.addEventListener('click', function(){ pick(b.getAttribute('data-k')); });
   });
 
+  /* ── 「今天真的不想干」→ 约个钟点 ── */
+  function localVal(d){ return ymd(d) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function openPost(){
+    var d = new Date(); d.setSeconds(0, 0);
+    if(d.getHours() < 20) d.setHours(20, 0, 0, 0);
+    else { d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); }
+    whenEl.value = localVal(d);
+    postBox.hidden = false;
+  }
+  document.getElementById('stWhenX').addEventListener('click', function(){ postBox.hidden = true; });
+  document.getElementById('stWhenOk').addEventListener('click', function(){
+    if(!whenEl.value) return;
+    var t = new Date(whenEl.value);
+    if(isNaN(t.getTime())) return;
+    lss('appt', t.toISOString());
+    postBox.hidden = true;
+    paintAppt();
+  });
+
+  /* ── 约好的时间：页面开着到点会喊 ── */
+  var apptEl = document.getElementById('stAppt');
+  var apptText = document.getElementById('stApptText');
+  function paintAppt(){
+    var iso = ls('appt');
+    if(!iso){ apptEl.hidden = true; return; }
+    var due = new Date(iso).getTime() <= Date.now();
+    apptEl.hidden = false;
+    apptEl.classList.toggle('due', due);
+    apptText.innerHTML = '';
+    if(due){
+      apptText.textContent = '到点了 —— 你和它约的就是现在。';
+    }else{
+      apptText.appendChild(document.createTextNode('你和它约了 '));
+      var b = document.createElement('b'); b.textContent = stamp(iso);
+      apptText.appendChild(b);
+      apptText.appendChild(document.createTextNode('，到点我再喊你。'));
+    }
+  }
+  document.getElementById('stApptGo').addEventListener('click', function(){
+    lss('appt', ''); paintAppt();
+    if(!running) begin();
+  });
+  document.getElementById('stApptX').addEventListener('click', function(){
+    lss('appt', ''); paintAppt();
+  });
+
+  /* ── 写给自己的一句 if-then ── */
+  var ifEl = document.getElementById('stIfthen');
+  var ifOpen = document.getElementById('stIfthenOpen');
+  var ifEdit = document.getElementById('stIfthenEdit');
+  var ifIn = document.getElementById('stIfthenIn');
+  function paintIfthen(){
+    var v = (ls('ifthen') || '').trim();
+    ifEl.innerHTML = '';
+    if(v){
+      ifEl.hidden = false;
+      ifEl.appendChild(document.createTextNode('你上次留的：'));
+      var b = document.createElement('b'); b.textContent = '「' + v + '」';
+      ifEl.appendChild(b);
+      ifOpen.textContent = '✎ 改一句';
+    }else{
+      ifEl.hidden = true;
+      ifOpen.textContent = '✎ 给自己写一句「如果我…就…」';
+    }
+  }
+  ifOpen.addEventListener('click', function(){
+    ifEdit.hidden = false;
+    ifIn.value = ls('ifthen') || '';
+    ifIn.focus();
+  });
+  document.getElementById('stIfthenSave').addEventListener('click', function(){
+    lss('ifthen', ifIn.value.trim());
+    ifEdit.hidden = true;
+    paintIfthen();
+  });
+
   // 倒出来的东西按天存在本机
   if(dText){
-    try{ dText.value = localStorage.getItem('dump:' + today) || ''; }catch(e){}
+    dText.value = ls('dump:' + today) || '';
     dText.addEventListener('input', function(){
-      try{ localStorage.setItem('dump:' + today, dText.value); }catch(e){}
+      lss('dump:' + today, dText.value);
     });
   }
 
   // 过了零点（含凌晨 0–6 点那档）重新开一天
   setInterval(function(){
     var k = dayKey();
-    if(k === today) return;
-    today = k;
-    paintCount();
-    dump.hidden = true;
-    if(dText) dText.value = '';
-  }, 60000);
+    if(k !== today){
+      today = k;
+      paintCount(); paintDone(); paintPrep();
+      dump.hidden = true;
+      postBox.hidden = true;
+      ifEdit.hidden = true;
+      if(dText) dText.value = '';
+    }
+    paintAppt();
+  }, 30000);
+
+  paintCount();
+  paintDone();
+  paintPrep();
+  paintIfthen();
+  paintAppt();
+  paintGo();
 })();
 
 // 顶部导航：跟着滚动高亮，点一下跳过去
