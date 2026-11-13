@@ -298,10 +298,13 @@ footer{color:var(--muted);font-size:13px;margin-top:56px;border-top:1px solid va
     });
   }
 
+  var promptedLogin = false;
   boxes.forEach(function(b){
     b.addEventListener('change', function(){
       state = { keys: collect(), ts: Date.now() };
       saveState(); paint(); schedulePush();
+      /* 没登录时第一次打勾就把登录框叫出来，不然勾只留在这台设备上 */
+      if(!auth && !promptedLogin){ promptedLogin = true; showLogin(); }
     });
   });
 
