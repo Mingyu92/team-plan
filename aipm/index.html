@@ -226,7 +226,7 @@ footer{color:var(--muted);font-size:13px;margin-top:56px;border-top:1px solid va
   function schedulePush(){
     if(!auth) { setNote('login'); return; }
     clearTimeout(pushTimer);
-    pushTimer = setTimeout(push, 800);
+    pushTimer = setTimeout(function(){ pushTimer = null; push(); }, 800);
   }
 
   function setNote(kind, msg){
