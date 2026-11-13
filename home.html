@@ -21,11 +21,7 @@
     font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
     font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
   }
-  .page{max-width:1480px;margin:0 auto;padding:52px 40px 64px;}
-  /* 左主栏 + 右金句栏 */
-  .shell{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:34px;
-         align-items:start;margin-top:34px;}
-  .col{min-width:0;}
+  .page{max-width:1120px;margin:0 auto;padding:52px 40px 64px;}
 
   header{border-bottom:2px solid var(--navy);padding-bottom:22px;}
   .kicker{font-size:12.5px;letter-spacing:.2em;color:var(--orange);font-weight:600;margin-bottom:8px;}
@@ -40,7 +36,7 @@
   .chip b{color:var(--orange);font-weight:700;}
   .chip.hot{border-color:#f0d5c6;background:#fff4ec;}
 
-  .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:0;align-items:start;}
+  .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:34px;align-items:start;}
 
   .lane{background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;
         transition:transform .16s, box-shadow .16s, border-color .16s;}
@@ -154,25 +150,32 @@
            overflow:hidden;text-overflow:ellipsis;}
   .song-dur{flex:0 0 auto;margin-left:auto;font-size:11px;color:#b4ad9e;
             font-variant-numeric:tabular-nums;}
+  .song-label{margin:20px 0 -4px;font-size:11.5px;font-weight:600;letter-spacing:.08em;
+              color:#a9a294;text-transform:uppercase;}
+  .song-label:first-of-type{margin-top:16px;}
   .song-tip{margin:15px 0 2px;padding-top:12px;border-top:1px dashed var(--line);
             font-size:12.5px;color:var(--muted);}
   .song-tip a{color:var(--navy);text-decoration:none;border-bottom:1px solid #cfd8e6;padding-bottom:1px;}
   .song-tip a:hover{color:var(--orange);border-color:#f0d5c6;}
 
-  /* 金句栏：宽屏在右栏，窄屏变顶部横幅 */
-  .qrail{position:sticky;top:26px;}
-  .qcard{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--orange);
-         border-radius:10px;box-shadow:0 10px 30px rgba(27,58,99,.07);padding:28px 26px 18px;}
-  .qcard-head{display:flex;align-items:center;gap:8px;margin-bottom:18px;position:relative;}
-  .qcard-label{font-size:11px;letter-spacing:.24em;font-weight:700;color:var(--orange);}
+  /* 浮动金句 */
+  .qcard{position:fixed;right:24px;bottom:24px;width:308px;z-index:30;
+         background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--orange);
+         border-radius:10px;box-shadow:0 18px 44px rgba(27,58,99,.14);padding:18px 18px 12px;
+         transition:opacity .22s ease, transform .22s ease;}
+  .qcard-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;}
+  .qcard-label{font-size:10.5px;letter-spacing:.22em;font-weight:700;color:var(--orange);}
   .qcard-count{margin-left:auto;font-size:10.5px;color:#b4ad9e;letter-spacing:.06em;
                font-variant-numeric:tabular-nums;}
-  .qcard-text{position:relative;margin:0;font-size:18px;line-height:2.05;color:var(--ink);
+  .qcard-min{border:0;background:none;color:#b4ad9e;font-size:15px;line-height:1;cursor:pointer;
+             padding:2px 4px;border-radius:4px;transition:color .15s, background .15s;}
+  .qcard-min:hover{color:var(--navy);background:#f4f0e6;}
+  .qcard-text{position:relative;margin:0;font-size:15.5px;line-height:1.95;color:var(--ink);
               font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif;
-              letter-spacing:.01em;min-height:118px;
+              letter-spacing:.01em;min-height:90px;
               transition:opacity .2s ease, transform .2s ease;}
   .qcard-text.fading{opacity:0;transform:translateY(5px);}
-  .qcard-foot{display:flex;align-items:center;gap:7px;margin-top:20px;padding-top:14px;
+  .qcard-foot{display:flex;align-items:center;gap:7px;margin-top:10px;padding-top:10px;
               border-top:1px dashed var(--line);}
   .qdots{display:flex;gap:7px;}
   .qdot{width:6px;height:6px;border-radius:50%;border:0;padding:0;background:#dcd6c8;cursor:pointer;
@@ -182,6 +185,13 @@
   .qnext{margin-left:auto;border:0;background:none;font-size:11.5px;color:#9a9a94;cursor:pointer;padding:2px 0;
          transition:color .15s;}
   .qnext:hover{color:var(--orange);}
+  .qcard.hide{opacity:0;transform:translateY(14px) scale(.98);pointer-events:none;}
+  .qpill{position:fixed;right:24px;bottom:24px;z-index:30;display:none;align-items:center;gap:6px;
+         border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 16px;
+         font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;
+         box-shadow:0 10px 26px rgba(27,58,99,.14);transition:border-color .15s, color .15s;}
+  .qpill:hover{border-color:#f0d5c6;color:var(--orange);}
+  .qpill.show{display:inline-flex;}
 
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
@@ -201,19 +211,18 @@
     .tracks{grid-template-columns:1fr;}
     .audio-now{text-align:left;margin-top:8px;}
     .song-list{grid-template-columns:1fr;}
+    .page{padding-bottom:150px;}
   }
 
-  /* 放不下右栏时：金句收回顶部，变成一条横幅 */
-  @media (max-width:1240px){
-    .shell{grid-template-columns:1fr;gap:0;margin-top:30px;}
-    .qrail{position:static;order:-1;margin-bottom:22px;}
-    .qcard{padding:18px 20px 12px;}
-    .qcard-text{min-height:0;font-size:15.5px;}
+  @media (max-width:640px){
+    .qcard{right:12px;left:12px;bottom:12px;width:auto;padding:15px 16px 10px;}
+    .qcard-text{font-size:14.5px;min-height:0;}
+    .qpill{right:12px;bottom:12px;}
   }
 
   @media (prefers-reduced-motion:reduce){
     .track.playing .track-eq i{animation:none;height:12px;}
-    .qcard-text, .qdot, .qnext{transition:none;}
+    .qcard, .qcard-text, .qdot, .qcard-min, .qnext, .qpill{transition:none;}
   }
 </style>
 </head>
@@ -226,9 +235,6 @@
     <p class="lede">写专利 · 找工作 · 做生意 —— 常用的页面都在这，点一下就过去。</p>
     <div class="chips" id="chips"></div>
   </header>
-
-  <div class="shell">
-    <div class="col">
 
   <main class="lanes">
 
@@ -412,27 +418,83 @@
     </p>
   </section>
 
-    </div><!-- /.col -->
+  <section class="audio" aria-labelledby="medTitle">
+    <div class="audio-head">
+      <div>
+        <div class="kicker">十分钟 · 把自己放回来</div>
+        <h2 id="medTitle">冥想</h2>
+        <p>都是 B 站引导音频，点开新窗口；戴耳机，找个能坐住 / 躺平的地方。</p>
+      </div>
+      <div class="audio-now">B 站 · 14 段</div>
+    </div>
 
-    <aside class="qrail">
-      <section class="qcard" id="quoteCard" aria-label="金句提醒">
-        <div class="qcard-head">
-          <span class="qcard-label">金 句</span>
-          <span class="qcard-count" id="qCount">01 / 05</span>
-        </div>
-        <p class="qcard-text" id="qText"></p>
-        <div class="qcard-foot">
-          <div class="qdots" id="qDots"></div>
-          <button class="qnext" id="qNext" type="button">换一句 ›</button>
-        </div>
-      </section>
-    </aside>
-  </div><!-- /.shell -->
+    <p class="song-label">范李猿 · 你说不错的那位</p>
+    <div class="song-list">
+      <a class="song" href="https://www.bilibili.com/video/BV1nm4y1t7t5" target="_blank" rel="noopener">
+        <span class="song-name">速效休息 · 20 分钟躺平冥想</span><span class="song-by">范李猿</span><span class="song-dur">21:06</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1ip4y1N7pd" target="_blank" rel="noopener">
+        <span class="song-name">缓解负面情绪 · 肯定自我</span><span class="song-by">范李猿</span><span class="song-dur">13:42</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Re4y1r7Y8" target="_blank" rel="noopener">
+        <span class="song-name">每天 10 分钟专注训练</span><span class="song-by">范李猿</span><span class="song-dur">10:20</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1yP411T77b" target="_blank" rel="noopener">
+        <span class="song-name">重启冥想 · 回复脑力</span><span class="song-by">范李猿</span><span class="song-dur">12:14</span></a>
+    </div>
+
+    <p class="song-label">睡前 / 躺平</p>
+    <div class="song-list">
+      <a class="song" href="https://www.bilibili.com/video/BV1Br4y1D7P4" target="_blank" rel="noopener">
+        <span class="song-name">20 分钟冥想 = 1 小时睡眠</span><span class="song-by">李冉在冥想</span><span class="song-dur">23:36</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1764y1h723" target="_blank" rel="noopener">
+        <span class="song-name">睡前放空 · 5 分钟就睡着</span><span class="song-by">冥想星球</span><span class="song-dur">21:31</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1eV4y1N7Wm" target="_blank" rel="noopener">
+        <span class="song-name">12 分钟深度休息</span><span class="song-by">潮汐 App</span><span class="song-dur">12:44</span></a>
+    </div>
+
+    <p class="song-label">开工前 / 进入状态</p>
+    <div class="song-list">
+      <a class="song" href="https://www.bilibili.com/video/BV1kP41137JQ" target="_blank" rel="noopener">
+        <span class="song-name">心流冥想 · 高效一整天</span><span class="song-by">李冉在冥想</span><span class="song-dur">10:30</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV16Z4y187za" target="_blank" rel="noopener">
+        <span class="song-name">10 分钟提升专注力 · 放下焦虑</span><span class="song-by">范李猿</span><span class="song-dur">11:26</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1uS4y1r7Cs" target="_blank" rel="noopener">
+        <span class="song-name">6 分钟进入学习状态</span><span class="song-by">冥想星球</span><span class="song-dur">6:38</span></a>
+    </div>
+
+    <p class="song-label">入门 / 身体扫描</p>
+    <div class="song-list">
+      <a class="song" href="https://www.bilibili.com/video/BV1F44y1D7CL" target="_blank" rel="noopener">
+        <span class="song-name">10 分钟正念呼吸冥想</span><span class="song-by">潮汐 App</span><span class="song-dur">10:17</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV15z4y1b7Ua" target="_blank" rel="noopener">
+        <span class="song-name">10 分钟身体扫描</span><span class="song-by">潮汐 App</span><span class="song-dur">10:08</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1WL411b7Ew" target="_blank" rel="noopener">
+        <span class="song-name">5 分钟呼吸放松</span><span class="song-by">冥想星球</span><span class="song-dur">5:02</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Qd4y127gb" target="_blank" rel="noopener">
+        <span class="song-name">每天自我肯定句</span><span class="song-by">马四月</span><span class="song-dur">11:50</span></a>
+    </div>
+
+    <p class="song-tip">想系统学一遍：李冉【免费】21 天系统学习冥想，10 年导师带练 + 理论（11 小时）：
+      <a href="https://www.bilibili.com/video/BV1NM4y1d7aC" target="_blank" rel="noopener">21 天入门课 ›</a>
+    </p>
+  </section>
 
   <footer>
     带「本地」的链接是这台电脑上的文件，得从本机的 index.html 打开才能跳；手机上看得到但点不动。
   </footer>
 </div>
+
+<section class="qcard" id="quoteCard" aria-label="金句提醒">
+  <div class="qcard-head">
+    <span class="qcard-label">金 句</span>
+    <span class="qcard-count" id="qCount">01 / 05</span>
+    <button class="qcard-min" id="qMin" type="button" aria-label="收起金句" title="收起">—</button>
+  </div>
+  <p class="qcard-text" id="qText"></p>
+  <div class="qcard-foot">
+    <div class="qdots" id="qDots"></div>
+    <button class="qnext" id="qNext" type="button">换一句 ›</button>
+  </div>
+</section>
+<button class="qpill" id="qPill" type="button" aria-label="展开金句">“ 金句</button>
 
 <div class="tip" id="tip"></div>
 
@@ -482,7 +544,7 @@
   });
 })();
 
-// 金句：自动轮播 + 手动切换
+// 浮动金句：自动轮播 + 手动切换 + 收起
 (function(){
   var QUOTES = [
     '把标准设高一点！冲一把，你就成长了；如果目标没达到，你就再冲一把。',
@@ -491,7 +553,9 @@
     '不要以现在的状态去判断未来你能够成为什么样的人，人是可以成长的。',
     '关注在当下的这个状态的能力，要非常的强！'
   ];
+  var KEY = 'sy-quote-collapsed';
   var card = document.getElementById('quoteCard');
+  var pill = document.getElementById('qPill');
   var text = document.getElementById('qText');
   var count = document.getElementById('qCount');
   var dotsBox = document.getElementById('qDots');
@@ -544,8 +608,19 @@
   card.addEventListener('mouseenter', function(){ clearInterval(timer); });
   card.addEventListener('mouseleave', restart);
 
+  function collapse(on){
+    card.classList.toggle('hide', on);
+    pill.classList.toggle('show', on);
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e){}
+    if(on) clearInterval(timer); else restart();
+  }
+  document.getElementById('qMin').addEventListener('click', function(){ collapse(true); });
+  pill.addEventListener('click', function(){ collapse(false); });
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch(e){}
   paint(0);
-  restart();
+  if(saved === '1') collapse(true); else restart();
 })();
 // 我的录音：点一下循环播放，再点暂停
 (function(){
