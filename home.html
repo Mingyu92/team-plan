@@ -73,6 +73,61 @@
 
   .lane-foot{margin:0;padding:0 20px 16px;font-size:11.5px;color:#a9a294;}
 
+  .habits{margin-top:38px;background:var(--paper);border:1px solid var(--line);
+          border-top:4px solid var(--orange);border-radius:8px;padding:22px 24px 24px;}
+  .habits-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .habits-head .kicker{margin-bottom:6px;}
+  .habits-head h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;}
+  .habits-head p{margin:5px 0 0;font-size:13px;color:var(--muted);}
+  .habits-time{font-size:32px;font-weight:700;color:var(--orange);line-height:1;font-variant-numeric:tabular-nums;}
+  .habit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:18px;}
+  .habit{display:flex;flex-direction:column;gap:2px;padding:13px 15px;border:1px solid var(--line);
+         border-radius:7px;background:#fff;text-decoration:none;transition:transform .14s,box-shadow .14s,border-color .14s,background .14s;}
+  .habit:hover{transform:translateY(-2px);border-color:#f0d5c6;background:#fff8f3;box-shadow:0 8px 18px rgba(217,107,60,.10);}
+  .h-ico{font-size:17px;line-height:1.2;}
+  .h-name{font-size:14.5px;font-weight:600;color:var(--navy);}
+  .h-desc{font-size:12px;color:var(--muted);}
+  .routine{margin:18px 0 0;padding:14px 18px 14px 36px;border-radius:7px;background:#faf7f0;
+           border:1px dashed var(--line);font-size:13.5px;color:#5a5f67;columns:2;column-gap:28px;}
+  .routine li{margin:3px 0;break-inside:avoid;}
+
+  /* 浮动金句 */
+  .qcard{position:fixed;right:24px;bottom:24px;width:308px;z-index:30;
+         background:var(--paper);border:1px solid var(--line);border-radius:10px;
+         box-shadow:0 18px 44px rgba(27,58,99,.14);padding:18px 18px 12px;
+         transition:opacity .22s ease, transform .22s ease;}
+  .qcard::before{content:"\201C";position:absolute;top:4px;left:12px;font-family:Georgia,serif;
+                 font-size:56px;line-height:1;color:var(--orange);opacity:.16;pointer-events:none;}
+  .qcard-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;}
+  .qcard-label{font-size:10.5px;letter-spacing:.22em;font-weight:700;color:var(--orange);}
+  .qcard-count{margin-left:auto;font-size:10.5px;color:#b4ad9e;letter-spacing:.06em;
+               font-variant-numeric:tabular-nums;}
+  .qcard-min{border:0;background:none;color:#b4ad9e;font-size:15px;line-height:1;cursor:pointer;
+             padding:2px 4px;border-radius:4px;transition:color .15s, background .15s;}
+  .qcard-min:hover{color:var(--navy);background:#f4f0e6;}
+  .qcard-text{position:relative;margin:0;font-size:15.5px;line-height:1.95;color:var(--ink);
+              font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif;
+              letter-spacing:.01em;min-height:90px;
+              transition:opacity .2s ease, transform .2s ease;}
+  .qcard-text.fading{opacity:0;transform:translateY(5px);}
+  .qcard-foot{display:flex;align-items:center;gap:7px;margin-top:10px;padding-top:10px;
+              border-top:1px dashed var(--line);}
+  .qdots{display:flex;gap:7px;}
+  .qdot{width:6px;height:6px;border-radius:50%;border:0;padding:0;background:#dcd6c8;cursor:pointer;
+        transition:background .15s, transform .15s;}
+  .qdot:hover{background:#bdb5a4;}
+  .qdot.on{background:var(--orange);transform:scale(1.35);}
+  .qnext{margin-left:auto;border:0;background:none;font-size:11.5px;color:#9a9a94;cursor:pointer;padding:2px 0;
+         transition:color .15s;}
+  .qnext:hover{color:var(--orange);}
+  .qcard.hide{opacity:0;transform:translateY(14px) scale(.98);pointer-events:none;}
+  .qpill{position:fixed;right:24px;bottom:24px;z-index:30;display:none;align-items:center;gap:6px;
+         border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 16px;
+         font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;
+         box-shadow:0 10px 26px rgba(27,58,99,.14);transition:border-color .15s, color .15s;}
+  .qpill:hover{border-color:#f0d5c6;color:var(--orange);}
+  .qpill.show{display:inline-flex;}
+
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
        box-shadow:0 10px 26px rgba(27,58,99,.25);opacity:0;pointer-events:none;transition:.18s;z-index:20;}
@@ -84,6 +139,20 @@
     .page{padding:32px 18px 48px;}
     .lanes{grid-template-columns:1fr;}
     h1{font-size:27px;}
+    .routine{columns:1;}
+    .habits{padding:20px 18px 22px;}
+    .habits-time{font-size:26px;}
+    .page{padding-bottom:150px;}
+  }
+
+  @media (max-width:640px){
+    .qcard{right:12px;left:12px;bottom:12px;width:auto;padding:15px 16px 10px;}
+    .qcard-text{font-size:14.5px;min-height:0;}
+    .qpill{right:12px;bottom:12px;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .qcard, .qcard-text, .qdot, .qcard-min, .qnext, .qpill{transition:none;}
   }
 </style>
 </head>
@@ -148,17 +217,77 @@
           26.9—27.9 年度目标 · 五步路线<span class="tag online">在线</span><span class="arrow">›</span></a></li>
         <li><a href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg" target="_blank" rel="noopener">
           生意进展（会面 / 五层对话 / 日工作量）<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
-        <li><a href="https://q1e2yfc2bey.feishu.cn/base/SIz1bAaW2a6TVJs7t7tcErFrnEb" target="_blank" rel="noopener">
+        <li><a href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=blkk7KquSnjz4M4p" target="_blank" rel="noopener">
           加人数据统计<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
       </ul>
     </section>
 
   </main>
 
+  <section class="habits">
+    <div class="habits-head">
+      <div>
+        <div class="kicker">每天 · 睡前收尾</div>
+        <h2>每日习惯</h2>
+        <p>0:30 之前，把这几张表填掉，一天就算收口了。</p>
+      </div>
+      <div class="habits-time">00:30</div>
+    </div>
+    <div class="habit-grid">
+      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=tblq4bQFgoMSUGDF&view=vewcccYAKL" target="_blank" rel="noopener">
+        <span class="h-ico">✅</span>
+        <span class="h-name">今天的日工作量</span>
+        <span class="h-desc">做到 · 没做到 · 反思 · 明天</span>
+      </a>
+      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnPOL9uBp80KHiP7pyHova6q" target="_blank" rel="noopener">
+        <span class="h-ico">➕</span>
+        <span class="h-name">加人数据统计</span>
+        <span class="h-desc">今天加了几个 · 通过几个</span>
+      </a>
+      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnEqDIoyvvtuL2ehAXAYCwZg" target="_blank" rel="noopener">
+        <span class="h-ico">🌿</span>
+        <span class="h-name">感恩日记</span>
+        <span class="h-desc">每天三件好事 · 约 5 分钟</span>
+      </a>
+      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=tblApsxO0HgQTHe2&view=vewi7IX7oh" target="_blank" rel="noopener">
+        <span class="h-ico">💊</span>
+        <span class="h-name">营养打卡</span>
+        <span class="h-desc">今天吃营养素了吗</span>
+      </a>
+      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnV8NStqWAMZHSyr1b9LaLxW" target="_blank" rel="noopener">
+        <span class="h-ico">🎧</span>
+        <span class="h-name">音频记录</span>
+        <span class="h-desc">填编号自动带出名字</span>
+      </a>
+    </div>
+    <ol class="routine">
+      <li>发刷鹅圈子 20 min</li>
+      <li>复盘财务</li>
+      <li>复盘日工作量</li>
+      <li>复盘周复盘</li>
+      <li>列明天的日程</li>
+      <li>放下手机睡觉</li>
+    </ol>
+  </section>
+
   <footer>
     带「本地」的链接是这台电脑上的文件，得从本机的 index.html 打开才能跳；手机上看得到但点不动。
   </footer>
 </div>
+
+<section class="qcard" id="quoteCard" aria-label="金句提醒">
+  <div class="qcard-head">
+    <span class="qcard-label">金 句</span>
+    <span class="qcard-count" id="qCount">01 / 05</span>
+    <button class="qcard-min" id="qMin" type="button" aria-label="收起金句" title="收起">—</button>
+  </div>
+  <p class="qcard-text" id="qText"></p>
+  <div class="qcard-foot">
+    <div class="qdots" id="qDots"></div>
+    <button class="qnext" id="qNext" type="button">换一句 ›</button>
+  </div>
+</section>
+<button class="qpill" id="qPill" type="button" aria-label="展开金句">“ 金句</button>
 
 <div class="tip" id="tip"></div>
 
@@ -206,6 +335,85 @@
       showTip('这个页面是电脑上的本地文件，从本机的 index.html 打开才跳得过去。');
     });
   });
+})();
+
+// 浮动金句：自动轮播 + 手动切换 + 收起
+(function(){
+  var QUOTES = [
+    '把标准设高一点！冲一把，你就成长了；如果目标没达到，你就再冲一把。',
+    '把营业额搞定啊！',
+    '你是可以告诉自己什么是对的事情，并且去选择做那件对的事情的！',
+    '不要以现在的状态去判断未来你能够成为什么样的人，人是可以成长的。',
+    '关注在当下的这个状态的能力，要非常的强！'
+  ];
+  var KEY = 'sy-quote-collapsed';
+  var card = document.getElementById('quoteCard');
+  var pill = document.getElementById('qPill');
+  var text = document.getElementById('qText');
+  var count = document.getElementById('qCount');
+  var dotsBox = document.getElementById('qDots');
+  if(!card || !text) return;
+
+  var idx = 0, timer = null, dots = [];
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var INTERVAL = 9000;
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  function paint(i){
+    var isFirst = !text.textContent;
+    text.classList.toggle('fading', !isFirst && !reduce);
+    var swap = function(){
+      text.textContent = QUOTES[i];
+      count.textContent = pad(i + 1) + ' / ' + pad(QUOTES.length);
+      dots.forEach(function(d, j){ d.classList.toggle('on', j === i); });
+      text.classList.remove('fading');
+    };
+    if(isFirst || reduce) swap();
+    else setTimeout(swap, 200);
+  }
+
+  function go(i){
+    idx = (i + QUOTES.length) % QUOTES.length;
+    paint(idx);
+    restart();
+  }
+
+  function restart(){
+    clearInterval(timer);
+    if(reduce) return;
+    timer = setInterval(function(){ idx = (idx + 1) % QUOTES.length; paint(idx); }, INTERVAL);
+  }
+
+  QUOTES.forEach(function(q, i){
+    var d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'qdot' + (i === 0 ? ' on' : '');
+    d.setAttribute('aria-label', '第 ' + (i + 1) + ' 句');
+    d.addEventListener('click', function(){ go(i); });
+    dotsBox.appendChild(d);
+    dots.push(d);
+  });
+
+  document.getElementById('qNext').addEventListener('click', function(){ go(idx + 1); });
+
+  // 鼠标停在卡片上时暂停轮播
+  card.addEventListener('mouseenter', function(){ clearInterval(timer); });
+  card.addEventListener('mouseleave', restart);
+
+  function collapse(on){
+    card.classList.toggle('hide', on);
+    pill.classList.toggle('show', on);
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e){}
+    if(on) clearInterval(timer); else restart();
+  }
+  document.getElementById('qMin').addEventListener('click', function(){ collapse(true); });
+  pill.addEventListener('click', function(){ collapse(false); });
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch(e){}
+  paint(0);
+  if(saved === '1') collapse(true); else restart();
 })();
 </script>
 </body>

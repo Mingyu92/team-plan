@@ -28,6 +28,19 @@ h1{font-size:30px;line-height:1.3;margin:0 0 10px;letter-spacing:-.015em}
 .bar{flex:1;min-width:160px;height:7px;background:#eceae4;border-radius:99px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .25s}
 .prog .rst{font-size:12.5px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.prog .sync{font-size:12.5px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.prog .sync a{color:var(--accent);text-decoration:underline;cursor:pointer}
+.mask{position:fixed;inset:0;background:rgba(26,26,26,.42);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.mask.show{display:flex}
+.dlg{background:#fff;border-radius:12px;padding:24px 26px;width:100%;max-width:360px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.dlg h3{margin:0 0 4px;font-size:17px}
+.dlg p{margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.6}
+.dlg input{width:100%;margin-bottom:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px}
+.dlg input:focus{outline:2px solid #cfe0d5;border-color:var(--accent)}
+.dlg .row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.dlg button{font:inherit;font-size:14px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.dlg button.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.dlg .err{color:#b4372f;font-size:12.5px;min-height:16px;margin:2px 0 0}
 #q{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:9px;font-size:14.5px;
  background:var(--card);margin-bottom:34px;font-family:inherit}
 #q:focus{outline:2px solid #cfe0d5;border-color:var(--accent)}
@@ -79,11 +92,12 @@ footer{color:var(--muted);font-size:13px;margin-top:56px;border-top:1px solid va
 </aside>
 <main>
   <h1>诗媛的 AI PM 学习路线</h1>
-  <p class="lede">左边是阶段，点着往下走。勾选框会记在浏览器里，关掉再开还在。</p>
+  <p class="lede">左边是阶段，点着往下走。勾选会自动存到云端，手机和电脑看到的是同一份。</p>
 
   <div class="prog">
     <span class="num" id="pnum">0 / 69</span>
     <span class="bar"><i id="pbar"></i></span>
+    <span class="sync" id="sync-note">只存在这台设备</span>
     <span class="rst" id="rst">清空</span>
   </div>
 
@@ -101,28 +115,239 @@ footer{color:var(--muted);font-size:13px;margin-top:56px;border-top:1px solid va
   </footer>
 </main>
 </div>
+<div class="mask" id="login-mask">
+  <div class="dlg">
+    <h3>登录后同步</h3>
+    <p>用团队计划页同一个账号登录一次。之后勾选会自动存到云端，手机和电脑共用一份进度。</p>
+    <input id="login-email" type="email" placeholder="邮箱" autocomplete="username">
+    <input id="login-pwd" type="password" placeholder="密码" autocomplete="current-password">
+    <div class="err" id="login-err"></div>
+    <div class="row">
+      <button type="button" id="login-later">稍后</button>
+      <button type="button" class="go" id="login-go">登录</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const boxes=[...document.querySelectorAll('input[type=checkbox][data-k]')];
-const numEl=document.getElementById('pnum'),barEl=document.getElementById('pbar');
-function save(){localStorage.setItem('aipm-learn',JSON.stringify(boxes.filter(b=>b.checked).map(b=>b.dataset.k)))}
-function paint(){const d=boxes.filter(b=>b.checked).length;
- numEl.textContent=d+' / '+boxes.length;
- barEl.style.width=(boxes.length?d/boxes.length*100:0)+'%';}
-let saved=[];try{saved=JSON.parse(localStorage.getItem('aipm-learn')||'[]')}catch(e){}
-boxes.forEach(b=>{if(saved.includes(b.dataset.k))b.checked=true;
- b.addEventListener('change',()=>{paint();save()})});
-paint();
-document.getElementById('rst').addEventListener('click',()=>{
- if(confirm('清空所有勾选？')){boxes.forEach(b=>b.checked=false);paint();save();}});
-const q=document.getElementById('q');
-q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();
- document.querySelectorAll('.stage').forEach(s=>{
-  let hit=0;
-  s.querySelectorAll('.item').forEach(it=>{
-   const ok=!v||it.textContent.toLowerCase().includes(v);
-   it.classList.toggle('hidden',!ok); if(ok)hit++;});
-  const ex=s.querySelector('.ext'); if(ex)ex.classList.toggle('hidden',!!v);
-  s.classList.toggle('hidden',v&&hit===0);});});
+(function(){
+  var boxes=[].slice.call(document.querySelectorAll('input[type=checkbox][data-k]'));
+  var numEl=document.getElementById('pnum'), barEl=document.getElementById('pbar');
+  var noteEl=document.getElementById('sync-note');
+
+  /* ============ 云端配置（与团队计划页同一个 Supabase） ============ */
+  var CLOUD = {
+    url: 'https://odsukwoakbhajrpeiatg.supabase.co',
+    key: 'sb_publishable_4l24lg4fXBz33X1nOHlGPg_kJjm9RBA',
+    table: 'team_plan_kv',
+    row: 'aipm-learn'
+  };
+  var AUTH_KEY = 'sy-team-plan-auth', LOCAL_KEY = 'aipm-learn';
+
+  var auth = null, state = { keys: [], ts: 0 }, pushTimer = null, syncing = false;
+
+  function readJSON(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+  function writeJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function loadState(){
+    var raw = localStorage.getItem(LOCAL_KEY);
+    if(!raw) return { keys: [], ts: 0 };
+    try{
+      var v = JSON.parse(raw);
+      if(Array.isArray(v)) return { keys: v, ts: 0 };                 /* 旧版只存了数组 */
+      if(v && Array.isArray(v.keys)) return { keys: v.keys, ts: +v.ts || 0 };
+    }catch(e){}
+    return { keys: [], ts: 0 };
+  }
+  function saveState(){ writeJSON(LOCAL_KEY, state); }
+  function collect(){ return boxes.filter(function(b){ return b.checked; }).map(function(b){ return b.dataset.k; }); }
+
+  function paint(){
+    var set = {};
+    state.keys.forEach(function(k){ set[k] = 1; });
+    boxes.forEach(function(b){ b.checked = !!set[b.dataset.k]; });
+    var d = state.keys.length;
+    numEl.textContent = d + ' / ' + boxes.length;
+    barEl.style.width = (boxes.length ? d / boxes.length * 100 : 0) + '%';
+  }
+
+  function apiHeaders(t){
+    return { 'apikey': CLOUD.key, 'Authorization': 'Bearer ' + (t || CLOUD.key), 'Content-Type': 'application/json' };
+  }
+  function token(){
+    if(!auth || !auth.refresh_token) return Promise.reject(new Error('未登录'));
+    if(auth.access_token && (!auth.expires_at || Date.now() < auth.expires_at - 120000)) return Promise.resolve(auth.access_token);
+    return fetch(CLOUD.url + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST', headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: auth.refresh_token })
+    }).then(function(r){ if(!r.ok) throw new Error('登录过期'); return r.json(); })
+      .then(function(j){
+        auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+                 expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+        writeJSON(AUTH_KEY, auth);
+        return auth.access_token;
+      });
+  }
+
+  function pull(){
+    return token().then(function(t){
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table + '?key=eq.' + encodeURIComponent(CLOUD.row) + '&select=key,value', { headers: apiHeaders(t) });
+    }).then(function(r){ if(!r.ok) throw new Error('读取失败'); return r.json(); })
+      .then(function(rows){
+        if(!rows.length) return null;
+        var v = rows[0].value;
+        if(typeof v === 'string'){ try{ v = JSON.parse(v); }catch(e){ v = null; } }
+        if(Array.isArray(v)) return { keys: v, ts: 0 };
+        if(v && Array.isArray(v.keys)) return { keys: v.keys, ts: +v.ts || 0 };
+        return null;
+      });
+  }
+
+  function push(){
+    if(!auth) return Promise.resolve();
+    syncing = true;
+    var payload = { key: CLOUD.row, value: { keys: state.keys, ts: state.ts } };
+    return token().then(function(t){
+      var h = apiHeaders(t);
+      h['Prefer'] = 'resolution=merge-duplicates,return=minimal';
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table, {
+        method: 'POST', headers: h, body: JSON.stringify([payload])
+      });
+    }).then(function(r){
+      if(!r.ok) throw new Error('上传失败');
+      syncing = false;
+      setNote('ok');
+    }).catch(function(e){
+      syncing = false;
+      setNote('off', e && e.message);
+    });
+  }
+
+  function schedulePush(){
+    if(!auth) { setNote('login'); return; }
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(push, 800);
+  }
+
+  function setNote(kind, msg){
+    if(kind === 'login'){
+      noteEl.innerHTML = '只存在这台设备 · <a href="#" id="sync-login">登录后同步</a>';
+      var a = document.getElementById('sync-login');
+      if(a) a.onclick = function(ev){ ev.preventDefault(); document.getElementById('login-mask').classList.add('show'); };
+      return;
+    }
+    if(kind === 'off'){ noteEl.textContent = '没连上，改动先存在本机'; return; }
+    if(kind === 'sync'){ noteEl.textContent = '同步中…'; return; }
+    noteEl.textContent = '已同步到云端 · 手机电脑同一份';
+  }
+
+  function showLogin(){ document.getElementById('login-mask').classList.add('show'); }
+
+  function doLogin(){
+    var email = document.getElementById('login-email').value.trim();
+    var pwd = document.getElementById('login-pwd').value;
+    var err = document.getElementById('login-err');
+    err.textContent = '';
+    if(!email || !pwd){ err.textContent = '邮箱和密码都要填'; return; }
+    err.textContent = '登录中…';
+    fetch(CLOUD.url + '/auth/v1/token?grant_type=password', {
+      method: 'POST', headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pwd })
+    }).then(function(r){
+      if(!r.ok) throw new Error('邮箱或密码不对');
+      return r.json();
+    }).then(function(j){
+      auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+               expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+      writeJSON(AUTH_KEY, auth);
+      document.getElementById('login-mask').classList.remove('show');
+      err.textContent = '';
+      setNote('sync');
+      return pull().then(function(cloud){
+        if(cloud && cloud.ts > state.ts){
+          state = { keys: cloud.keys, ts: cloud.ts };
+          saveState(); paint(); setNote('ok');
+        } else {
+          state.ts = Date.now();
+          saveState();
+          return push();
+        }
+      }).catch(function(){ setNote('off'); });
+    }).catch(function(e){ err.textContent = e.message || '登录失败'; });
+  }
+
+  /* ============ 启动 ============ */
+  state = loadState();
+  auth = readJSON(AUTH_KEY, null);
+  paint();
+
+  if(!auth){
+    setNote('login');
+  } else {
+    setNote('sync');
+    pull().then(function(cloud){
+      if(cloud && cloud.ts > state.ts){
+        state = { keys: cloud.keys, ts: cloud.ts };
+        saveState(); paint(); setNote('ok');
+      } else {
+        return push();
+      }
+    }).catch(function(e){
+      if(e && /登录|过期/.test(e.message)){ auth = null; setNote('login'); }
+      else setNote('off');
+    });
+  }
+
+  boxes.forEach(function(b){
+    b.addEventListener('change', function(){
+      state = { keys: collect(), ts: Date.now() };
+      saveState(); paint(); schedulePush();
+    });
+  });
+
+  document.getElementById('rst').addEventListener('click', function(){
+    if(confirm('清空所有勾选？')){
+      state = { keys: [], ts: Date.now() };
+      saveState(); paint(); schedulePush();
+    }
+  });
+
+  document.getElementById('login-go').addEventListener('click', doLogin);
+  document.getElementById('login-later').addEventListener('click', function(){
+    document.getElementById('login-mask').classList.remove('show');
+  });
+  document.getElementById('login-pwd').addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
+
+  /* 切回页面时，如果另一台设备改过就拉最新的 */
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function(){
+    if(!auth) return;
+    if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+    if(Date.now() - hiddenAt < 60000 || syncing || pushTimer) return;
+    pull().then(function(cloud){
+      if(cloud && cloud.ts > state.ts){
+        state = { keys: cloud.keys, ts: cloud.ts };
+        saveState(); paint(); setNote('ok');
+      }
+    }).catch(function(){});
+  });
+
+  /* 搜索 */
+  var q = document.getElementById('q');
+  q.addEventListener('input', function(){
+    var v = q.value.trim().toLowerCase();
+    document.querySelectorAll('.stage').forEach(function(s){
+      var hit = 0;
+      s.querySelectorAll('.item').forEach(function(it){
+        var ok = !v || it.textContent.toLowerCase().indexOf(v) >= 0;
+        it.classList.toggle('hidden', !ok);
+        if(ok) hit++;
+      });
+      var ex = s.querySelector('.ext'); if(ex) ex.classList.toggle('hidden', !!v);
+      s.classList.toggle('hidden', v && hit === 0);
+    });
+  });
+})();
 </script>
 </body>
 </html>
