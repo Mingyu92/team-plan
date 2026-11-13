@@ -99,6 +99,75 @@
   .ex-group a .arrow{margin-left:auto;color:#c9c3b5;font-size:12px;transition:transform .15s,color .15s;}
   .ex-group a:hover .arrow{transform:translateX(3px);color:var(--orange);}
 
+  /* 找工作 · 现在到哪了（全宽一张，接在三栏之后） */
+  .jobnow{margin-top:22px;background:var(--paper);border:1px solid var(--line);
+          border-top:4px solid var(--blue);border-radius:8px;padding:20px 24px 22px;}
+  .jobnow-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:15px;}
+  .jobnow-head h2{margin:0;font-size:17px;color:var(--navy);letter-spacing:.04em;
+                  display:flex;align-items:center;gap:8px;}
+  .jobnow-head h2 .ico{font-size:16px;line-height:1;}
+  .jobnow-head p{margin:0;font-size:12.5px;color:var(--muted);}
+  .jobnow-head p b{color:var(--orange);font-weight:700;}
+
+  .jn-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
+  .jn-stat{border:1px solid var(--line);border-radius:7px;background:#fcfbf7;padding:11px 14px;}
+  .jn-stat .v{font-size:19px;font-weight:700;color:var(--navy);line-height:1.3;
+              font-variant-numeric:tabular-nums;}
+  .jn-stat .k{font-size:11.5px;color:#a9a294;margin-top:2px;line-height:1.5;}
+  .jn-stat.warn{background:#fff4ec;border-color:#f0d5c6;}
+  .jn-stat.warn .v{color:var(--orange);}
+
+  .jn-aim{margin:0 0 18px;padding:10px 14px;border-radius:7px;background:#f6f9fd;
+          border:1px dashed #d9e4f2;font-size:13px;color:#4a5058;}
+  .jn-aim b{color:var(--navy);font-weight:600;}
+
+  .jn-cols{display:grid;grid-template-columns:1.2fr 1fr 1.05fr;gap:26px;}
+  .jn-col h3{margin:0 0 8px;font-size:11.5px;font-weight:600;letter-spacing:.1em;color:#a9a294;
+             display:flex;align-items:center;gap:9px;}
+  .jn-col h3::after{content:"";flex:1;height:1px;background:#ece6d9;}
+  .jn-sub{margin:12px 0 2px;font-size:11.5px;font-weight:600;color:#b4ad9e;letter-spacing:.04em;}
+  .jn-sub:first-of-type{margin-top:0;}
+  .jn-list{list-style:none;margin:0;padding:0;}
+  .jn-list li{display:flex;align-items:baseline;gap:8px;padding:5px 0;font-size:13.5px;
+              border-bottom:1px dashed #f2eee3;}
+  .jn-list li:last-child{border-bottom:0;}
+  .jn-list a{color:#3a3f47;text-decoration:none;border-bottom:1px solid #e6e1d4;
+             transition:color .13s,border-color .13s;}
+  .jn-list a:hover{color:var(--navy);border-color:#cfd8e6;}
+  .jn-list .m{margin-left:auto;font-size:11px;color:#b4ad9e;white-space:nowrap;
+              font-variant-numeric:tabular-nums;}
+
+  .jn-steps{list-style:none;margin:0;padding:0;}
+  .jn-step{position:relative;padding:0 0 14px 19px;border-left:2px solid #e8e3d7;}
+  .jn-step:last-child{border-left-color:transparent;padding-bottom:0;}
+  .jn-step::before{content:"";position:absolute;left:-6px;top:5px;width:8px;height:8px;
+                   border-radius:50%;background:#fff;border:2px solid #cfd8e6;}
+  .jn-step.now{border-left-color:#b9cde6;}
+  .jn-step.now::before{border-color:var(--blue);background:var(--blue);}
+  .jn-when{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;color:#a9a294;
+           font-variant-numeric:tabular-nums;}
+  .jn-step.now .jn-when{color:var(--blue);}
+  .jn-what{display:block;font-size:13.5px;line-height:1.6;color:#4a5058;margin-top:1px;}
+  .jn-what b{color:var(--navy);font-weight:600;}
+
+  .jn-todo{background:#f6f9fd;border:1px solid #d9e4f2;border-radius:7px;padding:15px 16px;}
+  .jn-todo .one{margin:0 0 4px;font-size:14.5px;font-weight:600;color:var(--navy);line-height:1.6;}
+  .jn-todo .why{margin:0 0 12px;font-size:12.5px;color:#5a6068;line-height:1.7;}
+  .jn-todo .why b{color:var(--orange);font-weight:600;}
+  .jn-btn{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--blue);
+          color:#fff;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:600;
+          transition:filter .15s,transform .12s;}
+  .jn-btn:hover{filter:brightness(1.08);transform:translateX(2px);}
+  .jn-btn .go{margin-left:auto;font-weight:400;opacity:.85;font-size:12px;white-space:nowrap;}
+  .jn-alt{margin:12px 0 0;font-size:12px;color:#8d8a83;line-height:1.7;}
+  .jn-alt a{color:var(--navy);text-decoration:none;border-bottom:1px solid #cfd8e6;}
+  .jn-alt a:hover{color:var(--orange);border-color:#f0d5c6;}
+  .jn-dont{list-style:none;margin:0;padding:0;}
+  .jn-dont li{position:relative;padding:0 0 10px 15px;font-size:12.5px;color:#6b6f76;line-height:1.7;}
+  .jn-dont li:last-child{padding-bottom:0;}
+  .jn-dont li::before{content:"–";position:absolute;left:0;top:0;color:#c9c3b5;}
+  .jn-dont b{color:#8a5a3c;font-weight:600;}
+
   .habits{margin-top:38px;background:var(--paper);border:1px solid var(--line);
           border-top:4px solid var(--orange);border-radius:8px;padding:22px 24px 24px;}
   .habits-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
@@ -274,12 +343,17 @@
     .audio-now{text-align:left;margin-top:8px;}
     .song-list{grid-template-columns:1fr;}
     .page{padding-bottom:150px;}
+    .jn-cols{grid-template-columns:1fr 1fr;gap:22px;}
+    .jn-col.wide{grid-column:1 / -1;}
   }
 
   @media (max-width:640px){
     .qcard{right:12px;left:12px;bottom:12px;width:auto;padding:15px 16px 10px;}
     .qcard-text{font-size:14.5px;min-height:0;}
     .qpill{right:12px;bottom:12px;}
+    .jobnow{padding:18px 16px 20px;}
+    .jn-stats{grid-template-columns:1fr 1fr;}
+    .jn-cols{grid-template-columns:1fr;}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -321,18 +395,20 @@
     <section class="lane job">
       <div class="lane-head">
         <h2><span class="ico">🎯</span>找工作</h2>
-        <p>2027 届校招 · AI 产品经理方向</p>
+        <p>2028 届校招 · AI 产品经理方向</p>
       </div>
-      <a class="primary" href="https://mingyu92.github.io/team-plan/aipm/" target="_blank" rel="noopener">
-        AI PM 学习路线 <span class="go">打开 ›</span>
+      <a class="primary" href="#jobnow">
+        现在到哪了 · 今天做哪件 <span class="go">往下看 ›</span>
       </a>
       <ul class="links">
+        <li><a href="https://mingyu92.github.io/team-plan/aipm/" target="_blank" rel="noopener">
+          AI PM 学习路线<span class="tag online">在线</span><span class="arrow">›</span></a></li>
         <li><a href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
           今日岗位<span class="tag local">本地</span><span class="arrow">›</span></a></li>
         <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/%E7%AE%80%E5%8E%86%E5%AE%A1%E9%98%85-%E8%B5%84%E6%B7%B1PM-30%E9%97%AE.html" data-local>
           简历审阅 · 30 问<span class="tag local">本地</span><span class="arrow">›</span></a></li>
         <li><a href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblF1FG5JPFY3hOX" target="_blank" rel="noopener">
-          求职追踪（2027.3 开投再用）<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
+          求职追踪<span class="tag feishu">飞书</span><span class="arrow">›</span></a></li>
       </ul>
     </section>
 
@@ -355,6 +431,110 @@
     </section>
 
   </main>
+
+  <section class="jobnow" id="jobnow" aria-labelledby="jobnowTitle">
+    <div class="jobnow-head">
+      <h2 id="jobnowTitle"><span class="ico">🎯</span>找工作 · 现在到哪了</h2>
+      <p>材料早就备齐了，<b>卡在「一次都还没投」</b>。这一块只回答三件事：有什么、往哪走、今天做哪个。</p>
+    </div>
+
+    <div class="jn-stats">
+      <div class="jn-stat">
+        <div class="v">v10</div>
+        <div class="k">简历定稿 · 11-11 · 一页</div>
+      </div>
+      <div class="jn-stat">
+        <div class="v">20 家</div>
+        <div class="k">目标公司池 · 还没核实开没开</div>
+      </div>
+      <div class="jn-stat">
+        <div class="v">90 条</div>
+        <div class="k">从 10437 条岗位里筛出来 · 2028 届只有 8 条</div>
+      </div>
+      <div class="jn-stat warn">
+        <div class="v">0 次</div>
+        <div class="k">已投递 · 台账 11-10 起，到现在空白</div>
+      </div>
+    </div>
+
+    <p class="jn-aim"><b>方向没变：</b>主攻大厂 AI 产品经理 · 副线外企 / 远程（要先补英语）· Web3 只看高度对口的岗，不当主战场。</p>
+
+    <div class="jn-cols">
+      <div class="jn-col">
+        <h3>你手上已经有的</h3>
+
+        <p class="jn-sub">简历 · 投出去用的</p>
+        <ul class="jn-list">
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/output/%E5%96%BB%E8%AF%97%E5%AA%9B-%E4%B8%AD%E5%8D%97%E5%A4%A7%E5%AD%A6-%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF%E7%A1%95%E5%A3%AB-AI%E4%BA%A7%E5%93%81%E7%BB%8F%E7%90%86%E5%AE%9E%E4%B9%A0-15025406950-v10.pdf" data-local>简历 v10（直接能投的 PDF）</a><span class="m">一页</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/%E7%AE%80%E5%8E%86%E5%AE%A1%E9%98%85-%E8%B5%84%E6%B7%B1PM-30%E9%97%AE.html" data-local>资深 PM 审阅 · 30 问</a><span class="m">30 问</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/%E7%AE%80%E5%8E%86%E8%AE%B2%E8%A7%A3-v9.html" data-local>简历讲解稿（怎么讲这两段）</a><span class="m">v9</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/master/MASTER-PROFILE.md" data-local>事实库 · 每句话都能回查</a><span class="m">母版</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/04-%E7%BD%91%E7%94%B3%E9%80%9A%E7%94%A8%E6%A1%A3%E6%A1%88.md" data-local>网申通用档案</a><span class="m">待填 12 处</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/05-%E5%BC%80%E6%94%BE%E9%A2%98%E6%AF%8D%E9%A2%98%E5%BA%93.md" data-local>开放题母题库</a><span class="m">4 个故事</span></li>
+        </ul>
+
+        <p class="jn-sub">学过的 · 背过的</p>
+        <ul class="jn-list">
+          <li><a href="https://mingyu92.github.io/team-plan/aipm/" target="_blank" rel="noopener">AI PM 学习路线（十段，能打勾）</a><span class="m">在线</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/repos/AIPM-Wiki/docs/04-interview/experiences/README.md" data-local>真实面经 18 篇（字节 / 抖音 / Kimi / 智谱…）</a><span class="m">18 篇</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/repos/AIPM-Wiki" data-local>AI PM 知识库</a><span class="m">210 篇</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/repos/Awesome-LLM-Interview" data-local>大模型八股</a><span class="m">96 篇</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/english" data-local>英文面试包（外企线用）</a><span class="m">6 份</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/web3" data-local>Web3 面试材料</a><span class="m">3 份</span></li>
+        </ul>
+
+        <p class="jn-sub">找岗 · 记账</p>
+        <ul class="jn-list">
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/07-%E4%BB%8A%E6%97%A5%E5%B2%97%E4%BD%8D.html" data-local>今日岗位（每天跑一次）</a><span class="m">自动筛</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/08-%E5%B2%97%E4%BD%8D%E4%BF%A1%E6%81%AF%E6%BA%90.md" data-local>岗位信息源（3 个主源）</a><span class="m">清单</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/02-%E7%9B%AE%E6%A0%87%E5%B2%97%E4%BD%8D.md" data-local>目标公司池</a><span class="m">20 家</span></li>
+          <li><a href="file:///C:/Users/14374/ai-pm-prep/me/06-%E6%8A%95%E9%80%92%E5%8F%B0%E8%B4%A6.md" data-local>投递台账</a><span class="m">空的</span></li>
+        </ul>
+      </div>
+
+      <div class="jn-col">
+        <h3>接下来的路</h3>
+        <ol class="jn-steps">
+          <li class="jn-step now">
+            <span class="jn-when">现在 → 11.30</span>
+            <span class="jn-what">专利是 A 块，求职只占<b>每天 40 分钟</b>：跑一次岗位 → 投 2 家 → 记台账。不学新东西。</span>
+          </li>
+          <li class="jn-step">
+            <span class="jn-when">12 月 → 明年 2 月</span>
+            <span class="jn-what">补两个硬缺：<b>没实习</b>、<b>RAG / Agent 举不出例子</b>。做一个能当场演示的小东西，比再刷十篇文档有用。</span>
+          </li>
+          <li class="jn-step">
+            <span class="jn-when">2027.3 → 5</span>
+            <span class="jn-what"><b>暑期实习提前批</b>，这是主力批次，到时候全量投。</span>
+          </li>
+          <li class="jn-step">
+            <span class="jn-when">2027.9 → 11</span>
+            <span class="jn-what"><b>秋招</b>。2028.6 毕业。</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="jn-col">
+        <h3>今天只做这一件</h3>
+        <div class="jn-todo">
+          <p class="one">打开今日岗位，挑 <b>2 家</b>投掉，投完记进台账。</p>
+          <p class="why">11-10 就说好每天 2 家，到今天三天了还是 0 条。<b>你缺的不是材料，是第一份反馈。</b>没有回音，后面所有准备都不知道该往哪修。</p>
+          <a class="jn-btn" href="file:///C:/Users/14374/ai-pm-prep/me/07-%E4%BB%8A%E6%97%A5%E5%B2%97%E4%BD%8D.html" data-local>
+            今日岗位 · 90 条已筛好 <span class="go">打开 ›</span>
+          </a>
+          <p class="jn-alt">提个醒：10437 条里明确写 2028 届的只有 <b>8 条</b>。所以这几天不是「每天 2 家」，是「把这 8 家投完」。<br>
+          实在不想投：先填 <a href="file:///C:/Users/14374/ai-pm-prep/me/04-%E7%BD%91%E7%94%B3%E9%80%9A%E7%94%A8%E6%A1%A3%E6%A1%88.md" data-local>网申通用档案</a>那 12 处「待确认」，一次填完，以后每份网申省 20 分钟。</p>
+        </div>
+
+        <p class="jn-sub" style="margin-top:16px;">这几天别做的事</p>
+        <ul class="jn-dont">
+          <li><b>别再改简历排版。</b>v10 已经定稿，改到第 11 版也不会更好投。</li>
+          <li><b>别等学完再投。</b>面经里的问题，投出去才会变成真问题。</li>
+          <li><b>别拿 2027 届的岗凑数。</b>届别不对，系统层就筛掉了，白填。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
   <section class="extras" aria-labelledby="extrasTitle">
     <div class="extras-head">
