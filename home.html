@@ -36,6 +36,24 @@
   .chip b{color:var(--orange);font-weight:700;}
   .chip.hot{border-color:#f0d5c6;background:#fff4ec;}
 
+  /* 顶部导航：页面太长，滑累了就点一下 */
+  .topnav{position:sticky;top:0;z-index:26;margin:0 -40px 30px;padding:10px 40px 9px;
+          background:rgba(250,247,240,.94);border-bottom:1px solid var(--line);
+          -webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);}
+  .tn-items{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
+            -webkit-overflow-scrolling:touch;}
+  .tn-items::-webkit-scrollbar{display:none;}
+  .tn{flex:0 0 auto;padding:6px 14px;border-radius:999px;text-decoration:none;white-space:nowrap;
+      font-size:13px;font-weight:500;color:#5f6469;border:1px solid transparent;
+      transition:background .14s,color .14s,border-color .14s;}
+  .tn:hover{background:#fff;border-color:var(--line);color:var(--navy);}
+  .tn.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .tn.job.on{background:var(--blue);border-color:var(--blue);}
+  .tn.biz.on{background:var(--orange);border-color:var(--orange);}
+  .tn-sep{flex:0 0 auto;width:1px;margin:6px 5px;background:var(--line);}
+  section[id]{scroll-margin-top:64px;}
+  @media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth;} }
+
   .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:34px;align-items:start;}
 
   .lane{background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;
@@ -176,14 +194,71 @@
   .habits-head .kicker{margin-bottom:6px;}
   .habits-head h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;}
   .habits-head p{margin:5px 0 0;font-size:13px;color:var(--muted);}
-  .habits-time{font-size:32px;font-weight:700;color:var(--orange);line-height:1;font-variant-numeric:tabular-nums;}
-  .habit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:18px;}
-  .habit{display:flex;flex-direction:column;gap:2px;padding:13px 15px;border:1px solid var(--line);
-         border-radius:7px;background:#fff;text-decoration:none;transition:transform .14s,box-shadow .14s,border-color .14s,background .14s;}
+  .habits-side{text-align:right;}
+  .habits-count{font-size:30px;font-weight:700;color:var(--orange);line-height:1;font-variant-numeric:tabular-nums;}
+  .habits-count.done{color:#3f7d5e;}
+  .habits-count span{font-size:15px;color:#c3bcac;font-weight:600;}
+  .habits-left{margin-top:7px;font-size:11.5px;color:#a9a294;font-variant-numeric:tabular-nums;}
+  .habits-left.over{color:var(--orange);font-weight:600;}
+
+  .habit-day{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:12px;color:#a9a294;}
+  .hab-back{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 11px;
+            font:inherit;font-size:11.5px;color:var(--navy);cursor:pointer;transition:border-color .14s,color .14s;}
+  .hab-back:hover{border-color:#cfd8e6;color:var(--blue);}
+  .hab-back.hidden{display:none;}
+
+  .habit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;}
+  .habit{position:relative;display:flex;align-items:flex-start;gap:10px;padding:12px 13px;
+         border:1px solid var(--line);border-radius:7px;background:#fff;
+         transition:transform .14s,box-shadow .14s,border-color .14s,background .14s;}
   .habit:hover{transform:translateY(-2px);border-color:#f0d5c6;background:#fff8f3;box-shadow:0 8px 18px rgba(217,107,60,.10);}
+  .habit.done{background:#f5faf7;border-color:#d5e8dd;}
+  .habit.done:hover{background:#f5faf7;border-color:#c8e0d2;}
+  .habit-tick{flex:0 0 auto;width:24px;height:24px;margin:0;padding:0;border-radius:50%;position:relative;
+              border:1.5px solid #d9d3c6;background:#fff;cursor:pointer;
+              transition:border-color .15s,background .15s,transform .12s;}
+  .habit-tick:hover{border-color:var(--orange);transform:scale(1.06);}
+  .habit-tick:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+  .habit-tick::after{content:"";position:absolute;left:7px;top:5px;width:6px;height:11px;
+                     border:2px solid #fff;border-top:0;border-left:0;
+                     transform:rotate(42deg) scale(.3);opacity:0;transition:opacity .15s,transform .15s;}
+  .habit.done .habit-tick{background:#3f7d5e;border-color:#3f7d5e;}
+  .habit.done .habit-tick::after{opacity:1;transform:rotate(42deg) scale(1);}
+  .habit-go{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;
+            text-decoration:none;color:inherit;}
   .h-ico{font-size:17px;line-height:1.2;}
-  .h-name{font-size:14.5px;font-weight:600;color:var(--navy);}
-  .h-desc{font-size:12px;color:var(--muted);}
+  .h-name{font-size:14.5px;font-weight:600;color:var(--navy);transition:color .15s;}
+  .h-desc{font-size:12px;color:var(--muted);transition:color .15s;}
+  .habit.done .h-name{color:#6d8a78;}
+  .habit.done .h-desc{color:#b3bdb6;}
+  .h-open{position:absolute;right:10px;top:7px;font-size:11px;color:#d8d2c2;line-height:1;}
+  .habit:hover .h-open{color:var(--orange);}
+
+  .habit-week{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);}
+  .hw-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .hw-head h3{margin:0;font-size:11.5px;font-weight:600;letter-spacing:.1em;color:#a9a294;}
+  .hw-note{margin:0;font-size:11.5px;color:#b4ad9e;}
+  .hw-cells{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+  .hw{width:46px;height:46px;border-radius:7px;border:1px solid var(--line);background:#fff;
+      font:inherit;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+      cursor:pointer;transition:transform .12s,border-color .14s;}
+  .hw .d{font-size:10.5px;line-height:1;color:#a9a294;font-variant-numeric:tabular-nums;}
+  .hw .n{font-size:12.5px;font-weight:700;line-height:1;color:#c3bcac;font-variant-numeric:tabular-nums;}
+  .hw[data-lv="1"]{background:#fdf1e8;border-color:#f2ddcc;}
+  .hw[data-lv="1"] .n{color:#c47a4a;}
+  .hw[data-lv="2"]{background:#fbdcc7;border-color:#f0cdb4;}
+  .hw[data-lv="2"] .n{color:#a95c2c;}
+  .hw[data-lv="3"]{background:#3f7d5e;border-color:#376f53;}
+  .hw[data-lv="3"] .d{color:#cfe3d8;}
+  .hw[data-lv="3"] .n{color:#fff;}
+  .hw:hover{transform:translateY(-2px);}
+  .hw.on{outline:2px solid var(--blue);outline-offset:1px;}
+
+  .confetti{position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:40;overflow:hidden;}
+  .confetti i{position:absolute;top:-14px;width:8px;height:12px;border-radius:2px;opacity:.95;
+              animation:fall 2.4s ease-in forwards;}
+  @keyframes fall{to{transform:translateY(102vh) rotate(560deg);opacity:0;}}
+
   .routine{margin:18px 0 0;padding:14px 18px 14px 36px;border-radius:7px;background:#faf7f0;
            border:1px dashed var(--line);font-size:13.5px;color:#5a5f67;columns:2;column-gap:28px;}
   .routine li{margin:3px 0;break-inside:avoid;}
@@ -355,12 +430,13 @@
   footer{margin-top:42px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:#9a9a94;}
 
   @media (max-width:940px){
-    .page{padding:32px 18px 48px;}
+      .page{padding:32px 18px 48px;}
+    .topnav{margin:0 -18px 24px;padding:9px 18px 8px;}
     .lanes{grid-template-columns:1fr;}
     h1{font-size:27px;}
     .routine{columns:1;}
     .habits{padding:20px 18px 22px;}
-    .habits-time{font-size:26px;}
+    .habits-count{font-size:24px;}
     .audio{padding:20px 18px 18px;}
     .tracks{grid-template-columns:1fr;}
     .audio-now{text-align:left;margin-top:8px;}
@@ -388,12 +464,28 @@
 <body>
 <div class="page">
 
-  <header>
+  <header id="top">
     <div class="kicker">三条线 · 一个入口</div>
     <h1>诗媛的<em>工作台</em></h1>
     <p class="lede">写专利 · 找工作 · 做生意 —— 常用的页面都在这，点一下就过去。</p>
     <div class="chips" id="chips"></div>
   </header>
+
+  <nav class="topnav" id="topnav" aria-label="页面导航">
+    <div class="tn-items" id="tnItems">
+      <a class="tn on" href="#top">概览</a>
+      <a class="tn job" href="#jobnow">找工作</a>
+      <span class="tn-sep" aria-hidden="true"></span>
+      <a class="tn biz" href="#extras">话术素材</a>
+      <a class="tn" href="#vids">补课视频</a>
+      <a class="tn" href="#ted">充点电</a>
+      <span class="tn-sep" aria-hidden="true"></span>
+      <a class="tn" href="#habits">每日习惯</a>
+      <a class="tn" href="#audio">我的录音</a>
+      <a class="tn" href="#boost">打气歌单</a>
+      <a class="tn" href="#med">冥想</a>
+    </div>
+  </nav>
 
   <main class="lanes">
 
@@ -428,6 +520,8 @@
           AI PM 学习路线<span class="tag online">在线</span><span class="arrow">›</span></a></li>
         <li><a href="#vids">
           补课视频 · 基础 / 面试<span class="tag online">B 站</span><span class="arrow">›</span></a></li>
+        <li><a href="job/ai-pm-questions.html">
+          2026 面试真题 · 按公司<span class="tag online">新</span><span class="arrow">›</span></a></li>
         <li><a href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
           今日岗位<span class="tag local">本地</span><span class="arrow">›</span></a></li>
         <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/%E7%AE%80%E5%8E%86%E5%AE%A1%E9%98%85-%E8%B5%84%E6%B7%B1PM-30%E9%97%AE.html" data-local>
@@ -503,6 +597,7 @@
         <p class="jn-sub">学过的 · 背过的</p>
         <ul class="jn-list">
           <li><a href="https://mingyu92.github.io/team-plan/aipm/" target="_blank" rel="noopener">AI PM 学习路线（十段，能打勾）</a><span class="m">在线</span></li>
+          <li><a href="job/ai-pm-questions.html">2026 面试真题 · 字节 / 小红书 / 淘天 / 快手 / 畅捷通</a><span class="m">120 题</span></li>
           <li><a href="file:///C:/Users/14374/ai-pm-prep/repos/AIPM-Wiki/docs/04-interview/experiences/README.md" data-local>真实面经 18 篇（字节 / 抖音 / Kimi / 智谱…）</a><span class="m">18 篇</span></li>
           <li><a href="file:///C:/Users/14374/ai-pm-prep/repos/AIPM-Wiki" data-local>AI PM 知识库</a><span class="m">210 篇</span></li>
           <li><a href="file:///C:/Users/14374/ai-pm-prep/repos/Awesome-LLM-Interview" data-local>大模型八股</a><span class="m">96 篇</span></li>
@@ -563,7 +658,7 @@
     </div>
   </section>
 
-  <section class="extras" aria-labelledby="extrasTitle">
+  <section class="extras" id="extras" aria-labelledby="extrasTitle">
     <div class="extras-head">
       <h2 id="extrasTitle"><span class="ico">🗂️</span>做生意 · 素材</h2>
       <p>话术底稿、圈子动态，用的时候随手取。</p>
@@ -603,7 +698,7 @@
     <div class="ted-grid" id="vidsGrid"></div>
   </section>
 
-  <section class="ted" aria-labelledby="tedTitle">
+  <section class="ted" id="ted" aria-labelledby="tedTitle">
     <div class="ted-head">
       <div>
         <div class="kicker">没劲的时候点一个</div>
@@ -619,51 +714,94 @@
   </section>
 
 
-  <section class="habits">
+  <section class="habits" id="habits">
     <div class="habits-head">
       <div>
         <div class="kicker">每天 · 睡前收尾</div>
         <h2>每日习惯</h2>
-        <p>0:30 之前，把这七件事记完，一天就算收口了。</p>
+        <p>0:30 之前把这七件事记完，一天就算收口。记完一件，点一下左边的圈。</p>
       </div>
-      <div class="habits-time">00:30</div>
+      <div class="habits-side">
+        <div class="habits-count" id="habDone">0<span>/7</span></div>
+        <div class="habits-left" id="habLeft">距 00:30 还有 —</div>
+      </div>
     </div>
-    <div class="habit-grid">
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnV8NStqWAMZHSyr1b9LaLxW" target="_blank" rel="noopener">
-        <span class="h-ico">🎧</span>
-        <span class="h-name">记音频</span>
-        <span class="h-desc">填编号自动带出名字</span>
-      </a>
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnVmdNmoFWltgxQhiLMT4pKs" target="_blank" rel="noopener">
-        <span class="h-ico">📖</span>
-        <span class="h-name">记书籍</span>
-        <span class="h-desc">今天读了什么 · 读到哪</span>
-      </a>
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnWUOu00Tmyw6u53E4XgrUjE" target="_blank" rel="noopener">
-        <span class="h-ico">👥</span>
-        <span class="h-name">记读书会</span>
-        <span class="h-desc">今天读书会记一笔</span>
-      </a>
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnEqDIoyvvtuL2ehAXAYCwZg" target="_blank" rel="noopener">
-        <span class="h-ico">🌿</span>
-        <span class="h-name">记感恩</span>
-        <span class="h-desc">每天三件好事 · 约 5 分钟</span>
-      </a>
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=tblApsxO0HgQTHe2&view=vewyaYMM4R" target="_blank" rel="noopener">
-        <span class="h-ico">💊</span>
-        <span class="h-name">去记营养打卡</span>
-        <span class="h-desc">今日打卡 · 睡前项</span>
-      </a>
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnQ5FyWss9zbc18TJcEaPSie" target="_blank" rel="noopener">
-        <span class="h-ico">💬</span>
-        <span class="h-name">记五层对话</span>
-        <span class="h-desc">今天聊到第几层</span>
-      </a>
-      <a class="habit" href="https://q1e2yfc2bey.feishu.cn/share/base/shrcnmV6axfkOC4FmAmXA3G4eJc" target="_blank" rel="noopener">
-        <span class="h-ico">✅</span>
-        <span class="h-name">记日工作量</span>
-        <span class="h-desc">做到 · 没做到 · 反思 · 明天</span>
-      </a>
+    <div class="habit-day">
+      <span id="habDayLabel">今天</span>
+      <button class="hab-back hidden" id="habBack" type="button">回到今天</button>
+      <span>· 凌晨 0–6 点记的算前一天</span>
+    </div>
+    <div class="habit-grid" id="habitGrid">
+      <div class="habit" data-i="0">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="记音频 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnV8NStqWAMZHSyr1b9LaLxW" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">🎧</span>
+          <span class="h-name">记音频</span>
+          <span class="h-desc">填编号自动带出名字</span>
+        </a>
+      </div>
+      <div class="habit" data-i="1">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="记书籍 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnVmdNmoFWltgxQhiLMT4pKs" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">📖</span>
+          <span class="h-name">记书籍</span>
+          <span class="h-desc">今天读了什么 · 读到哪</span>
+        </a>
+      </div>
+      <div class="habit" data-i="2">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="记读书会 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnWUOu00Tmyw6u53E4XgrUjE" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">👥</span>
+          <span class="h-name">记读书会</span>
+          <span class="h-desc">今天读书会记一笔</span>
+        </a>
+      </div>
+      <div class="habit" data-i="3">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="记感恩 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnEqDIoyvvtuL2ehAXAYCwZg" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">🌿</span>
+          <span class="h-name">记感恩</span>
+          <span class="h-desc">每天三件好事 · 约 5 分钟</span>
+        </a>
+      </div>
+      <div class="habit" data-i="4">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="营养打卡 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=tblApsxO0HgQTHe2&view=vewyaYMM4R" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">💊</span>
+          <span class="h-name">去记营养打卡</span>
+          <span class="h-desc">今日打卡 · 睡前项</span>
+        </a>
+      </div>
+      <div class="habit" data-i="5">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="记五层对话 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/share/base/form/shrcnQ5FyWss9zbc18TJcEaPSie" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">💬</span>
+          <span class="h-name">记五层对话</span>
+          <span class="h-desc">今天聊到第几层</span>
+        </a>
+      </div>
+      <div class="habit" data-i="6">
+        <button class="habit-tick" type="button" aria-pressed="false" aria-label="记日工作量 打勾"></button>
+        <a class="habit-go" href="https://q1e2yfc2bey.feishu.cn/share/base/shrcnmV6axfkOC4FmAmXA3G4eJc" target="_blank" rel="noopener">
+          <span class="h-open">↗</span>
+          <span class="h-ico">✅</span>
+          <span class="h-name">记日工作量</span>
+          <span class="h-desc">做到 · 没做到 · 反思 · 明天</span>
+        </a>
+      </div>
+    </div>
+    <div class="habit-week">
+      <div class="hw-head">
+        <h3>最近七天</h3>
+        <p class="hw-note" id="hwNote"></p>
+      </div>
+      <div class="hw-cells" id="hwCells"></div>
     </div>
     <ol class="routine">
       <li>发刷鹅圈子 20 min</li>
@@ -675,7 +813,7 @@
     </ol>
   </section>
 
-  <section class="audio" aria-labelledby="audioTitle">
+  <section class="audio" id="audio" aria-labelledby="audioTitle">
     <div class="audio-head">
       <div>
         <div class="kicker">点一下就循环</div>
@@ -687,7 +825,7 @@
     <div class="tracks" id="tracks"></div>
   </section>
 
-  <section class="audio boost" aria-labelledby="boostTitle">
+  <section class="audio boost" id="boost" aria-labelledby="boostTitle">
     <div class="audio-head">
       <div>
         <div class="kicker">干活前先点一首</div>
@@ -743,7 +881,7 @@
     </p>
   </section>
 
-  <section class="audio" aria-labelledby="medTitle">
+  <section class="audio" id="med" aria-labelledby="medTitle">
     <div class="audio-head">
       <div>
         <div class="kicker">十分钟 · 把自己放回来</div>
@@ -1281,6 +1419,190 @@
     paint();
   });
 
+  paint();
+})();
+
+// 每日习惯：点圈打勾，按天存本机；凌晨 0–6 点记的算前一天
+(function(){
+  var grid = document.getElementById('habitGrid');
+  if(!grid) return;
+  var N = 7, ROLL = 6;
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.habit'));
+  var doneEl = document.getElementById('habDone');
+  var leftEl = document.getElementById('habLeft');
+  var dayEl  = document.getElementById('habDayLabel');
+  var backEl = document.getElementById('habBack');
+  var cellsEl= document.getElementById('hwCells');
+  var noteEl = document.getElementById('hwNote');
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function ymd(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function shift(k, n){
+    var p = k.split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    d.setDate(d.getDate() + n);
+    return ymd(d);
+  }
+  function dayKey(){
+    var d = new Date();
+    if(d.getHours() < ROLL) d.setDate(d.getDate() - 1);
+    return ymd(d);
+  }
+  function read(k){
+    try{
+      var a = JSON.parse(localStorage.getItem('hab:' + k) || 'null');
+      if(!a || !a.length) return null;
+      var out = [];
+      for(var i = 0; i < N; i++) out.push(!!a[i]);
+      return out;
+    }catch(e){ return null; }
+  }
+  function save(k, a){
+    try{ localStorage.setItem('hab:' + k, JSON.stringify(a.map(function(x){ return x ? 1 : 0; }))); }catch(e){}
+  }
+  function blank(){ var a = []; for(var i = 0; i < N; i++) a.push(false); return a; }
+  function of(k){ return read(k) || blank(); }
+  function count(a){ var n = 0; for(var i = 0; i < N; i++) if(a[i]) n++; return n; }
+
+  var today = dayKey();
+  var view = today;
+  var cheered = false;
+
+  function fmt(min){
+    if(min >= 60){ var h = Math.floor(min / 60), m = min % 60; return h + ' 小时' + (m ? ' ' + m + ' 分' : ''); }
+    return min + ' 分钟';
+  }
+  function paintLeft(){
+    var now = new Date();
+    if(now.getHours() < ROLL){
+      var dl = new Date(now); dl.setHours(0, 30, 0, 0);
+      var m = Math.round((dl - now) / 60000);
+      if(m >= 0){ leftEl.className = 'habits-left'; leftEl.textContent = '距 00:30 还有 ' + fmt(m); }
+      else { leftEl.className = 'habits-left over'; leftEl.textContent = '已经过了 ' + fmt(-m) + ' · 记完再睡'; }
+    }else{
+      var nx = new Date(now); nx.setDate(nx.getDate() + 1); nx.setHours(0, 30, 0, 0);
+      leftEl.className = 'habits-left';
+      leftEl.textContent = '距 00:30 还有 ' + fmt(Math.round((nx - now) / 60000));
+    }
+  }
+  function paintWeek(){
+    cellsEl.innerHTML = '';
+    for(var i = 6; i >= 0; i--){
+      var k = shift(today, -i);
+      var c = count(of(k));
+      var lv = c === 0 ? '0' : (c === N ? '3' : (c <= 3 ? '1' : '2'));
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hw' + (k === view ? ' on' : '');
+      b.setAttribute('data-lv', lv);
+      b.title = k + ' · ' + c + '/' + N + (k === today ? '（今天）' : '');
+      b.innerHTML = '<span class="d">' + k.slice(5) + '</span><span class="n">' + (c || '—') + '</span>';
+      if(k !== today){
+        (function(key){
+          b.onclick = function(){ view = key; paint(); };
+        })(k);
+      }
+      cellsEl.appendChild(b);
+    }
+  }
+  function paintNote(){
+    var streak = 0, k = today, guard = 0;
+    if(count(of(today)) < N) k = shift(today, -1);
+    while(guard++ < 60 && count(of(k)) === N){ streak++; k = shift(k, -1); }
+    var full = 0;
+    for(var i = 0; i < 7; i++) if(count(of(shift(today, -i))) === N) full++;
+    var txt = '最近七天全记完 ' + full + ' 天';
+    if(streak) txt += ' · 连续 ' + streak + ' 天';
+    if(view !== today) txt = view.slice(5) + ' 只记了 ' + count(of(view)) + '/' + N + ' · ' + txt;
+    noteEl.textContent = txt;
+  }
+  function boom(){
+    var wrap = document.createElement('div');
+    wrap.className = 'confetti';
+    var colors = ['#D96B3C','#2f6fb5','#3f7d5e','#e8b24a','#c96b8a'];
+    for(var i = 0; i < 44; i++){
+      var s = document.createElement('i');
+      s.style.left = (Math.random() * 100) + '%';
+      s.style.background = colors[i % colors.length];
+      s.style.animationDelay = (Math.random() * 0.5) + 's';
+      s.style.animationDuration = (1.9 + Math.random() * 0.9) + 's';
+      wrap.appendChild(s);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 3400);
+  }
+  function paint(){
+    var a = of(view), n = count(a);
+    cards.forEach(function(c, i){
+      c.classList.toggle('done', !!a[i]);
+      var t = c.querySelector('.habit-tick');
+      if(t) t.setAttribute('aria-pressed', a[i] ? 'true' : 'false');
+    });
+    doneEl.innerHTML = n + '<span>/' + N + '</span>';
+    doneEl.className = 'habits-count' + (n === N ? ' done' : '');
+    dayEl.textContent = view === today ? '今天 ' + view.slice(5) : view;
+    backEl.classList.toggle('hidden', view === today);
+    paintLeft(); paintWeek(); paintNote();
+    if(view === today && n === N){
+      if(!cheered){ cheered = true; boom(); leftEl.className = 'habits-left'; leftEl.textContent = '七件事全记完了，今天收口。'; }
+    }else{
+      cheered = false;
+    }
+  }
+
+  cards.forEach(function(c, i){
+    var t = c.querySelector('.habit-tick');
+    if(!t) return;
+    t.addEventListener('click', function(){
+      var a = of(view);
+      a[i] = !a[i];
+      save(view, a);
+      paint();
+    });
+  });
+  backEl.addEventListener('click', function(){ view = today; paint(); });
+
+  setInterval(function(){
+    var k = dayKey();
+    if(k !== today){ today = k; view = k; cheered = false; paint(); }
+    else if(view === today) paintLeft();
+  }, 30000);
+
+  paint();
+})();
+
+// 顶部导航：跟着滚动高亮，点一下跳过去
+(function(){
+  var nav = document.getElementById('topnav');
+  if(!nav) return;
+  var strip = document.getElementById('tnItems');
+  var links = Array.prototype.slice.call(nav.querySelectorAll('a.tn'));
+  var secs = links.map(function(a){
+    var el = document.getElementById(a.getAttribute('href').slice(1));
+    return el ? { a: a, el: el } : null;
+  }).filter(Boolean);
+  if(!secs.length) return;
+
+  var ticking = false;
+  function paint(){
+    ticking = false;
+    var y = window.pageYOffset + 90, cur = secs[0];
+    secs.forEach(function(s){
+      var top = s.el.getBoundingClientRect().top + window.pageYOffset;
+      if(top <= y) cur = s;
+    });
+    links.forEach(function(a){ a.classList.toggle('on', a === cur.a); });
+    if(strip){
+      var r = cur.a.getBoundingClientRect(), c = strip.getBoundingClientRect();
+      if(r.left < c.left || r.right > c.right) strip.scrollLeft += (r.left - c.left) - 16;
+    }
+  }
+  window.addEventListener('scroll', function(){
+    if(ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(paint);
+  }, { passive: true });
+  window.addEventListener('resize', paint);
   paint();
 })();
 </script>
