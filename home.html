@@ -220,6 +220,17 @@
   .ted-foot{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11.5px;color:#a9a294;
             font-variant-numeric:tabular-nums;}
   .ted-foot .bili{margin-left:auto;color:var(--blue);font-weight:600;}
+  .ted-pager{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;
+             padding-top:14px;border-top:1px dashed var(--line);}
+  .ted-count{font-size:12px;color:#a9a294;font-variant-numeric:tabular-nums;}
+  .ted-btns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;}
+  .pg{font:inherit;font-size:12.5px;font-weight:600;color:var(--navy);background:#fff;
+      border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer;
+      transition:background .14s,border-color .14s,color .14s,transform .12s;
+      font-variant-numeric:tabular-nums;}
+  .pg:hover:not(:disabled):not(.on){border-color:#f0d5c6;background:#fff4ec;transform:translateY(-1px);}
+  .pg.on{background:var(--navy);border-color:var(--navy);color:#fff;cursor:default;}
+  .pg:disabled{opacity:.38;cursor:default;}
   @media (max-width:940px){ .ted-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:560px){ .ted-grid{grid-template-columns:1fr;} }
 
@@ -338,10 +349,14 @@
       <div>
         <div class="kicker">没劲的时候点一个</div>
         <h2 id="tedTitle">🔋 充点电 · 励志 TED</h2>
-        <p>八个传得最火的 TED，B 站直接看，都有中文字幕。十来分钟一个。</p>
+        <p>三十二个传得最火的 TED，按播放量排，B 站直接看，都有中文字幕。一页八个，翻着挑。</p>
       </div>
     </div>
     <div class="ted-grid" id="tedGrid"></div>
+    <div class="ted-pager">
+      <span class="ted-count" id="tedCount"></span>
+      <div class="ted-btns" id="tedBtns"></div>
+    </div>
   </section>
 
 
@@ -586,43 +601,120 @@
     clearTimeout(timer);
     timer = setTimeout(function(){ tip.classList.remove('show'); }, 3200);
   }
-  // 充点电：B 站上的励志 TED（播放数是 2026-11-13 抓的快照，会慢慢涨）
+  // 充点电：B 站上的励志 TED（按播放量排，数字是 2026-11-13 抓的快照，会慢慢涨）
   var TED = [
+    { t:'女孩儿不必完美，只是需要更有勇气', by:'雷什玛·萨贾尼 Reshma Saujani', min:13, lang:'中文字幕', bv:'BV1vW411q7AX', view:'141.8 万',
+      why:'女孩被教得怕犯错，男孩被教得敢去试——这条规矩得改。' },
+    { t:'改变自己，只需要两年时间', by:'TED 演讲 · 中文精读', min:4, lang:'中文字幕', bv:'BV1m14y1h7Ah', view:'129.6 万',
+      why:'两年不长，但足够让一个人彻底换一种活法。' },
     { t:'不幸的人是如何拥有幸福人生的', by:'山姆·伯恩斯 Sam Berns', min:12, lang:'中文字幕', bv:'BV1Cz411b7G1', view:'64.9 万',
       why:'一个生来患病、被预言活不长的少年，讲他怎么把每一天过好。' },
+    { t:'怎样打败孤独和负能量', by:'盖伊·温奇 Guy Winch', min:17, lang:'中文字幕', bv:'BV16h4y1g783', view:'56.5 万',
+      why:'孤独会骗你说没人愿意靠近你，这是错觉。' },
+    { t:'如何掌控你的自由时间', by:'劳拉·范德卡姆 Laura Vanderkam', min:12, lang:'中文字幕', bv:'BV1vx411e7Pg', view:'54.9 万',
+      why:'不是没时间，是这件事还没排进你的优先级。' },
+    { t:'一个最简单的方式戒掉坏习惯', by:'贾德森·布鲁尔 Judson Brewer', min:9, lang:'中文字幕', bv:'BV1Zb411B71v', view:'54.1 万',
+      why:'不跟欲望硬扛，只是好奇地看着它来、看着它走。' },
     { t:'成功的关键不是智商，而是毅力', by:'安杰拉·达克沃斯 Angela Duckworth', min:6, lang:'中文字幕', bv:'BV1mt411L7cJ', view:'29.4 万',
       why:'天赋只决定起点，热爱加坚持才决定你能走多远。' },
     { t:'内向者的力量', by:'苏珊·凯恩 Susan Cain', min:19, lang:'中文字幕', bv:'BV1ob411Y7cS', view:'28.5 万',
       why:'不用逼自己变外向；安静的人，自有安静的优势。' },
+    { t:'不要让「担心别人的看法」局限你的人生', by:'TED · 中文演讲', min:18, lang:'中文', bv:'BV1b4421Z7Fc', view:'25.9 万',
+      why:'别人怎么看你，是他们的事；你怎么活，是你的事。' },
+    { t:'睡好觉，你的大脑才拥有超能力', by:'TED 演讲', min:5, lang:'中文字幕', bv:'BV1xj421X7M3', view:'20.5 万',
+      why:'睡不够，学得快，忘得更快。' },
+    { t:'运动改变大脑', by:'温迪·铃木 Wendy Suzuki', min:12, lang:'中文字幕', bv:'BV1gQ4y1n7QB', view:'20.2 万',
+      why:'运动是给大脑最划算的一笔投资，当天就见效。' },
+    { t:'不要公开宣布你的个人目标', by:'德里克·西弗斯 Derek Sivers', min:10, lang:'中文字幕', bv:'BV1fs41197CL', view:'18.9 万',
+      why:'说出来的目标，会提前消耗掉你动手的劲。' },
+    { t:'女性的力量：为自己负责', by:'TED 精选短片', min:6, lang:'中文字幕', bv:'BV11V411v7UE', view:'18.4 万',
+      why:'为自己负责，是把自己从受害者变成当事人的那一步。' },
     { t:'像大多数人一样生活，是否更省力？', by:'庞颖 · TEDx 外滩', min:17, lang:'中文', bv:'BV1hggHzHEH5', view:'17.9 万',
       why:'真正为难我们的，常常不是生活，而是别人的眼光。' },
+    { t:'社交时代的孤独', by:'雪莉·特克尔 Sherry Turkle', min:20, lang:'中文字幕', bv:'BV1US411w7uL', view:'17.6 万',
+      why:'我们连得更紧，却比任何时候都孤独。' },
+    { t:'人生有无限可能，为什么不去试试呢', by:'刘宪华 · TEDx 外滩', min:19, lang:'中文', bv:'BV1wP4y1T7h5', view:'15.7 万',
+      why:'所有经历都是成长，包括那些当时觉得白费的。' },
     { t:'脆弱的力量', by:'布琳·布朗 Brené Brown', min:20, lang:'中文字幕', bv:'BV1J7411v71G', view:'15.7 万',
       why:'承认自己会怕、会不够好，反而是跟人真正连上的开始。' },
     { t:'我在 100 天的拒绝里学到了什么', by:'蒋甲 Jia Jiang', min:47, lang:'中文字幕', bv:'BV1H5411f7hT', view:'15.0 万',
       why:'怕被拒绝，就主动去求拒绝——100 天之后天没塌。' },
+    { t:'睡眠是你的超能力', by:'马特·沃克 Matt Walker', min:19, lang:'中文字幕', bv:'BV1uC4y1s75D', view:'13.7 万',
+      why:'睡眠是大脑的清理工，也是记忆的保存键。' },
+    { t:'哈佛 75 年研究：什么样的人活得最幸福', by:'罗伯特·瓦尔丁格 Robert Waldinger', min:12, lang:'中文字幕', bv:'BV1aF411Q7Je', view:'12.6 万',
+      why:'追踪七百多人一辈子，答案不是钱和名，是关系。' },
     { t:'肢体语言塑造你自己', by:'艾米·卡迪 Amy Cuddy', min:21, lang:'中文字幕', bv:'BV1ZJ411W7tJ', view:'11.4 万',
       why:'先摆出有底气的姿势，撑两分钟，人真的会更有底气。' },
+    { t:'学校扼杀了学生的创造力？', by:'肯·罗宾逊 Ken Robinson', min:19, lang:'中文字幕', bv:'BV1bx411F7e1', view:'10.9 万',
+      why:'TED 史上最受欢迎的一场：教育在批量生产不敢犯错的成年人。' },
+    { t:'怎样说话，人们才会听', by:'朱利安·特雷热 Julian Treasure', min:40, lang:'中文字幕', bv:'BV1HW411G7Yc', view:'10.9 万',
+      why:'说话的四种坏习惯，和让人愿意听的四件事。' },
     { t:'20 岁，光阴不再来', by:'梅格·杰伊 Meg Jay', min:15, lang:'中文字幕', bv:'BV1ZH4y1y7uZ', view:'8.7 万',
-      why:'20 多岁不是缓冲期，随手过掉的十年会决定后面三十年。' }
+      why:'20 多岁不是缓冲期，随手过掉的十年会决定后面三十年。' },
+    { t:'拖延症患者的内心世界', by:'蒂姆·厄本 Tim Urban', min:14, lang:'中文字幕', bv:'BV1GH4y1h7kY', view:'8.6 万',
+      why:'你脑子里住着一只只要快乐、只怕截止日期的猴子。' },
+    { t:'如何让压力成为朋友', by:'凯莉·麦格尼格尔 Kelly McGonigal', min:14, lang:'中文字幕', bv:'BV1w441137Cp', view:'8.4 万',
+      why:'改变对压力的看法，身体的反应就跟着变。' },
+    { t:'被误解的晚年，是一份「中途执着」', by:'倪萍 · TEDx 外滩', min:23, lang:'中文', bv:'BV1nsu1zKEx7', view:'7.3 万',
+      why:'被误解的那段人生，也值得一直执着下去。' },
+    { t:'走入山的内部，走进你的内心', by:'周轶君 · TEDx 外滩', min:15, lang:'中文', bv:'BV1FXRPYxEo4', view:'7.1 万',
+      why:'走进山的内部，才走得到自己的内心。' },
+    { t:'如何成为一个更好的交谈者', by:'塞莱斯特·黑德利 Celeste Headlee', min:12, lang:'中文字幕', bv:'BV1gs411z76M', view:'5.0 万',
+      why:'交谈不是等着轮到你说话。' },
+    { t:'重启人生 100 次', by:'陈玉亭 · TEDx 澳门', min:18, lang:'中文', bv:'BV1BZUyYQEf7', view:'2.9 万',
+      why:'重生的本质，是一次次杀死那个不够勇敢的自己。' },
+    { t:'TEDx 外滩演讲：把每一次都当最后一次', by:'曹骏 · TEDx 外滩', min:12, lang:'中文', bv:'BV1kfMDzWEZf', view:'2.3 万',
+      why:'一个演员讲他是怎么从没人找，到自己找路上的。' },
+    { t:'感恩会如何重新激活你的大脑', by:'克里斯蒂娜·科斯塔 Christina Costa', min:10, lang:'中文字幕', bv:'BV1nc411o7JJ', view:'2.0 万',
+      why:'一位得了脑瘤的心理学家，把感恩当成药来试。' }
   ];
   var tedGrid = document.getElementById('tedGrid');
+  var tedCount = document.getElementById('tedCount');
+  var tedBtns = document.getElementById('tedBtns');
   if(tedGrid){
-    TED.forEach(function(x, i){
-      var a = document.createElement('a');
-      a.className = 'ted-card';
-      a.href = 'https://www.bilibili.com/video/' + x.bv;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.title = x.t + ' · B 站';
-      a.innerHTML =
-        '<span class="ted-no">' + ('0' + (i + 1)).slice(-2) + '</span>' +
-        '<h3>' + x.t + '</h3>' +
-        '<p class="ted-say">' + x.by + '</p>' +
-        '<p class="ted-meta">' + x.min + ' 分钟 · <em>' + x.lang + '</em></p>' +
-        '<p class="ted-why">' + x.why + '</p>' +
-        '<span class="ted-foot"><span>' + x.view + ' 播放</span><span class="bili">B 站 ›</span></span>';
-      tedGrid.appendChild(a);
-    });
+    var TED_PAGE = 8, tedPage = 1;
+    var TED_PAGES = Math.ceil(TED.length / TED_PAGE);
+    var renderTed = function(){
+      var start = (tedPage - 1) * TED_PAGE;
+      tedGrid.innerHTML = '';
+      TED.slice(start, start + TED_PAGE).forEach(function(x, i){
+        var a = document.createElement('a');
+        a.className = 'ted-card';
+        a.href = 'https://www.bilibili.com/video/' + x.bv;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.title = x.t + ' · B 站';
+        a.innerHTML =
+          '<span class="ted-no">' + ('0' + (start + i + 1)).slice(-2) + '</span>' +
+          '<h3>' + x.t + '</h3>' +
+          '<p class="ted-say">' + x.by + '</p>' +
+          '<p class="ted-meta">' + x.min + ' 分钟 · <em>' + x.lang + '</em></p>' +
+          '<p class="ted-why">' + x.why + '</p>' +
+          '<span class="ted-foot"><span>' + x.view + ' 播放</span><span class="bili">B 站 ›</span></span>';
+        tedGrid.appendChild(a);
+      });
+      tedCount.textContent = '第 ' + tedPage + ' / ' + TED_PAGES + ' 页 · 共 ' + TED.length + ' 个';
+      tedBtns.innerHTML = '';
+      var mk = function(label, page, disabled, on){
+        var b = document.createElement('button');
+        b.className = 'pg' + (on ? ' on' : '');
+        b.textContent = label;
+        b.disabled = !!disabled;
+        if(!disabled && !on) b.onclick = function(){ goTed(page); };
+        tedBtns.appendChild(b);
+      };
+      mk('‹ 上一页', tedPage - 1, tedPage === 1, false);
+      for(var p = 1; p <= TED_PAGES; p++) mk(String(p), p, false, p === tedPage);
+      mk('下一页 ›', tedPage + 1, tedPage === TED_PAGES, false);
+    };
+    var goTed = function(p){
+      if(p < 1 || p > TED_PAGES || p === tedPage) return;
+      tedPage = p;
+      renderTed();
+      var sec = document.querySelector('.ted');
+      if(sec && sec.getBoundingClientRect().top < 0) sec.scrollIntoView({behavior:'smooth', block:'start'});
+    };
+    renderTed();
   }
 
   Array.prototype.slice.call(document.querySelectorAll('a[data-local]')).forEach(function(a){
