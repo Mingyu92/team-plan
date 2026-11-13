@@ -326,6 +326,27 @@
   @media (max-width:940px){ .ted-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:560px){ .ted-grid{grid-template-columns:1fr;} }
 
+  /* 补课 · AI 产品经理视频 */
+  .vids{margin-top:38px;background:var(--paper);border:1px solid var(--line);
+        border-top:4px solid var(--navy);border-radius:8px;padding:22px 24px 24px;}
+  .vids h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;display:flex;align-items:center;gap:9px;}
+  .vids-head p{margin:6px 0 0;font-size:13px;color:var(--muted);}
+  .vids-how{margin:14px 0 0;padding:10px 14px;background:#f4f7fb;border-left:3px solid #b9cbe0;
+            border-radius:5px;font-size:12.5px;line-height:1.7;color:#4a5058;}
+  .vids-how b{color:var(--navy);}
+  .vids-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .vtab{font:inherit;font-size:12.5px;font-weight:600;color:var(--navy);background:#fff;
+        border:1px solid var(--line);border-radius:999px;padding:6px 15px;cursor:pointer;
+        transition:background .14s,border-color .14s,color .14s;}
+  .vtab:hover:not(.on){border-color:#cfdff2;background:#f2f7fd;}
+  .vtab.on{background:var(--navy);border-color:var(--navy);color:#fff;cursor:default;}
+  .vtab em{font-style:normal;opacity:.6;margin-left:5px;font-variant-numeric:tabular-nums;}
+  .vids .ted-grid{margin-top:14px;}
+  .vids .ted-card{border-left-color:#cfd9e6;}
+  .vids .ted-card:hover{background:#f6f9fc;border-left-color:var(--navy);
+                        box-shadow:0 10px 22px rgba(27,58,99,.10);}
+  .vids .ted-meta em{color:#2f6fb5;}
+
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
        box-shadow:0 10px 26px rgba(27,58,99,.25);opacity:0;pointer-events:none;transition:.18s;z-index:20;}
@@ -405,6 +426,8 @@
       <ul class="links">
         <li><a href="https://mingyu92.github.io/team-plan/aipm/" target="_blank" rel="noopener">
           AI PM 学习路线<span class="tag online">在线</span><span class="arrow">›</span></a></li>
+        <li><a href="#vids">
+          补课视频 · 基础 / 面试<span class="tag online">B 站</span><span class="arrow">›</span></a></li>
         <li><a href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
           今日岗位<span class="tag local">本地</span><span class="arrow">›</span></a></li>
         <li><a href="file:///C:/Users/14374/ai-pm-prep/cv/%E7%AE%80%E5%8E%86%E5%AE%A1%E9%98%85-%E8%B5%84%E6%B7%B1PM-30%E9%97%AE.html" data-local>
@@ -565,6 +588,19 @@
         </ul>
       </div>
     </div>
+  </section>
+
+  <section class="vids" id="vids" aria-labelledby="vidsTitle">
+    <div class="vids-head">
+      <div>
+        <div class="kicker">学过又忘了 · 回来点一条</div>
+        <h2 id="vidsTitle">🎬 补课 · AI 产品经理视频</h2>
+        <p>B 站上真正能看的这些，按「先补基础 / 面试怎么答 / 想系统刷」分好了。时长和播放数是 2026-11-13 抓的快照。</p>
+      </div>
+    </div>
+    <p class="vids-how"><b>怎么用：</b>一天只点一条，先挑 20 分钟以内的。看完不用做笔记，能在台账里写一句「今天补了什么」就算数。长课放最后，别一上来就刷 1000 集。</p>
+    <div class="vids-tabs" id="vidsTabs"></div>
+    <div class="ted-grid" id="vidsGrid"></div>
   </section>
 
   <section class="ted" aria-labelledby="tedTitle">
@@ -938,6 +974,105 @@
       if(sec && sec.getBoundingClientRect().top < 0) sec.scrollIntoView({behavior:'smooth', block:'start'});
     };
     renderTed();
+  }
+
+  // 补课：AI 产品经理视频（2026-11-13 从 B 站抓的，播放数/时长是当时快照）
+  var VIDS = {
+    base: [
+      { t:'卡帕西：深入探索像 ChatGPT 这样的大语言模型', by:'中文字幕 · Andrej Karpathy', min:211, view:'38.4 万', bv:'BV16cNEeXEer',
+        why:'学过又忘了就重刷这条：从分词、预训练一路讲到它为什么会胡说。分几次看。' },
+      { t:'从 LLM 到 Agent Skill，一期打通底层逻辑', by:'马克的技术工作坊', min:32, view:'224.1 万', bv:'BV1E7wtzaEdq',
+        why:'半小时把 prompt → 工具 → Agent 的关系理顺，聊「你怎么理解 Agent」时能用上。' },
+      { t:'AI for Everyone（吴恩达 · 中文）', by:'LLM大模型原理 · 35 集', min:254, view:'35.9 万', bv:'BV1WvRhBwETR',
+        why:'不写代码的那一套：AI 能干什么、一个 AI 项目值不值得做。' },
+      { t:'大模型的分数是咋测出来的？拆解 Benchmark', by:'飞天闪客', min:10, view:'11.5 万', bv:'BV1LkM86vEEW',
+        why:'被问「你怎么判断模型好不好」，答案就从这儿来。' },
+      { t:'模型评估：准确率 / 精确率 / 召回率 / F1', by:'小萌Annie', min:6, view:'11.8 万', bv:'BV1vt4y117Zz',
+        why:'五分钟把四个指标的定义和取舍捡回来，评测题的底子。' },
+      { t:'RAG 优化四步通关：原理 / Query / 多模态 / 评测', by:'卢菁博士', min:41, view:'5,477', bv:'BV17eTvzaEWh',
+        why:'「RAG 效果不好怎么办」的四段答法，面试高频。' },
+      { t:'5 分钟给本地大模型接知识库 RAG', by:'秋芝2046', min:5, view:'27.4 万', bv:'BV1Ay411B7rx',
+        why:'照着跑一遍，就能说「我自己搭过一个」，比背概念强。' },
+      { t:'Agent 项目落地评测：5 大类 30 项指标', by:'卢菁博士', min:52, view:'9,816', bv:'BV1QwdQBMEBr',
+        why:'从技术指标走到商业指标，正好补你的短板。' },
+      { t:'OpenCompass 大模型评测', by:'OpenMMLab · 官方课', min:52, view:'1.7 万', bv:'BV1Gg4y1U7uc',
+        why:'知道国内评测基准长什么样就够了，不用全看。' }
+    ],
+    interview: [
+      { t:'AI 产品经理面试：模型选型 / 微调数据 / 评测体系 / Agent', by:'AI产品果果姐', min:2, view:'2.7 万', bv:'BV1KZXHBBEEE',
+        why:'两分钟听完四块必考点的答题骨架，先立框架再补细节。' },
+      { t:'AI 产品经理高频面试题回答思路', by:'AI产品经理PMGao · 10 集', min:68, view:'1,844', bv:'BV1G1xt6iEhF',
+        why:'按题讲思路，面试前一周刷最合适。' },
+      { t:'AI 产品经理面试最怕问项目', by:'AI产品经理PMGao · 10 集', min:68, view:'5,102', bv:'BV1ZanB64ETU',
+        why:'项目六连问，配合你的案例卡一起用。' },
+      { t:'Harness / Skill / MCP / Agent，面试官问这些想听什么', by:'赵清衡AI岗求职陪跑', min:35, view:'262', bv:'BV1zyWy6WEnf',
+        why:'这几个新词被问到不至于愣住。播放少，但对症。' },
+      { t:'AI 产品经理 · 评测集面试题集合', by:'橙色鲸', min:55, view:'1,940', bv:'BV1f9ev6QEkT',
+        why:'评测是 AI PM 的必考区，单独刷这一块。' },
+      { t:'想拿字节 SP offer？用户 LTV 总得会算', by:'景腾和小乌鸦', min:2, view:'2.0 万', bv:'BV1Wq4y1m7kx',
+        why:'数据分析题的模板，费米估算也从这个思路起。' },
+      { t:'拿到 7 家产品 offer，面试官最想听什么', by:'斯前想后来', min:10, view:'26.0 万', bv:'BV1Gy4y1r7jf',
+        why:'讲回答怎么取舍，不是背题库。' },
+      { t:'产品经理面试实况录像 · 大厂应届生', by:'老贾的旅行和职场分享', min:20, view:'13.4 万', bv:'BV1pz4y167f6',
+        why:'看真人怎么答、怎么被追问，比看提纲有用。' },
+      { t:'16k offer 学员面试录音：面试官抠了哪些问题', by:'产品经理远远', min:32, view:'1.3 万', bv:'BV1Xb1eB8E8C',
+        why:'听追问是怎么一层层往下钻的。' },
+      { t:'无领导小组讨论看这一篇就够了', by:'走姨Zozoey', min:17, view:'87.9 万', bv:'BV1kh411p7ST',
+        why:'群面框架 / 角色 / 话术，校招几乎躲不掉。' },
+      { t:'面试自我介绍，可以背，但别啰嗦', by:'beta说 · 产品经理说明书', min:3, view:'1.0 万', bv:'BV1JQ4y1p7hH',
+        why:'三分钟讲清自我介绍的三段结构。' }
+    ],
+    courses: [
+      { t:'吴恩达大模型全套（Agent / RAG / LangChain）', by:'吴恩达机器学习 · 127 集', min:864, view:'249.3 万', bv:'BV1Bq421A74G',
+        why:'中英字幕带代码，最系统的免费一套。当参考书查，不用从头看。' },
+      { t:'产品经理必刷 200 道面试题（150 集）', by:'东岳老师讲产品经理', min:374, view:'22.1 万', bv:'BV1BP4y1R7f9',
+        why:'传统 PM 那套（需求 / 优先级 / 数据）靠它，AI 部分看上一栏。' },
+      { t:'2026 最全 AI 产品经理教程（98 集）', by:'AI产品经理系统教程', min:1614, view:'25.7 万', bv:'BV1KzDYBYED6',
+        why:'体量最大、成体系。挑章节看，别当成必须刷完的任务。' }
+    ]
+  };
+  var VID_TABS = [
+    { k:'base', label:'先补基础' },
+    { k:'interview', label:'面试怎么答' },
+    { k:'courses', label:'想系统刷' }
+  ];
+
+  var vidsTabs = document.getElementById('vidsTabs');
+  var vidsGrid = document.getElementById('vidsGrid');
+  if(vidsTabs && vidsGrid){
+    var curVid = 'base';
+    var renderVids = function(){
+      var list = VIDS[curVid] || [];
+      vidsGrid.innerHTML = '';
+      list.forEach(function(x, i){
+        var a = document.createElement('a');
+        a.className = 'ted-card';
+        a.href = 'https://www.bilibili.com/video/' + x.bv;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.title = x.t + ' · B 站';
+        a.innerHTML =
+          '<span class="ted-no">' + ('0' + (i + 1)).slice(-2) + '</span>' +
+          '<h3>' + x.t + '</h3>' +
+          '<p class="ted-say">' + x.by + '</p>' +
+          '<p class="ted-meta">' + x.min + ' 分钟 · <em>B 站</em></p>' +
+          '<p class="ted-why">' + x.why + '</p>' +
+          '<span class="ted-foot"><span>' + x.view + ' 播放</span><span class="bili">去看 ›</span></span>';
+        vidsGrid.appendChild(a);
+      });
+      Array.prototype.slice.call(vidsTabs.children).forEach(function(b){
+        b.className = 'vtab' + (b.dataset.k === curVid ? ' on' : '');
+      });
+    };
+    VID_TABS.forEach(function(t){
+      var b = document.createElement('button');
+      b.className = 'vtab';
+      b.dataset.k = t.k;
+      b.innerHTML = t.label + '<em>' + VIDS[t.k].length + '</em>';
+      b.onclick = function(){ curVid = t.k; renderVids(); };
+      vidsTabs.appendChild(b);
+    });
+    renderVids();
   }
 
   Array.prototype.slice.call(document.querySelectorAll('a[data-local]')).forEach(function(a){
