@@ -50,6 +50,7 @@
   .tn.on{background:var(--navy);border-color:var(--navy);color:#fff;}
   .tn.job.on{background:var(--blue);border-color:var(--blue);}
   .tn.biz.on{background:var(--orange);border-color:var(--orange);}
+  .tn.warm.on{background:var(--orange);border-color:var(--orange);}
   .tn-sep{flex:0 0 auto;width:1px;margin:6px 5px;background:var(--line);}
   section[id]{scroll-margin-top:64px;}
   @media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth;} }
@@ -188,6 +189,85 @@
   .jn-dont li::before{content:"–";position:absolute;left:0;top:0;color:#c9c3b5;}
   .jn-dont b{color:#8a5a3c;font-weight:600;}
 
+  /* 起不动 · 不想干的时候按这里 */
+  .stuck{background:linear-gradient(180deg,#fff8f1,#fffdfb);border:1px solid #f0dcc9;
+         border-radius:8px;padding:18px 22px 18px;}
+  .stuck-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .stuck h2{margin:0;font-size:19px;color:var(--navy);letter-spacing:.04em;
+            display:flex;align-items:center;gap:8px;}
+  .stuck h2 .ico{font-size:17px;line-height:1;}
+  .stuck-lede{margin:6px 0 0;font-size:13px;line-height:1.7;color:#6b6862;max-width:660px;}
+  .stuck-lede b{color:var(--orange);font-weight:600;}
+  .stuck-side{flex:0 0 auto;text-align:right;}
+  .stuck-num{font-size:26px;font-weight:700;line-height:1;color:var(--orange);font-variant-numeric:tabular-nums;}
+  .stuck-cap{margin-top:5px;font-size:11.5px;color:#a9a294;}
+
+  .st-states{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px;}
+  .st-state{font:inherit;font-size:12.5px;font-weight:600;color:#6b6862;background:#fff;
+            border:1px solid #ecdfd0;border-radius:999px;padding:6px 14px;cursor:pointer;
+            transition:background .14s,border-color .14s,color .14s,transform .12s;}
+  .st-state:hover{border-color:#f0c9ae;background:#fff4ec;transform:translateY(-1px);}
+  .st-state.on{background:var(--orange);border-color:var(--orange);color:#fff;transform:none;}
+  .st-state:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+
+  .st-say{margin-top:11px;background:#fff;border:1px dashed #eeddcc;border-radius:6px;
+          padding:11px 14px;font-size:13.5px;line-height:1.75;color:#4a5058;}
+  .st-say p{margin:0;}
+  .st-say p.quiet{font-size:12.5px;color:#a9a294;}
+  .st-say-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
+  .st-say-acts:empty{margin-top:0;}
+  .st-say-acts a,.st-say-acts button{font:inherit;font-size:12.5px;font-weight:600;text-decoration:none;
+    color:var(--navy);background:#f7f3ec;border:1px solid #e6dfd2;border-radius:999px;padding:5px 13px;
+    cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+  .st-say-acts a:hover,.st-say-acts button:hover{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+  .st-dump{margin-top:10px;}
+  .st-dump[hidden]{display:none;}
+  .st-dump textarea{display:block;width:100%;min-height:92px;resize:vertical;font:inherit;font-size:13.5px;
+    line-height:1.8;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
+  .st-dump textarea:focus{outline:none;border-color:#f0c9ae;box-shadow:0 0 0 3px rgba(217,107,60,.08);}
+  .st-dump-cap{margin:6px 0 0;font-size:11.5px;color:#b4ad9e;}
+
+  .st-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px;}
+  .st-card{display:flex;flex-direction:column;gap:3px;background:#fff;border:1px solid #ecdfd0;
+           border-left:3px solid #e9cdb8;border-radius:6px;padding:11px 13px;text-decoration:none;color:inherit;
+           transition:transform .14s,box-shadow .14s,border-left-color .14s,background .14s;}
+  .st-card:hover{transform:translateY(-2px);border-left-color:var(--orange);background:#fffaf6;
+                 box-shadow:0 8px 18px rgba(217,107,60,.10);}
+  .st-card .who{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:#b4ad9e;}
+  .st-card .what{font-size:13.5px;line-height:1.65;color:#3a3f47;}
+  .st-card .what b{color:var(--navy);font-weight:600;}
+  .st-card .meta{margin-top:auto;padding-top:5px;font-size:11.5px;color:#b4ad9e;font-variant-numeric:tabular-nums;}
+
+  .st-timer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px;
+            padding-top:14px;border-top:1px dashed #eeddcc;}
+  .st-go{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:186px;
+         font:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--orange);
+         border:0;border-radius:6px;padding:11px 18px;cursor:pointer;
+         font-variant-numeric:tabular-nums;transition:filter .15s,background .2s,transform .12s;}
+  .st-go:hover{filter:brightness(1.06);transform:translateY(-1px);}
+  .st-go.run{background:var(--navy);}
+  .st-go .ico{font-size:10px;line-height:1;}
+  .st-go.run .ico{opacity:.7;}
+  .st-hint{margin:0;flex:1 1 220px;min-width:0;font-size:12px;line-height:1.7;color:#a9a294;}
+  .st-hint.on{color:var(--navy);}
+  .st-durs{display:flex;gap:5px;}
+  .st-dur{font:inherit;font-size:12px;font-weight:600;color:#8d8880;background:#fff;border:1px solid #ecdfd0;
+          border-radius:999px;padding:4px 10px;cursor:pointer;font-variant-numeric:tabular-nums;
+          transition:background .14s,border-color .14s,color .14s;}
+  .st-dur:hover:not(:disabled){border-color:#f0c9ae;color:var(--orange);}
+  .st-dur.on{background:#fff4ec;border-color:#f0c9ae;color:var(--orange);}
+  .st-dur:disabled{opacity:.4;cursor:default;}
+  .st-week{display:flex;align-items:center;gap:8px;margin-left:auto;}
+  .st-week-cap{font-size:11.5px;color:#b4ad9e;white-space:nowrap;}
+  .st-wcells{display:flex;gap:5px;}
+  .st-w{width:30px;height:30px;border-radius:5px;border:1px solid #ecdfd0;background:#fff;
+        display:grid;place-items:center;font-size:11.5px;font-weight:700;color:#d3ccbc;
+        font-variant-numeric:tabular-nums;}
+  .st-w[data-lv="1"]{background:#fdf1e8;border-color:#f2ddcc;color:#c47a4a;}
+  .st-w[data-lv="2"]{background:#fbdcc7;border-color:#f0cdb4;color:#a95c2c;}
+  .st-w[data-lv="3"]{background:var(--orange);border-color:var(--orange);color:#fff;}
+
   .habits{margin-top:38px;background:var(--paper);border:1px solid var(--line);
           border-top:4px solid var(--orange);border-radius:8px;padding:22px 24px 24px;}
   .habits-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
@@ -200,6 +280,26 @@
   .habits-count span{font-size:15px;color:#c3bcac;font-weight:600;}
   .habits-left{margin-top:7px;font-size:11.5px;color:#a9a294;font-variant-numeric:tabular-nums;}
   .habits-left.over{color:var(--orange);font-weight:600;}
+  .habits-sync{margin-top:5px;font-size:11px;color:#b4ad9e;}
+  .habits-sync a{color:var(--blue);text-decoration:none;border-bottom:1px solid #cfd8e2;}
+  .habits-sync a:hover{color:var(--orange);border-color:#f0d5c6;}
+
+  .mask{position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(31,36,48,.45);display:none;
+        align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .mask.show{display:flex;}
+  .dlg{width:100%;max-width:360px;background:var(--paper);border:1px solid var(--line);border-radius:10px;
+       padding:22px 22px 16px;box-shadow:0 24px 60px rgba(27,58,99,.22);}
+  .dlg h3{margin:0 0 6px;font-size:17px;color:var(--navy);}
+  .dlg p{margin:0 0 14px;font-size:12.5px;color:var(--muted);line-height:1.7;}
+  .dlg input{width:100%;box-sizing:border-box;margin-bottom:9px;padding:10px 12px;font:inherit;
+             font-size:14px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);}
+  .dlg input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,181,.12);}
+  .dlg .err{color:#b4372f;font-size:12px;min-height:16px;margin:0 0 4px;}
+  .dlg .row{display:flex;gap:9px;justify-content:flex-end;}
+  .dlg button{font:inherit;font-size:13.5px;padding:8px 16px;border-radius:6px;cursor:pointer;
+              border:1px solid var(--line);background:#fff;color:#5a6068;}
+  .dlg button.go{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600;}
+  .dlg button:hover{filter:brightness(1.05);}
 
   .habit-day{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:12px;color:#a9a294;}
   .hab-back{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 11px;
@@ -444,6 +544,9 @@
     .page{padding-bottom:150px;}
     .jn-cols{grid-template-columns:1fr 1fr;gap:22px;}
     .jn-col.wide{grid-column:1 / -1;}
+    .stuck{padding:16px 16px 18px;}
+    .st-cards{grid-template-columns:1fr;}
+    .st-week{margin-left:0;}
   }
 
   @media (max-width:640px){
@@ -474,6 +577,7 @@
   <nav class="topnav" id="topnav" aria-label="页面导航">
     <div class="tn-items" id="tnItems">
       <a class="tn on" href="#top">概览</a>
+      <a class="tn warm" href="#stuck">起不动</a>
       <a class="tn job" href="#jobnow">找工作</a>
       <span class="tn-sep" aria-hidden="true"></span>
       <a class="tn biz" href="#extras">话术素材</a>
@@ -486,6 +590,66 @@
       <a class="tn" href="#med">冥想</a>
     </div>
   </nav>
+
+  <section class="stuck" id="stuck" aria-labelledby="stuckTitle">
+    <div class="stuck-top">
+      <div>
+        <h2 id="stuckTitle"><span class="ico">🪫</span>起不动 · 就在这按一下</h2>
+        <p class="stuck-lede">不想干不是你一个人的毛病 —— 卡住的时候，那件事在脑子里还是一团，没有一个具体的第一步。这里只做一件事：<b>把第一步缩到 2 分钟</b>。</p>
+      </div>
+      <div class="stuck-side">
+        <div class="stuck-num" id="stCount">0</div>
+        <div class="stuck-cap" id="stCap">今天还没动过</div>
+      </div>
+    </div>
+
+    <div class="st-states" id="stStates" role="group" aria-label="现在是什么感觉">
+      <button class="st-state" type="button" data-k="messy">脑子一团乱</button>
+      <button class="st-state" type="button" data-k="tired">就是没劲</button>
+      <button class="st-state" type="button" data-k="avoid">不想面对那件事</button>
+      <button class="st-state" type="button" data-k="lost">不知道先干哪个</button>
+    </div>
+
+    <div class="st-say" id="stSay" aria-live="polite">
+      <p class="quiet" id="stSayText">点一个状态，这一步怎么迈就清楚了。</p>
+      <div class="st-say-acts" id="stSayActs"></div>
+    </div>
+
+    <div class="st-dump" id="stDump" hidden>
+      <textarea id="stDumpText" placeholder="一行一条，想到什么写什么。不用整理，也不用排序。"></textarea>
+      <p class="st-dump-cap">存在这台电脑上，只有你能看见。明天自动换一张空白的。</p>
+    </div>
+
+    <div class="st-cards">
+      <a class="st-card" href="https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblchxXlsnDA2vHV" target="_blank" rel="noopener">
+        <span class="who">专 利 · 11/30 前</span>
+        <span class="what">打开 5 个候选点，只动<b>候选 1</b> 那一段：它替谁解决了什么麻烦。</span>
+        <span class="meta">5 分钟 · 写不顺就停</span>
+      </a>
+      <a class="st-card" href="file:///C:/Users/14374/ai-pm-prep/me/07-今日岗位.html" data-local>
+        <span class="who">求 职 · 一次都还没投</span>
+        <span class="what">打开今日岗位，挑一家投出去。<b>v10 已经定了</b>，投之前不用再改。</span>
+        <span class="meta">5 分钟 · 投出去一家就算赢</span>
+      </a>
+      <a class="st-card" href="https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=blkk7KquSnjz4M4p" target="_blank" rel="noopener">
+        <span class="who">生 意 · 每天一个数</span>
+        <span class="what">打开加人数据统计，把今天的那一个数记上去。</span>
+        <span class="meta">2 分钟 · 一个就够</span>
+      </a>
+    </div>
+
+    <div class="st-timer">
+      <button class="st-go" id="stGo" type="button"><span class="ico">▶</span><span id="stGoLabel">先干 2 分钟</span></button>
+      <div class="st-durs" id="stDurs" role="group" aria-label="计时多长">
+        <button class="st-dur on" type="button" data-m="2">2</button>
+        <button class="st-dur" type="button" data-m="5">5</button>
+        <button class="st-dur" type="button" data-m="10">10</button>
+        <button class="st-dur" type="button" data-m="25">25</button>
+      </div>
+      <p class="st-hint" id="stHint">难的不是坚持，是开始。到点可以停。</p>
+      <div class="st-week"><span class="st-week-cap">最近七天</span><span class="st-wcells" id="stWeekCells"></span></div>
+    </div>
+  </section>
 
   <main class="lanes">
 
@@ -727,6 +891,7 @@
       <div class="habits-side">
         <div class="habits-count" id="habDone">0<span>/7</span></div>
         <div class="habits-left" id="habLeft">距 00:30 还有 —</div>
+        <div class="habits-sync" id="habSync">只存在这台设备</div>
       </div>
     </div>
     <div class="habit-day">
@@ -961,6 +1126,20 @@
   </div>
 </section>
 <button class="qpill" id="qPill" type="button" aria-label="展开金句">“ 金句</button>
+
+<div class="mask" id="habMask">
+  <div class="dlg">
+    <h3>登录后同步</h3>
+    <p>用团队计划页同一个账号登录一次。之后打勾会自动存到云端，手机和电脑共用一份。</p>
+    <input id="habEmail" type="email" placeholder="邮箱" autocomplete="username">
+    <input id="habPwd" type="password" placeholder="密码" autocomplete="current-password">
+    <div class="err" id="habErr"></div>
+    <div class="row">
+      <button type="button" id="habLater">稍后</button>
+      <button type="button" class="go" id="habGo">登录</button>
+    </div>
+  </div>
+</div>
 
 <div class="tip" id="tip"></div>
 
@@ -1425,7 +1604,7 @@
   paint();
 })();
 
-// 每日习惯：点圈打勾，按天存本机；凌晨 0–6 点记的算前一天
+// 每日习惯：点圈打勾，按天存本机；登录后同步到云端
 (function(){
   var grid = document.getElementById('habitGrid');
   if(!grid) return;
@@ -1437,6 +1616,15 @@
   var backEl = document.getElementById('habBack');
   var cellsEl= document.getElementById('hwCells');
   var noteEl = document.getElementById('hwNote');
+  var syncEl = document.getElementById('habSync');
+
+  var CLOUD = {
+    url: 'https://odsukwoakbhajrpeiatg.supabase.co',
+    key: 'sb_publishable_4l24lg4fXBz33X1nOHlGPg_kJjm9RBA',
+    table: 'team_plan_kv'
+  };
+  var AUTH_KEY = 'sy-team-plan-auth';
+  var auth = null, pushT = null, loginShown = false;
 
   function pad(n){ return (n < 10 ? '0' : '') + n; }
   function ymd(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -1451,22 +1639,144 @@
     if(d.getHours() < ROLL) d.setDate(d.getDate() - 1);
     return ymd(d);
   }
-  function read(k){
-    try{
-      var a = JSON.parse(localStorage.getItem('hab:' + k) || 'null');
-      if(!a || !a.length) return null;
-      var out = [];
-      for(var i = 0; i < N; i++) out.push(!!a[i]);
-      return out;
-    }catch(e){ return null; }
-  }
-  function save(k, a){
-    try{ localStorage.setItem('hab:' + k, JSON.stringify(a.map(function(x){ return x ? 1 : 0; }))); }catch(e){}
-  }
   function blank(){ var a = []; for(var i = 0; i < N; i++) a.push(false); return a; }
-  function of(k){ return read(k) || blank(); }
+  function norm(a){ var o = []; for(var i = 0; i < N; i++) o.push(!!a[i]); return o; }
   function count(a){ var n = 0; for(var i = 0; i < N; i++) if(a[i]) n++; return n; }
 
+  function readJSON(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+  function writeJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function localGet(k){
+    var v = readJSON('hab:' + k, null);
+    if(!v) return null;
+    if(Array.isArray(v)) return { a: norm(v), ts: 0 };
+    if(v && Array.isArray(v.a)) return { a: norm(v.a), ts: +v.ts || 0 };
+    return null;
+  }
+  function localSet(k, rec){
+    writeJSON('hab:' + k, { a: rec.a.map(function(x){ return x ? 1 : 0; }), ts: rec.ts || 0 });
+  }
+  function of(k){ var r = localGet(k); return r ? r.a : blank(); }
+
+  /* ---------- 云端 ---------- */
+  function apiHeaders(t){
+    return { 'apikey': CLOUD.key, 'Authorization': 'Bearer ' + (t || CLOUD.key), 'Content-Type': 'application/json' };
+  }
+  function token(){
+    if(!auth || !auth.refresh_token) return Promise.reject(new Error('未登录'));
+    if(auth.access_token && (!auth.expires_at || Date.now() < auth.expires_at - 120000)) return Promise.resolve(auth.access_token);
+    return fetch(CLOUD.url + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST', headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: auth.refresh_token })
+    }).then(function(r){ if(!r.ok) throw new Error('登录过期'); return r.json(); })
+      .then(function(j){
+        auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+                 expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+        writeJSON(AUTH_KEY, auth);
+        return auth.access_token;
+      });
+  }
+  function pushDay(k, rec){
+    if(!auth) return Promise.resolve();
+    var payload = { key: 'hab-' + k, value: { a: rec.a.map(function(x){ return x ? 1 : 0; }), ts: rec.ts } };
+    return token().then(function(t){
+      var h = apiHeaders(t);
+      h['Prefer'] = 'resolution=merge-duplicates,return=minimal';
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table, {
+        method: 'POST', headers: h, body: JSON.stringify([payload])
+      });
+    }).then(function(r){
+      if(!r.ok) throw new Error('上传失败');
+      setSync('ok');
+    }).catch(function(e){
+      setSync('off', e && e.message);
+    });
+  }
+  function schedulePush(k, rec){
+    if(!auth) return;
+    clearTimeout(pushT);
+    pushT = setTimeout(function(){ pushT = null; pushDay(k, rec); }, 700);
+  }
+  function syncAll(){
+    if(!auth){ setSync('login'); return; }
+    setSync('busy');
+    token().then(function(t){
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table + '?key=like.hab-*&select=key,value', { headers: apiHeaders(t) });
+    }).then(function(r){
+      if(!r.ok) throw new Error('读取失败');
+      return r.json();
+    }).then(function(rows){
+      var seen = {};
+      (rows || []).forEach(function(row){
+        var d = String(row.key).slice(4);
+        seen[d] = 1;
+        var v = row.value;
+        if(typeof v === 'string'){ try{ v = JSON.parse(v); }catch(e){ v = null; } }
+        if(!v || !Array.isArray(v.a)) return;
+        var rem = { a: norm(v.a), ts: +v.ts || 0 };
+        var loc = localGet(d);
+        if(!loc || rem.ts > loc.ts) localSet(d, rem);
+        else if(loc.ts > rem.ts) pushDay(d, loc);
+      });
+      for(var i = 0; i < 9; i++){
+        var d2 = shift(today, -i);
+        if(seen[d2]) continue;
+        var loc2 = localGet(d2);
+        if(loc2) pushDay(d2, loc2);
+      }
+      paint();
+      setSync('ok');
+    }).catch(function(e){
+      if(e && /登录|过期/.test(e.message || '')){ auth = null; writeJSON(AUTH_KEY, null); setSync('login'); }
+      else setSync('off');
+    });
+  }
+  function setSync(kind, msg){
+    if(!syncEl) return;
+    if(kind === 'login'){
+      syncEl.innerHTML = '只存在这台设备 · <a href="#" id="habLogin">登录后同步</a>';
+      var a = document.getElementById('habLogin');
+      if(a) a.onclick = function(ev){ ev.preventDefault(); openLogin(); };
+      return;
+    }
+    if(kind === 'busy'){ syncEl.textContent = '同步中…'; return; }
+    if(kind === 'off'){ syncEl.textContent = '没连上，先存本机'; return; }
+    syncEl.textContent = '已同步 · 手机电脑同一份';
+  }
+
+  /* ---------- 登录框 ---------- */
+  function openLogin(){
+    var m = document.getElementById('habMask');
+    if(m) m.classList.add('show');
+    var e = document.getElementById('habEmail');
+    if(e) setTimeout(function(){ e.focus(); }, 60);
+  }
+  function doLogin(){
+    var emailEl = document.getElementById('habEmail');
+    var pwdEl = document.getElementById('habPwd');
+    var errEl = document.getElementById('habErr');
+    var email = (emailEl.value || '').trim(), pwd = pwdEl.value || '';
+    errEl.textContent = '';
+    if(!email || !pwd){ errEl.textContent = '邮箱和密码都要填'; return; }
+    errEl.textContent = '登录中…';
+    fetch(CLOUD.url + '/auth/v1/token?grant_type=password', {
+      method: 'POST', headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: pwd })
+    }).then(function(r){
+      if(!r.ok) throw new Error('邮箱或密码不对');
+      return r.json();
+    }).then(function(j){
+      auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+               expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+      writeJSON(AUTH_KEY, auth);
+      document.getElementById('habMask').classList.remove('show');
+      errEl.textContent = '';
+      pwdEl.value = '';
+      syncAll();
+    }).catch(function(e){ errEl.textContent = e.message || '登录失败'; });
+  }
+
+  /* ---------- 渲染 ---------- */
   var today = dayKey();
   var view = today;
   var cheered = false;
@@ -1553,25 +1863,241 @@
     }
   }
 
+  /* ---------- 交互 ---------- */
   cards.forEach(function(c, i){
     var t = c.querySelector('.habit-tick');
     if(!t) return;
     t.addEventListener('click', function(){
       var a = of(view);
       a[i] = !a[i];
-      save(view, a);
+      var rec = { a: a, ts: Date.now() };
+      localSet(view, rec);
       paint();
+      if(auth) schedulePush(view, rec);
+      else if(!loginShown){ loginShown = true; openLogin(); }
     });
   });
   backEl.addEventListener('click', function(){ view = today; paint(); });
 
+  var goBtn = document.getElementById('habGo');
+  if(goBtn) goBtn.addEventListener('click', doLogin);
+  var laterBtn = document.getElementById('habLater');
+  if(laterBtn) laterBtn.addEventListener('click', function(){ document.getElementById('habMask').classList.remove('show'); });
+  var pwdEl = document.getElementById('habPwd');
+  if(pwdEl) pwdEl.addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
+  var emailEl = document.getElementById('habEmail');
+  if(emailEl) emailEl.addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
+
   setInterval(function(){
     var k = dayKey();
-    if(k !== today){ today = k; view = k; cheered = false; paint(); }
+    if(k !== today){ today = k; view = k; cheered = false; paint(); if(auth) syncAll(); }
     else if(view === today) paintLeft();
   }, 30000);
 
+  /* 切回页面时，另一台设备改过就拉最新的 */
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function(){
+    if(!auth) return;
+    if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+    if(Date.now() - hiddenAt < 60000 || pushT) return;
+    syncAll();
+  });
+
+  auth = readJSON(AUTH_KEY, null);
+  if(auth && !auth.refresh_token) auth = null;
   paint();
+  if(auth) syncAll(); else setSync('login');
+})();
+
+// 起不动：选一个状态 → 一句对策；2 分钟计时器；本机记「今天开始了几次」
+(function(){
+  var sec = document.getElementById('stuck');
+  if(!sec) return;
+
+  var ROLL = 6;                       // 凌晨 0–6 点算前一天，跟每日习惯一个口径
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function ymd(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function shift(k, n){
+    var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]);
+    d.setDate(d.getDate() + n); return ymd(d);
+  }
+  function dayKey(){
+    var d = new Date();
+    if(d.getHours() < ROLL) d.setDate(d.getDate() - 1);
+    return ymd(d);
+  }
+  var today = dayKey();
+
+  function getN(k){
+    try{ var v = parseInt(localStorage.getItem('st:' + k) || '0', 10); return isNaN(v) ? 0 : v; }
+    catch(e){ return 0; }
+  }
+  function addN(k){
+    try{ localStorage.setItem('st:' + k, String(getN(k) + 1)); }catch(e){}
+  }
+
+  var nEl = document.getElementById('stCount');
+  var capEl = document.getElementById('stCap');
+  var cellsEl = document.getElementById('stWeekCells');
+  function paintCount(){
+    var n = getN(today);
+    nEl.textContent = n;
+    capEl.textContent = n ? '今天启动了 ' + n + ' 次' : '今天还没动过';
+    cellsEl.innerHTML = '';
+    for(var i = 6; i >= 0; i--){
+      var k = shift(today, -i), c = getN(k), b = document.createElement('span');
+      b.className = 'st-w';
+      b.setAttribute('data-lv', c === 0 ? '0' : (c < 2 ? '1' : (c < 4 ? '2' : '3')));
+      b.title = k + ' · ' + c + ' 次';
+      b.textContent = c || '';
+      cellsEl.appendChild(b);
+    }
+  }
+  paintCount();
+
+  // —— 计时器 ——
+  var go = document.getElementById('stGo');
+  var goLabel = document.getElementById('stGoLabel');
+  var hint = document.getElementById('stHint');
+  var durBtns = Array.prototype.slice.call(sec.querySelectorAll('.st-dur'));
+  var mins = 2, left = 0, tick = null, running = false, ran = 0;
+  var HINT = '难的不是坚持，是开始。到点可以停。';
+
+  function paintGo(){
+    if(running){
+      go.classList.add('run');
+      goLabel.textContent = '停 · ' + Math.floor(left / 60) + ':' + pad(left % 60);
+    }else{
+      go.classList.remove('run');
+      goLabel.textContent = '先干 ' + mins + ' 分钟';
+    }
+  }
+  function halt(){
+    if(tick){ clearInterval(tick); tick = null; }
+    running = false;
+    durBtns.forEach(function(b){ b.disabled = false; });
+    paintGo();
+  }
+  function say(text, on){
+    hint.className = 'st-hint' + (on ? ' on' : '');
+    hint.textContent = text;
+  }
+  function begin(){
+    left = mins * 60; ran = 0; running = true;
+    durBtns.forEach(function(b){ b.disabled = true; });
+    say('现在只做手上这一件。别切窗口，别先去看别的。', true);
+    paintGo();
+    tick = setInterval(function(){
+      left--; ran++;
+      if(left <= 0){
+        halt();
+        addN(today); paintCount();
+        say(mins + ' 分钟到了。接着干也好，收工也好 —— 今天算动过了。', true);
+        return;
+      }
+      paintGo();
+    }, 1000);
+  }
+  go.addEventListener('click', function(){
+    if(running){
+      var kept = ran >= 60;
+      halt();
+      if(kept){
+        addN(today); paintCount();
+        say('停了也算。真正的门槛是「开始」，你已经过了。', true);
+      }else{
+        say('不到一分钟不算数。再来一次，这次就 ' + mins + ' 分钟。', false);
+      }
+    }else{
+      begin();
+    }
+  });
+  durBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      if(running) return;
+      mins = parseInt(b.getAttribute('data-m'), 10) || 2;
+      durBtns.forEach(function(x){ x.classList.toggle('on', x === b); });
+      say(HINT, false);
+      paintGo();
+    });
+  });
+
+  // —— 四个状态 → 一句对策 + 一个能点的动作 ——
+  var SAY = {
+    messy:{
+      t:'不是事情多，是它们全在脑子里打转，转一圈什么也没落下。现在就往外倒：一行一条，想到什么写什么，不整理也不排序。',
+      acts:[{ label:'开始往外倒', act:'dump' }]
+    },
+    tired:{
+      t:'别等有劲。劲是动出来的 —— 挑手上最小的一件，按 2 分钟，做完就允许自己停。',
+      acts:[{ label:'按下去 · 2 分钟', act:'go' }]
+    },
+    avoid:{
+      t:'那就只面对它 2 分钟：打开那个文件或者那张表，别的窗口全关。2 分钟后真想关就关，没人拦你。',
+      acts:[{ label:'按下去 · 2 分钟', act:'go' }]
+    },
+    lost:{
+      t:'按日期排：11 月 30 日的专利 → 求职（一次都还没投）→ 生意日常。今天只动最上面那个，别的一概不想。',
+      acts:[
+        { label:'专利冲刺表', href:'https://q1e2yfc2bey.feishu.cn/base/ZWpibzRUkaIHJZs0pHhcUQrOnCc?table=tblyIyxLIb6Kw6uA&view=vew5VrQ31I', out:true },
+        { label:'找工作那一块', href:'#jobnow' },
+        { label:'加人数据统计', href:'https://q1e2yfc2bey.feishu.cn/base/MpskbFpSqah0JcsWk1Jc8g01nNg?table=blkk7KquSnjz4M4p', out:true }
+      ]
+    }
+  };
+  var sayText = document.getElementById('stSayText');
+  var sayActs = document.getElementById('stSayActs');
+  var dump = document.getElementById('stDump');
+  var dText = document.getElementById('stDumpText');
+  var stateBtns = Array.prototype.slice.call(sec.querySelectorAll('.st-state'));
+
+  function pick(k){
+    var s = SAY[k];
+    if(!s) return;
+    stateBtns.forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-k') === k); });
+    sayText.className = '';
+    sayText.textContent = s.t;
+    sayActs.innerHTML = '';
+    (s.acts || []).forEach(function(a){
+      var el;
+      if(a.href){
+        el = document.createElement('a');
+        el.href = a.href;
+        if(a.out){ el.target = '_blank'; el.rel = 'noopener'; }
+      }else{
+        el = document.createElement('button');
+        el.type = 'button';
+      }
+      el.textContent = a.label;
+      el.addEventListener('click', function(ev){
+        if(a.act === 'dump'){ ev.preventDefault(); dump.hidden = false; dText.focus(); }
+        else if(a.act === 'go'){ ev.preventDefault(); if(!running) begin(); }
+      });
+      sayActs.appendChild(el);
+    });
+    dump.hidden = (k !== 'messy');
+  }
+  stateBtns.forEach(function(b){
+    b.addEventListener('click', function(){ pick(b.getAttribute('data-k')); });
+  });
+
+  // 倒出来的东西按天存在本机
+  if(dText){
+    try{ dText.value = localStorage.getItem('dump:' + today) || ''; }catch(e){}
+    dText.addEventListener('input', function(){
+      try{ localStorage.setItem('dump:' + today, dText.value); }catch(e){}
+    });
+  }
+
+  // 过了零点（含凌晨 0–6 点那档）重新开一天
+  setInterval(function(){
+    var k = dayKey();
+    if(k === today) return;
+    today = k;
+    paintCount();
+    dump.hidden = true;
+    if(dText) dText.value = '';
+  }, 60000);
 })();
 
 // 顶部导航：跟着滚动高亮，点一下跳过去
