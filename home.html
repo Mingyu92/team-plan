@@ -21,7 +21,11 @@
     font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
     font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
   }
-  .page{max-width:1120px;margin:0 auto;padding:52px 40px 64px;}
+  .page{max-width:1480px;margin:0 auto;padding:52px 40px 64px;}
+  /* 左主栏 + 右金句栏 */
+  .shell{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:34px;
+         align-items:start;margin-top:34px;}
+  .col{min-width:0;}
 
   header{border-bottom:2px solid var(--navy);padding-bottom:22px;}
   .kicker{font-size:12.5px;letter-spacing:.2em;color:var(--orange);font-weight:600;margin-bottom:8px;}
@@ -36,7 +40,7 @@
   .chip b{color:var(--orange);font-weight:700;}
   .chip.hot{border-color:#f0d5c6;background:#fff4ec;}
 
-  .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:34px;align-items:start;}
+  .lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:0;align-items:start;}
 
   .lane{background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden;
         transition:transform .16s, box-shadow .16s, border-color .16s;}
@@ -136,24 +140,39 @@
   .track.playing .track-eq i:nth-child(4){animation-delay:.45s;}
   @keyframes eq{0%,100%{height:4px}50%{height:16px}}
 
-  /* 浮动金句 */
-  .qcard{position:fixed;right:24px;bottom:24px;width:308px;z-index:30;
-         background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--orange);
-         border-radius:10px;box-shadow:0 18px 44px rgba(27,58,99,.14);padding:18px 18px 12px;
-         transition:opacity .22s ease, transform .22s ease;}
-  .qcard-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;}
-  .qcard-label{font-size:10.5px;letter-spacing:.22em;font-weight:700;color:var(--orange);}
+  /* 打气歌单 */
+  .song-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;margin-top:18px;}
+  .song{display:flex;align-items:baseline;gap:8px;min-width:0;padding:9px 13px;
+        border:1px solid var(--line);border-radius:7px;background:#fff;text-decoration:none;
+        transition:transform .14s,border-color .14s,background .14s,box-shadow .14s;}
+  .song:hover{transform:translateY(-1px);border-color:#f0d5c6;background:#fff8f3;
+              box-shadow:0 6px 14px rgba(217,107,60,.08);}
+  .song-name{font-size:13.5px;font-weight:600;color:var(--navy);white-space:nowrap;
+             overflow:hidden;text-overflow:ellipsis;}
+  .song:hover .song-name{color:var(--orange);}
+  .song-by{flex:1;min-width:0;font-size:11.5px;color:#a9a294;white-space:nowrap;
+           overflow:hidden;text-overflow:ellipsis;}
+  .song-dur{flex:0 0 auto;margin-left:auto;font-size:11px;color:#b4ad9e;
+            font-variant-numeric:tabular-nums;}
+  .song-tip{margin:15px 0 2px;padding-top:12px;border-top:1px dashed var(--line);
+            font-size:12.5px;color:var(--muted);}
+  .song-tip a{color:var(--navy);text-decoration:none;border-bottom:1px solid #cfd8e6;padding-bottom:1px;}
+  .song-tip a:hover{color:var(--orange);border-color:#f0d5c6;}
+
+  /* 金句栏：宽屏在右栏，窄屏变顶部横幅 */
+  .qrail{position:sticky;top:26px;}
+  .qcard{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--orange);
+         border-radius:10px;box-shadow:0 10px 30px rgba(27,58,99,.07);padding:28px 26px 18px;}
+  .qcard-head{display:flex;align-items:center;gap:8px;margin-bottom:18px;position:relative;}
+  .qcard-label{font-size:11px;letter-spacing:.24em;font-weight:700;color:var(--orange);}
   .qcard-count{margin-left:auto;font-size:10.5px;color:#b4ad9e;letter-spacing:.06em;
                font-variant-numeric:tabular-nums;}
-  .qcard-min{border:0;background:none;color:#b4ad9e;font-size:15px;line-height:1;cursor:pointer;
-             padding:2px 4px;border-radius:4px;transition:color .15s, background .15s;}
-  .qcard-min:hover{color:var(--navy);background:#f4f0e6;}
-  .qcard-text{position:relative;margin:0;font-size:15.5px;line-height:1.95;color:var(--ink);
+  .qcard-text{position:relative;margin:0;font-size:18px;line-height:2.05;color:var(--ink);
               font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong","SimSun",serif;
-              letter-spacing:.01em;min-height:90px;
+              letter-spacing:.01em;min-height:118px;
               transition:opacity .2s ease, transform .2s ease;}
   .qcard-text.fading{opacity:0;transform:translateY(5px);}
-  .qcard-foot{display:flex;align-items:center;gap:7px;margin-top:10px;padding-top:10px;
+  .qcard-foot{display:flex;align-items:center;gap:7px;margin-top:20px;padding-top:14px;
               border-top:1px dashed var(--line);}
   .qdots{display:flex;gap:7px;}
   .qdot{width:6px;height:6px;border-radius:50%;border:0;padding:0;background:#dcd6c8;cursor:pointer;
@@ -163,13 +182,6 @@
   .qnext{margin-left:auto;border:0;background:none;font-size:11.5px;color:#9a9a94;cursor:pointer;padding:2px 0;
          transition:color .15s;}
   .qnext:hover{color:var(--orange);}
-  .qcard.hide{opacity:0;transform:translateY(14px) scale(.98);pointer-events:none;}
-  .qpill{position:fixed;right:24px;bottom:24px;z-index:30;display:none;align-items:center;gap:6px;
-         border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 16px;
-         font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;
-         box-shadow:0 10px 26px rgba(27,58,99,.14);transition:border-color .15s, color .15s;}
-  .qpill:hover{border-color:#f0d5c6;color:var(--orange);}
-  .qpill.show{display:inline-flex;}
 
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
@@ -188,21 +200,20 @@
     .audio{padding:20px 18px 18px;}
     .tracks{grid-template-columns:1fr;}
     .audio-now{text-align:left;margin-top:8px;}
-    .page{padding-bottom:150px;}
+    .song-list{grid-template-columns:1fr;}
+  }
+
+  /* 放不下右栏时：金句收回顶部，变成一条横幅 */
+  @media (max-width:1240px){
+    .shell{grid-template-columns:1fr;gap:0;margin-top:30px;}
+    .qrail{position:static;order:-1;margin-bottom:22px;}
+    .qcard{padding:18px 20px 12px;}
+    .qcard-text{min-height:0;font-size:15.5px;}
   }
 
   @media (prefers-reduced-motion:reduce){
     .track.playing .track-eq i{animation:none;height:12px;}
-  }
-
-  @media (max-width:640px){
-    .qcard{right:12px;left:12px;bottom:12px;width:auto;padding:15px 16px 10px;}
-    .qcard-text{font-size:14.5px;min-height:0;}
-    .qpill{right:12px;bottom:12px;}
-  }
-
-  @media (prefers-reduced-motion:reduce){
-    .qcard, .qcard-text, .qdot, .qcard-min, .qnext, .qpill{transition:none;}
+    .qcard-text, .qdot, .qnext{transition:none;}
   }
 </style>
 </head>
@@ -215,6 +226,9 @@
     <p class="lede">写专利 · 找工作 · 做生意 —— 常用的页面都在这，点一下就过去。</p>
     <div class="chips" id="chips"></div>
   </header>
+
+  <div class="shell">
+    <div class="col">
 
   <main class="lanes">
 
@@ -342,24 +356,83 @@
     <div class="tracks" id="tracks"></div>
   </section>
 
+  <section class="audio boost" aria-labelledby="boostTitle">
+    <div class="audio-head">
+      <div>
+        <div class="kicker">干活前先点一首</div>
+        <h2 id="boostTitle">打气歌单</h2>
+        <p>都是 B 站原视频，点了在新窗口打开；戴上耳机再开工，效率真的不一样。</p>
+      </div>
+      <div class="audio-now">B 站 · 20 首</div>
+    </div>
+    <div class="song-list">
+      <a class="song" href="https://www.bilibili.com/video/BV1UYMMz3E9S" target="_blank" rel="noopener">
+        <span class="song-name">Victory</span><span class="song-by">Two Steps From Hell</span><span class="song-dur">5:21</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV12N4y197fX" target="_blank" rel="noopener">
+        <span class="song-name">For the Win</span><span class="song-by">Thomas Bergersen</span><span class="song-dur">2:11</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Hy4y1L7H1" target="_blank" rel="noopener">
+        <span class="song-name">Gonna Fly Now（洛奇）</span><span class="song-by">Bill Conti</span><span class="song-dur">3:05</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1cT4y1S7yn" target="_blank" rel="noopener">
+        <span class="song-name">Eye of the Tiger</span><span class="song-by">Survivor</span><span class="song-dur">3:47</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1jT411n78A" target="_blank" rel="noopener">
+        <span class="song-name">The Final Countdown</span><span class="song-by">Europe</span><span class="song-dur">5:13</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1C34y1v7EZ" target="_blank" rel="noopener">
+        <span class="song-name">Remember the Name</span><span class="song-by">Fort Minor</span><span class="song-dur">3:48</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Es4y1V7Bz" target="_blank" rel="noopener">
+        <span class="song-name">Hall of Fame</span><span class="song-by">The Script</span><span class="song-dur">3:20</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1R24y1h7wi" target="_blank" rel="noopener">
+        <span class="song-name">Believer</span><span class="song-by">Imagine Dragons</span><span class="song-dur">3:28</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1hx411s7VM" target="_blank" rel="noopener">
+        <span class="song-name">Warriors</span><span class="song-by">Imagine Dragons</span><span class="song-dur">2:49</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Wq4y1f7XS" target="_blank" rel="noopener">
+        <span class="song-name">Till I Collapse</span><span class="song-by">Eminem</span><span class="song-dur">4:59</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1tN411N7Fb" target="_blank" rel="noopener">
+        <span class="song-name">Lose Yourself</span><span class="song-by">Eminem</span><span class="song-dur">5:24</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1qm4y1r78P" target="_blank" rel="noopener">
+        <span class="song-name">Stronger</span><span class="song-by">Kanye West</span><span class="song-dur">5:16</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1wy4y1Q7ag" target="_blank" rel="noopener">
+        <span class="song-name">Unstoppable</span><span class="song-by">Sia</span><span class="song-dur">3:40</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV12v41187Zx" target="_blank" rel="noopener">
+        <span class="song-name">We Will Rock You + Champions</span><span class="song-by">Queen</span><span class="song-dur">5:41</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Ng4y1j7cP" target="_blank" rel="noopener">
+        <span class="song-name">The Champion</span><span class="song-by">Carrie Underwood</span><span class="song-dur">3:42</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1BX4y1c7gd" target="_blank" rel="noopener">
+        <span class="song-name">追梦赤子心</span><span class="song-by">GALA</span><span class="song-dur">5:02</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Kx411x7Nn" target="_blank" rel="noopener">
+        <span class="song-name">怒放的生命</span><span class="song-by">汪峰</span><span class="song-dur">4:47</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1ES4y1R7XP" target="_blank" rel="noopener">
+        <span class="song-name">孤勇者</span><span class="song-by">陈奕迅</span><span class="song-dur">4:30</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1Tq4y1778D" target="_blank" rel="noopener">
+        <span class="song-name">海阔天空</span><span class="song-by">Beyond</span><span class="song-dur">3:23</span></a>
+      <a class="song" href="https://www.bilibili.com/video/BV1B54y1X7Ls" target="_blank" rel="noopener">
+        <span class="song-name">紅蓮華</span><span class="song-by">LiSA</span><span class="song-dur">4:57</span></a>
+    </div>
+    <p class="song-tip">想一直放着干活的，用这条 1 小时超燃纯音乐：
+      <a href="https://www.bilibili.com/video/BV1RZ4y1v7Ze" target="_blank" rel="noopener">工作 / 学习 BGM 歌单 ›</a>
+    </p>
+  </section>
+
+    </div><!-- /.col -->
+
+    <aside class="qrail">
+      <section class="qcard" id="quoteCard" aria-label="金句提醒">
+        <div class="qcard-head">
+          <span class="qcard-label">金 句</span>
+          <span class="qcard-count" id="qCount">01 / 05</span>
+        </div>
+        <p class="qcard-text" id="qText"></p>
+        <div class="qcard-foot">
+          <div class="qdots" id="qDots"></div>
+          <button class="qnext" id="qNext" type="button">换一句 ›</button>
+        </div>
+      </section>
+    </aside>
+  </div><!-- /.shell -->
+
   <footer>
     带「本地」的链接是这台电脑上的文件，得从本机的 index.html 打开才能跳；手机上看得到但点不动。
   </footer>
 </div>
-
-<section class="qcard" id="quoteCard" aria-label="金句提醒">
-  <div class="qcard-head">
-    <span class="qcard-label">金 句</span>
-    <span class="qcard-count" id="qCount">01 / 05</span>
-    <button class="qcard-min" id="qMin" type="button" aria-label="收起金句" title="收起">—</button>
-  </div>
-  <p class="qcard-text" id="qText"></p>
-  <div class="qcard-foot">
-    <div class="qdots" id="qDots"></div>
-    <button class="qnext" id="qNext" type="button">换一句 ›</button>
-  </div>
-</section>
-<button class="qpill" id="qPill" type="button" aria-label="展开金句">“ 金句</button>
 
 <div class="tip" id="tip"></div>
 
@@ -409,7 +482,7 @@
   });
 })();
 
-// 浮动金句：自动轮播 + 手动切换 + 收起
+// 金句：自动轮播 + 手动切换
 (function(){
   var QUOTES = [
     '把标准设高一点！冲一把，你就成长了；如果目标没达到，你就再冲一把。',
@@ -418,9 +491,7 @@
     '不要以现在的状态去判断未来你能够成为什么样的人，人是可以成长的。',
     '关注在当下的这个状态的能力，要非常的强！'
   ];
-  var KEY = 'sy-quote-collapsed';
   var card = document.getElementById('quoteCard');
-  var pill = document.getElementById('qPill');
   var text = document.getElementById('qText');
   var count = document.getElementById('qCount');
   var dotsBox = document.getElementById('qDots');
@@ -473,19 +544,8 @@
   card.addEventListener('mouseenter', function(){ clearInterval(timer); });
   card.addEventListener('mouseleave', restart);
 
-  function collapse(on){
-    card.classList.toggle('hide', on);
-    pill.classList.toggle('show', on);
-    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e){}
-    if(on) clearInterval(timer); else restart();
-  }
-  document.getElementById('qMin').addEventListener('click', function(){ collapse(true); });
-  pill.addEventListener('click', function(){ collapse(false); });
-
-  var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch(e){}
   paint(0);
-  if(saved === '1') collapse(true); else restart();
+  restart();
 })();
 // 我的录音：点一下循环播放，再点暂停
 (function(){
