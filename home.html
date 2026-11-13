@@ -198,6 +198,31 @@
   .qpill:hover{border-color:#f0d5c6;color:var(--orange);}
   .qpill.show{display:inline-flex;}
 
+  /* 充点电 · 励志 TED */
+  .ted{margin-top:38px;background:var(--paper);border:1px solid var(--line);
+       border-top:4px solid var(--orange);border-radius:8px;padding:22px 24px 24px;}
+  .ted-head h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;display:flex;align-items:center;gap:9px;}
+  .ted-head p{margin:6px 0 0;font-size:13px;color:var(--muted);}
+  .ted-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px;}
+  .ted-card{display:flex;flex-direction:column;gap:5px;background:#fff;
+            border:1px solid var(--line);border-left:4px solid #e8c9b5;border-radius:7px;
+            padding:14px 15px 12px;text-decoration:none;color:inherit;
+            transition:transform .16s, box-shadow .16s, border-left-color .16s, background .16s;}
+  .ted-card:hover{transform:translateY(-3px);background:#fff8f3;border-left-color:var(--orange);
+                  box-shadow:0 10px 22px rgba(217,107,60,.10);}
+  .ted-no{font-size:10.5px;font-weight:700;color:#cbbfae;letter-spacing:.16em;font-variant-numeric:tabular-nums;}
+  .ted-card h3{margin:1px 0 0;font-size:15px;line-height:1.45;color:var(--navy);}
+  .ted-say{margin:0;font-size:11.5px;color:#a9a294;line-height:1.45;}
+  .ted-meta{margin:0;font-size:11.5px;color:#a9a294;line-height:1.45;white-space:nowrap;
+            font-variant-numeric:tabular-nums;}
+  .ted-meta em{font-style:normal;color:#3f7d5e;}
+  .ted-why{margin:3px 0 0;font-size:13px;line-height:1.62;color:#4a5058;flex:1;}
+  .ted-foot{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11.5px;color:#a9a294;
+            font-variant-numeric:tabular-nums;}
+  .ted-foot .bili{margin-left:auto;color:var(--blue);font-weight:600;}
+  @media (max-width:940px){ .ted-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .ted-grid{grid-template-columns:1fr;} }
+
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
        box-shadow:0 10px 26px rgba(27,58,99,.25);opacity:0;pointer-events:none;transition:.18s;z-index:20;}
@@ -307,6 +332,18 @@
     </section>
 
   </main>
+
+  <section class="ted" aria-labelledby="tedTitle">
+    <div class="ted-head">
+      <div>
+        <div class="kicker">没劲的时候点一个</div>
+        <h2 id="tedTitle">🔋 充点电 · 励志 TED</h2>
+        <p>八个传得最火的 TED，B 站直接看，都有中文字幕。十来分钟一个。</p>
+      </div>
+    </div>
+    <div class="ted-grid" id="tedGrid"></div>
+  </section>
+
 
   <section class="habits">
     <div class="habits-head">
@@ -549,6 +586,45 @@
     clearTimeout(timer);
     timer = setTimeout(function(){ tip.classList.remove('show'); }, 3200);
   }
+  // 充点电：B 站上的励志 TED（播放数是 2026-11-13 抓的快照，会慢慢涨）
+  var TED = [
+    { t:'不幸的人是如何拥有幸福人生的', by:'山姆·伯恩斯 Sam Berns', min:12, lang:'中文字幕', bv:'BV1Cz411b7G1', view:'64.9 万',
+      why:'一个生来患病、被预言活不长的少年，讲他怎么把每一天过好。' },
+    { t:'成功的关键不是智商，而是毅力', by:'安杰拉·达克沃斯 Angela Duckworth', min:6, lang:'中文字幕', bv:'BV1mt411L7cJ', view:'29.4 万',
+      why:'天赋只决定起点，热爱加坚持才决定你能走多远。' },
+    { t:'内向者的力量', by:'苏珊·凯恩 Susan Cain', min:19, lang:'中文字幕', bv:'BV1ob411Y7cS', view:'28.5 万',
+      why:'不用逼自己变外向；安静的人，自有安静的优势。' },
+    { t:'像大多数人一样生活，是否更省力？', by:'庞颖 · TEDx 外滩', min:17, lang:'中文', bv:'BV1hggHzHEH5', view:'17.9 万',
+      why:'真正为难我们的，常常不是生活，而是别人的眼光。' },
+    { t:'脆弱的力量', by:'布琳·布朗 Brené Brown', min:20, lang:'中文字幕', bv:'BV1J7411v71G', view:'15.7 万',
+      why:'承认自己会怕、会不够好，反而是跟人真正连上的开始。' },
+    { t:'我在 100 天的拒绝里学到了什么', by:'蒋甲 Jia Jiang', min:47, lang:'中文字幕', bv:'BV1H5411f7hT', view:'15.0 万',
+      why:'怕被拒绝，就主动去求拒绝——100 天之后天没塌。' },
+    { t:'肢体语言塑造你自己', by:'艾米·卡迪 Amy Cuddy', min:21, lang:'中文字幕', bv:'BV1ZJ411W7tJ', view:'11.4 万',
+      why:'先摆出有底气的姿势，撑两分钟，人真的会更有底气。' },
+    { t:'20 岁，光阴不再来', by:'梅格·杰伊 Meg Jay', min:15, lang:'中文字幕', bv:'BV1ZH4y1y7uZ', view:'8.7 万',
+      why:'20 多岁不是缓冲期，随手过掉的十年会决定后面三十年。' }
+  ];
+  var tedGrid = document.getElementById('tedGrid');
+  if(tedGrid){
+    TED.forEach(function(x, i){
+      var a = document.createElement('a');
+      a.className = 'ted-card';
+      a.href = 'https://www.bilibili.com/video/' + x.bv;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.title = x.t + ' · B 站';
+      a.innerHTML =
+        '<span class="ted-no">' + ('0' + (i + 1)).slice(-2) + '</span>' +
+        '<h3>' + x.t + '</h3>' +
+        '<p class="ted-say">' + x.by + '</p>' +
+        '<p class="ted-meta">' + x.min + ' 分钟 · <em>' + x.lang + '</em></p>' +
+        '<p class="ted-why">' + x.why + '</p>' +
+        '<span class="ted-foot"><span>' + x.view + ' 播放</span><span class="bili">B 站 ›</span></span>';
+      tedGrid.appendChild(a);
+    });
+  }
+
   Array.prototype.slice.call(document.querySelectorAll('a[data-local]')).forEach(function(a){
     a.addEventListener('click', function(e){
       if(isLocal) return;
