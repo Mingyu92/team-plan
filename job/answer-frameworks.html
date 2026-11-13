@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>面试题怎么拆 · 六类题的答题骨架</title>
+<style>
+  :root{
+    --paper:#f7f4ee;--card:#fff;--line:#e8e2d6;--navy:#1b3a63;--orange:#d96b3c;
+    --muted:#8a8579;--ink:#33383f;--blue:#2f6fb5;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.75;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 80px;}
+  a{color:var(--blue);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .kicker{font-size:12px;letter-spacing:.18em;color:var(--orange);font-weight:700;}
+  h1{margin:8px 0 10px;font-size:30px;color:var(--navy);letter-spacing:.03em;}
+  h1 em{font-style:normal;color:var(--orange);}
+  .lede{margin:0;color:var(--muted);font-size:14px;}
+  h2{margin:40px 0 12px;font-size:20px;color:var(--navy);display:flex;align-items:center;gap:9px;}
+  h2 .count{font-size:12px;color:#a9a294;font-weight:600;}
+  .big{background:#fff;border:1px solid var(--line);border-left:4px solid var(--orange);
+         border-radius:7px;padding:18px 20px;margin-top:16px;}
+  .big h3{margin:0 0 8px;font-size:16px;color:var(--navy);}
+  .big p{margin:6px 0;font-size:14px;}
+  .big ol{margin:8px 0 0;padding-left:22px;font-size:14px;}
+  .big ol li{margin:6px 0;}
+  .big .why{color:#8a8579;font-size:12.8px;}
+  .co{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-top:14px;}
+  .co-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .co-head h3{margin:0;font-size:16.5px;color:var(--navy);}
+  .co-head .lbl{font-size:12px;color:#a9a294;}
+  .skeleton{margin:12px 0 4px;padding:12px 16px;background:#f4f7fb;border-radius:6px;
+            font-size:14px;color:var(--navy);font-weight:600;letter-spacing:.01em;}
+  .co p{margin:10px 0 4px;font-size:14px;}
+  .co .demo{margin-top:10px;padding:12px 16px;background:#fff8f3;border-radius:6px;font-size:13.5px;color:#4a5058;}
+  .co .demo b{color:var(--orange);}
+  .co .trap{margin-top:8px;font-size:12.8px;color:#a06a5a;}
+  .qmap{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 20px 14px;margin-top:14px;}
+  .qmap table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .qmap th,.qmap td{text-align:left;padding:9px 8px;border-bottom:1px solid #f0ece3;vertical-align:top;}
+  .qmap th{color:var(--navy);font-size:12.5px;letter-spacing:.06em;}
+  .qmap td:first-child{white-space:nowrap;color:var(--muted);}
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:#9a9a94;}
+  @media (max-width:760px){
+    h1{font-size:25px;}.page{padding:28px 16px 60px;}
+    .qmap td:first-child{white-space:normal;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="kicker">找工作 · 答题方法</div>
+  <h1>面试题<em>怎么拆</em></h1>
+  <p class="lede">不会答，多半不是不会知识，是不知道这题在问什么。这里只有两样东西：一套拆题动作，和六类题的骨架。</p>
+
+  <div class="big">
+    <h3>不知道答案的时候，先说这三句</h3>
+    <p>这不是糊弄。面试官要的是「这个人遇到没做过的事会怎么动」，不是标准答案。</p>
+    <ol>
+      <li><b>「我会先看三件事：……」</b>——把判断标准说出来，哪怕结论还没想好。<br>
+        <span class="why">例：这个功能值不值得做，我会看用户是不是真的重复遇到这个麻烦、技术上能不能稳定做到、成本能不能回来。</span></li>
+      <li><b>「具体怎么定，我会先做个小验证：……」</b>——说出你下一步会做什么。<br>
+        <span class="why">例：先拿 50 条真实数据跑一遍，看准确率够不够，再决定要不要投人力。</span></li>
+      <li><b>「所以我现在的判断是 A，但如果 X 成立，我会改成 B。」</b>——给结论，同时留出条件。<br>
+        <span class="why">这样即使结论错了，面试官看到的是「会做决策」，不是「背了答案」。</span></li>
+    </ol>
+  </div>
+
+  <h2>第一步：先判断这题在问什么</h2>
+  <div class="qmap">
+    <table>
+      <tr><th>题目长相</th><th>它在考</th><th>答题骨架</th></tr>
+      <tr><td>「该不该用 AI」「自研还是接第三方」</td><td>判断与取舍</td><td>目标 → 约束 → 三条判断线 → 结论</td></tr>
+      <tr><td>「设计一个……」「你会怎么规划」</td><td>方案能力</td><td>用户 → 目标 → 方案分层 → 兜底 → 验证</td></tr>
+      <tr><td>「怎么衡量」「PMF 怎么判断」「怎么归因」</td><td>指标与实验</td><td>定义成功 → 指标分层 → 实验 → 归因</td></tr>
+      <tr><td>「RAG / 微调 / Agent / MCP 怎么回事」</td><td>技术理解</td><td>是什么 → 解决什么 → 何时不用 → 怎么衡量</td></tr>
+      <tr><td>「讲讲你这个项目」</td><td>项目深挖</td><td>背景 → 我的动作 → 关键取舍 → 结果 → 反思</td></tr>
+      <tr><td>「为什么做 PM」「你最大的缺点」</td><td>动机与性格</td><td>情境 → 选择 → 结果 → 认知</td></tr>
+    </table>
+  </div>
+
+  <h2>六类题的骨架 <span class="count">每类一个公式 + 一个示范</span></h2>
+
+  <div class="co">
+    <div class="co-head"><h3>① 判断与取舍题</h3><span class="lbl">该不该用 AI / 自研还是买</span></div>
+    <div class="skeleton">目标 → 约束 → 三条判断线 → 结论 + 怎么验证</div>
+    <p><b>三条判断线</b>（背下来，几乎所有取舍题都能套）：</p>
+    <p>① <b>价值</b>：用户是不是真的重复遇到这个问题，不用 AI 有没有更便宜的办法。<br>
+       ② <b>边界</b>：现在的模型能不能稳定做到，做不到的那部分谁来兜。<br>
+       ③ <b>成本</b>：token、延迟、数据标注，算下来比人工便宜还是更贵。</p>
+    <div class="demo"><b>示范：</b>「客服工单分类该不该上大模型？我的判断是先用规则 + 小模型，把大模型放在最难的那 20%。<br>
+      价值上，工单量大、分类标准比较统一，值得自动化；<br>
+      边界上，标准类目规则能覆盖 80%，剩下的长尾描述才需要语义理解；<br>
+      成本上，全量走大模型每次调用都花钱，长尾才调用能省一半。<br>
+      所以先按 80/20 切，跑两周看规则覆盖率，再决定要不要扩大模型比例。」</div>
+    <p class="trap">别一上来就答「用 RAG」。先回答值不值得做，再回答怎么做。</p>
+  </div>
+
+  <div class="co">
+    <div class="co-head"><h3>② 方案设计题</h3><span class="lbl">设计一个 AI 功能 / Agent</span></div>
+    <div class="skeleton">用户与场景 → 成功长什么样 → 方案分层 → 失败怎么办 → 怎么验证</div>
+    <p>开口前先反问三句（面试官喜欢这个动作）：<b>用户是谁、成功怎么算、有什么硬约束</b>（预算、合规、上线时间）。</p>
+    <p><b>方案分四层讲</b>：数据从哪来 → 模型怎么选（现成 API / 微调 / 规则） → 交互怎么设计（用户怎么知道它在干什么、错了怎么改） → 兜底（模型答不出转人工、给不出来就说给不出来）。</p>
+    <div class="demo"><b>示范：</b>「给新商家做带货短视频生成。<br>
+      用户是不会拍视频的小商家，成功标准是『生成后能直接投，不用再改』。<br>
+      数据用商家的商品图 + 卖点文案；模型先用现成的视频生成 API，不自己训；<br>
+      交互上给三个模板而不是空白输入框，因为小商家不会写 prompt；<br>
+      兜底是生成失败或审核不过时，退回图文模板。<br>
+      先放 50 个商家灰度，看首次可用率和二次修改率。」</div>
+    <p class="trap">不要只讲功能列表。要讲「哪一层用什么技术、为什么不用另一条路」。</p>
+  </div>
+
+  <div class="co">
+    <div class="co-head"><h3>③ 指标与实验题</h3><span class="lbl">PMF / 北极星 / 归因 / A/B</span></div>
+    <div class="skeleton">定义成功 → 指标分三层 → 实验怎么设 → 结果怎么归因</div>
+    <p><b>指标三层</b>：北极星（一个数）→ 过程指标（哪一步掉）→ 护栏指标（不能被牺牲的，比如投诉率、成本）。</p>
+    <p><b>AI 产品的特殊性</b>：输出有随机性，样本量要更大；「用户点了赞」不等于「真的有用」，要看有没有<b>回流使用</b>。</p>
+    <div class="demo"><b>示范：</b>「AI 搜索助手的北极星我会用『一周内重复使用的人数』，不用点击率——点击只能说明好奇。<br>
+      过程指标看：提问后有没有追问、有没有点开引用来源、有没有转人工；<br>
+      护栏看：单次成本、平均响应时长、错误回答的投诉率。<br>
+      A/B 的话，按用户分流，实验组用新检索策略，至少跑两周覆盖一个完整使用周期，因为新功能第一周的新鲜感会骗人。」</div>
+    <p class="trap">被问「短期好长期差」时，答案是「新鲜感衰减」+「没进入工作流」，然后给验证办法。</p>
+  </div>
+
+  <div class="co">
+    <div class="co-head"><h3>④ 技术理解题</h3><span class="lbl">RAG / 微调 / Agent / MCP / 上下文</span></div>
+    <div class="skeleton">是什么 → 解决什么问题 → 什么时候不该用 → 怎么判断它好不好</div>
+    <p><b>不要背流程</b>，背流程一听就是背的。改成讲<b>取舍</b>：</p>
+    <p>· RAG 解决「知识会过期、私有数据进不去」；代价是检索不准就答不准。<br>
+       · 微调解决「风格和格式要稳定」；代价是数据贵、改一次要重训。<br>
+       · Agent 解决「要多步、要调工具」；代价是不可控、贵、慢。<br>
+       · 上下文管理解决「聊久了记不住」；代价是压缩会丢信息。</p>
+    <div class="demo"><b>示范：</b>「RAG 和微调不是二选一。我的判断是：<b>事实类</b>的知识放 RAG，因为要能更新、要能指出来源；<b>表达类</b>的要求（比如必须按固定格式输出、语气统一）才考虑微调。<br>
+      如果两个都要，就先 RAG 上线，把 badcase 攒起来，看是不是格式问题再决定要不要微调。」</div>
+    <p class="trap">如果被追问原理讲不出来，就退到「我知道它解决什么、什么时候会失效」，别硬编。</p>
+  </div>
+
+  <div class="co">
+    <div class="co-head"><h3>⑤ 项目深挖题</h3><span class="lbl">讲讲你的项目 / 最大的难点</span></div>
+    <div class="skeleton">背景一句话 → 我的动作 → 一个关键取舍 → 结果数字 → 如果重来</div>
+    <p>面试官只听三件事：<b>这事是不是你做的、你做了什么判断、结果怎么证明</b>。</p>
+    <p>准备时把每个项目压成 5 行，每行一句话。数字必须能回查——被追问「这个数怎么来的」答不上来，比没有数字更糟。</p>
+    <div class="demo"><b>示范结构：</b>「这个项目要解决的是 X（背景）。<br>
+      我负责的是 Y（边界要清楚，别把团队成果说成自己的）。<br>
+      中间最难的判断是 Z，我当时选了 A 没选 B，因为……（这是面试官最想听的）。<br>
+      最后结果是 N（数字 + 口径）。<br>
+      如果重来，我会更早做 M。」</div>
+    <p class="trap">「我们团队」讲太多会被认为没干活；「我」讲太多要能接住追问。</p>
+  </div>
+
+  <div class="co">
+    <div class="co-head"><h3>⑥ 动机与性格题</h3><span class="lbl">为什么做 PM / 优缺点 / 压力</span></div>
+    <div class="skeleton">情境 → 选择 → 结果 → 认知</div>
+    <p>不要讲形容词（「我很有责任心」），讲一件小事。小事比大词可信。</p>
+    <div class="demo"><b>示范：</b>「为什么做产品——我做过一段时间研究，最享受的不是把指标刷上去，是把一个别人说不清的问题拆成能做的事。<br>
+      有一次……（一件具体的小事）。<br>
+      所以我想做离用户近一点、能拍板的工作。」</div>
+    <p class="trap">别说「我沟通能力强」。给一个你协调过谁、怎么协调的。</p>
+  </div>
+
+  <h2>练的时候只做一件事</h2>
+  <div class="big">
+    <h3>每题先说骨架，再补内容</h3>
+    <p>拿真题页随便挑一道，先不答内容，只说出：<b>「这题属于哪一类，我用哪个骨架」</b>。这一步 10 秒。</p>
+    <p>骨架对了，内容哪怕朴素也是及格；骨架错了，内容再熟也像背书。</p>
+    <p class="why">一天 3 道，一道 3 分钟口述，录音回放。说不到 1 分钟的，就是没想清楚，回去补那一块。</p>
+  </div>
+
+  <footer>骨架是通用的，示范里的数字和场景是举例，不要当成你的经历去讲。</footer>
+</div>
+</body>
+</html>
