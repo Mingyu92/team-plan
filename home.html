@@ -258,7 +258,7 @@
   .st-dur:hover:not(:disabled){border-color:#f0c9ae;color:var(--orange);}
   .st-dur.on{background:#fff4ec;border-color:#f0c9ae;color:var(--orange);}
   .st-dur:disabled{opacity:.4;cursor:default;}
-  .st-week{display:flex;align-items:center;gap:8px;margin-left:auto;}
+  .st-week{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:9px;}
   .st-week-cap{font-size:11.5px;color:#b4ad9e;white-space:nowrap;}
   .st-wcells{display:flex;gap:5px;}
   .st-w{width:30px;height:30px;border-radius:5px;border:1px solid #ecdfd0;background:#fff;
@@ -546,7 +546,8 @@
     .jn-col.wide{grid-column:1 / -1;}
     .stuck{padding:16px 16px 18px;}
     .st-cards{grid-template-columns:1fr;}
-    .st-week{margin-left:0;}
+    .stuck-side{text-align:left;}
+    .st-week{justify-content:flex-start;}
   }
 
   @media (max-width:640px){
@@ -600,6 +601,7 @@
       <div class="stuck-side">
         <div class="stuck-num" id="stCount">0</div>
         <div class="stuck-cap" id="stCap">今天还没动过</div>
+        <div class="st-week"><span class="st-week-cap">最近七天</span><span class="st-wcells" id="stWeekCells"></span></div>
       </div>
     </div>
 
@@ -647,7 +649,6 @@
         <button class="st-dur" type="button" data-m="25">25</button>
       </div>
       <p class="st-hint" id="stHint">难的不是坚持，是开始。到点可以停。</p>
-      <div class="st-week"><span class="st-week-cap">最近七天</span><span class="st-wcells" id="stWeekCells"></span></div>
     </div>
   </section>
 
@@ -1960,15 +1961,20 @@
   var goLabel = document.getElementById('stGoLabel');
   var hint = document.getElementById('stHint');
   var durBtns = Array.prototype.slice.call(sec.querySelectorAll('.st-dur'));
-  var mins = 2, left = 0, tick = null, running = false, ran = 0;
+  var mins = 2, left = 0, endAt = 0, tick = null, running = false;
+  var goIco = go.querySelector('.ico');
   var HINT = '难的不是坚持，是开始。到点可以停。';
+  // 按真实时间算，不数 tick —— 她切去干活那个标签页，浏览器会限流后台定时器
+  function remain(){ return Math.max(0, Math.ceil((endAt - Date.now()) / 1000)); }
 
   function paintGo(){
     if(running){
       go.classList.add('run');
+      goIco.textContent = '❚❚';
       goLabel.textContent = '停 · ' + Math.floor(left / 60) + ':' + pad(left % 60);
     }else{
       go.classList.remove('run');
+      goIco.textContent = '▶';
       goLabel.textContent = '先干 ' + mins + ' 分钟';
     }
   }
@@ -1982,25 +1988,25 @@
     hint.className = 'st-hint' + (on ? ' on' : '');
     hint.textContent = text;
   }
+  function done(){
+    halt();
+    addN(today); paintCount();
+    say(mins + ' 分钟到了。接着干也好，收工也好 —— 今天算动过了。', true);
+  }
   function begin(){
-    left = mins * 60; ran = 0; running = true;
+    left = mins * 60; endAt = Date.now() + mins * 60000; running = true;
     durBtns.forEach(function(b){ b.disabled = true; });
     say('现在只做手上这一件。别切窗口，别先去看别的。', true);
     paintGo();
     tick = setInterval(function(){
-      left--; ran++;
-      if(left <= 0){
-        halt();
-        addN(today); paintCount();
-        say(mins + ' 分钟到了。接着干也好，收工也好 —— 今天算动过了。', true);
-        return;
-      }
+      left = remain();
+      if(left <= 0){ done(); return; }
       paintGo();
     }, 1000);
   }
   go.addEventListener('click', function(){
     if(running){
-      var kept = ran >= 60;
+      var kept = (mins * 60 - remain()) >= 60;
       halt();
       if(kept){
         addN(today); paintCount();
