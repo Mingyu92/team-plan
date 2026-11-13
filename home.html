@@ -91,6 +91,51 @@
            border:1px dashed var(--line);font-size:13.5px;color:#5a5f67;columns:2;column-gap:28px;}
   .routine li{margin:3px 0;break-inside:avoid;}
 
+  /* 我的录音 */
+  .audio{margin-top:38px;background:var(--paper);border:1px solid var(--line);
+         border-top:4px solid var(--navy);border-radius:8px;padding:22px 24px 20px;}
+  .audio-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .audio-head .kicker{margin-bottom:6px;color:var(--orange);}
+  .audio-head h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;}
+  .audio-head p{margin:5px 0 0;font-size:13px;color:var(--muted);}
+  .audio-head p b{color:var(--orange);font-weight:600;}
+  .audio-now{font-size:11.5px;color:#a9a294;text-align:right;line-height:1.6;}
+  .audio-now.on{color:var(--orange);}
+
+  .tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px;}
+  .track{display:flex;align-items:center;gap:13px;width:100%;text-align:left;cursor:pointer;
+         background:#fff;border:1px solid var(--line);border-radius:7px;padding:12px 15px;
+         font:inherit;color:inherit;
+         transition:transform .14s,box-shadow .14s,border-color .14s,background .14s;}
+  .track:hover{transform:translateY(-2px);border-color:#cfd8e6;background:#f8fafd;
+               box-shadow:0 8px 18px rgba(27,58,99,.08);}
+  .track:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+  .track.playing{border-color:#f0d5c6;background:#fff8f3;}
+
+  .track-play{flex:0 0 34px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+              background:var(--navy);color:#fff;transition:background .14s,transform .14s;}
+  .track.playing .track-play{background:var(--orange);}
+  .track:hover .track-play{transform:scale(1.06);}
+  .track-play svg{width:13px;height:13px;display:block;fill:currentColor;}
+
+  .track-body{flex:1;min-width:0;}
+  .track-title{display:block;font-size:14.5px;font-weight:600;color:var(--navy);
+               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .track-meta{display:block;font-size:11.5px;color:#9a9385;margin-top:2px;
+              font-variant-numeric:tabular-nums;}
+  .track-bar{display:block;height:3px;border-radius:999px;background:#eee9dd;margin-top:8px;overflow:hidden;}
+  .track-bar i{display:block;height:100%;width:0;background:var(--orange);border-radius:999px;
+               transition:width .25s linear;}
+
+  .track-eq{flex:0 0 auto;display:flex;align-items:flex-end;gap:2.5px;height:16px;opacity:.22;}
+  .track-eq i{display:block;width:3px;height:4px;background:var(--orange);border-radius:1px;}
+  .track.playing .track-eq{opacity:1;}
+  .track.playing .track-eq i{animation:eq .9s ease-in-out infinite;}
+  .track.playing .track-eq i:nth-child(2){animation-delay:.15s;}
+  .track.playing .track-eq i:nth-child(3){animation-delay:.3s;}
+  .track.playing .track-eq i:nth-child(4){animation-delay:.45s;}
+  @keyframes eq{0%,100%{height:4px}50%{height:16px}}
+
   /* 浮动金句 */
   .qcard{position:fixed;right:24px;bottom:24px;width:308px;z-index:30;
          background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--orange);
@@ -140,7 +185,14 @@
     .routine{columns:1;}
     .habits{padding:20px 18px 22px;}
     .habits-time{font-size:26px;}
+    .audio{padding:20px 18px 18px;}
+    .tracks{grid-template-columns:1fr;}
+    .audio-now{text-align:left;margin-top:8px;}
     .page{padding-bottom:150px;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .track.playing .track-eq i{animation:none;height:12px;}
   }
 
   @media (max-width:640px){
@@ -266,6 +318,18 @@
       <li>列明天的日程</li>
       <li>放下手机睡觉</li>
     </ol>
+  </section>
+
+  <section class="audio" aria-labelledby="audioTitle">
+    <div class="audio-head">
+      <div>
+        <div class="kicker">点一下就循环</div>
+        <h2 id="audioTitle">我的录音</h2>
+        <p>点一下开始<b>循环播放</b>，再点一下暂停；换一条会自动停掉上一条。</p>
+      </div>
+      <div class="audio-now" id="audioNow">当前没有在放</div>
+    </div>
+    <div class="tracks" id="tracks"></div>
   </section>
 
   <footer>
@@ -412,6 +476,127 @@
   try { saved = localStorage.getItem(KEY); } catch(e){}
   paint(0);
   if(saved === '1') collapse(true); else restart();
+})();
+// 我的录音：点一下循环播放，再点暂停
+(function(){
+  var TRACKS = [
+    { title:'团队愿景与伙伴成长', date:'10月12日', dur:'1:13', src:'audio/team-vision-1012.m4a' },
+    { title:'自信沟通，突破自我', date:'10月12日', dur:'2:20', src:'audio/confident-1012.m4a' },
+    { title:'自信沟通，突破自我（短版）', date:'10月12日', dur:'0:29', src:'audio/confident-1012-short.m4a' },
+    { title:'录音 2', date:'10月14日', dur:'0:13', src:'audio/1014-2.m4a' },
+    { title:'早上', date:'', dur:'0:38', src:'audio/morning.m4a' }
+  ];
+  var box = document.getElementById('tracks');
+  var nowEl = document.getElementById('audioNow');
+  if(!box) return;
+
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  var ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
+
+  var audio = new Audio();
+  audio.loop = true;
+  audio.preload = 'none';
+
+  var rows = [], current = -1;
+  var tipEl = document.getElementById('tip'), tipTimer = null;
+  function say(text){
+    if(!tipEl) return;
+    tipEl.textContent = text;
+    tipEl.classList.add('show');
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(function(){ tipEl.classList.remove('show'); }, 3200);
+  }
+
+  function paint(){
+    rows.forEach(function(r, i){
+      var on = (i === current) && !audio.paused;
+      r.el.classList.toggle('playing', on);
+      r.el.setAttribute('aria-pressed', on ? 'true' : 'false');
+      r.el.setAttribute('aria-label', (on ? '暂停 ' : '播放 ') + TRACKS[i].title);
+      r.play.innerHTML = on ? ICON_PAUSE : ICON_PLAY;
+      if(!on && !(i === current)) r.fill.style.width = '0%';
+    });
+    if(current > -1 && !audio.paused){
+      nowEl.textContent = '循环中 · ' + TRACKS[current].title;
+      nowEl.classList.add('on');
+    } else {
+      nowEl.textContent = '当前没有在放';
+      nowEl.classList.remove('on');
+    }
+  }
+
+  TRACKS.forEach(function(t, i){
+    var el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'track';
+    el.setAttribute('aria-pressed', 'false');
+    el.setAttribute('aria-label', '播放 ' + t.title);
+
+    var play = document.createElement('span');
+    play.className = 'track-play';
+    play.innerHTML = ICON_PLAY;
+
+    var body = document.createElement('span');
+    body.className = 'track-body';
+    var title = document.createElement('span');
+    title.className = 'track-title';
+    title.textContent = t.title;
+    var meta = document.createElement('span');
+    meta.className = 'track-meta';
+    meta.textContent = (t.date ? t.date + ' · ' : '') + t.dur + ' · 循环';
+    var bar = document.createElement('span');
+    bar.className = 'track-bar';
+    var fill = document.createElement('i');
+    bar.appendChild(fill);
+    body.appendChild(title); body.appendChild(meta); body.appendChild(bar);
+
+    var eq = document.createElement('span');
+    eq.className = 'track-eq';
+    for(var k = 0; k < 4; k++) eq.appendChild(document.createElement('i'));
+
+    el.appendChild(play); el.appendChild(body); el.appendChild(eq);
+    el.addEventListener('click', function(){
+      // 同一时间只放一条
+      if(i === current && !audio.paused){ audio.pause(); return; }
+      if(i !== current){
+        current = i;
+        audio.src = t.src;
+      }
+      var p = audio.play();
+      if(p && p.catch) p.catch(function(err){
+        if(err && err.name === 'AbortError') return;   // 快速切换时属正常打断
+        say('这条音频没加载出来，看看网络再点一次。');
+      });
+    });
+
+    box.appendChild(el);
+    rows.push({ el:el, play:play, fill:fill, meta:meta });
+  });
+
+  audio.addEventListener('play', paint);
+  audio.addEventListener('pause', paint);
+  audio.addEventListener('ended', paint);
+  audio.addEventListener('timeupdate', function(){
+    if(current < 0) return;
+    var d = audio.duration;
+    if(d && isFinite(d)){
+      rows[current].fill.style.width = Math.min(100, (audio.currentTime / d) * 100) + '%';
+    }
+  });
+  audio.addEventListener('loadedmetadata', function(){
+    if(current < 0 || !isFinite(audio.duration)) return;
+    var s = Math.round(audio.duration);
+    var mm = Math.floor(s / 60), ss = ('0' + (s % 60)).slice(-2);
+    var t = TRACKS[current];
+    rows[current].meta.textContent = (t.date ? t.date + ' · ' : '') + mm + ':' + ss + ' · 循环';
+  });
+  audio.addEventListener('error', function(){
+    if(current > -1) rows[current].fill.style.width = '0%';
+    say('这条音频没加载出来，看看网络再点一次。');
+    paint();
+  });
+
+  paint();
 })();
 </script>
 </body>
