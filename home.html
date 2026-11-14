@@ -600,6 +600,21 @@
                         box-shadow:0 10px 22px rgba(27,58,99,.10);}
   .vids .ted-meta em{color:#2f6fb5;}
 
+  /* 梦想加油站 */
+  .drm{margin-top:38px;background:var(--paper);border:1px solid var(--line);
+       border-top:4px solid var(--navy);border-radius:8px;padding:22px 24px 24px;}
+  .drm h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;display:flex;align-items:center;gap:9px;}
+  .drm-head p{margin:6px 0 0;font-size:13px;color:var(--muted);}
+  .drm-how{margin:14px 0 0;padding:10px 14px;background:#faf6ef;border-left:3px solid #e3cfae;
+           border-radius:5px;font-size:12.5px;line-height:1.7;color:#4a5058;}
+  .drm-how b{color:var(--navy);}
+  .drm-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .drm .ted-grid{margin-top:14px;}
+  .drm .ted-card{border-left-color:#e8d9bd;}
+  .drm .ted-card:hover{background:#fffaf2;border-left-color:#c9a227;
+                       box-shadow:0 10px 22px rgba(180,140,40,.12);}
+  .drm .ted-meta em{color:#a9734e;}
+
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
        box-shadow:0 10px 26px rgba(27,58,99,.25);opacity:0;pointer-events:none;transition:.18s;z-index:20;}
@@ -665,6 +680,7 @@
       <a class="tn biz" href="#extras">话术素材</a>
       <a class="tn" href="#vids">补课视频</a>
       <a class="tn" href="#ted">充点电</a>
+      <a class="tn" href="#dreams">梦想加油站</a>
       <span class="tn-sep" aria-hidden="true"></span>
       <a class="tn" href="#habits">每日习惯</a>
       <a class="tn" href="#audio">我的录音</a>
@@ -1018,6 +1034,20 @@
       <span class="ted-count" id="tedCount"></span>
       <div class="ted-btns" id="tedBtns"></div>
     </div>
+  </section>
+
+  <section class="drm" id="dreams" aria-labelledby="dreamsTitle">
+    <div class="drm-head">
+      <div>
+        <div class="kicker">丧的时候 · 先来这里</div>
+        <h2 id="dreamsTitle">🌟 梦想加油站</h2>
+        <p>真人真事 + 创业者原声，24 段全在 B 站，有中文字幕。都是他们自己在讲，不是我在讲。</p>
+      </div>
+    </div>
+    <p class="drm-how"><b>怎么用：</b>一天一段就够，丧的时候先挑「几分钟」那栏，十分钟以内能看完；
+      看完别停在感动里，去上面「起不动」按一下，挑一件最小的事开始干。想再找同类，在 B 站搜「人名 + 演讲」，比刷推荐省时间。</p>
+    <div class="drm-tabs" id="drmTabs"></div>
+    <div class="ted-grid" id="drmGrid"></div>
   </section>
 
 
@@ -1533,6 +1563,107 @@
       vidsTabs.appendChild(b);
     });
     renderVids();
+  }
+
+  // 梦想加油站：真人真事 + 创业者原声（2026-11-14 抓的 B 站快照，播放数会自己涨）
+  var DREAM = {
+    hard: [
+      { t:'褚时健：74 岁从头再来，85 岁再成亿万富翁', by:'M2档案', min:35, lang:'中文字幕', view:'48.0 万', bv:'BV1Ur421n7B5',
+        why:'71 岁判无期、74 岁保外就医，上山种橙子，86 岁把「褚橙」卖成全国品牌。' },
+      { t:'蔡磊：纵使不敌，也不屈服', by:'央视《面对面》', min:43, lang:'中文', view:'14.4 万', bv:'BV1fFuS6fEtn',
+        why:'渐冻症到只剩眼睛能动，他还靠眼控仪一天工作十几个小时。' },
+      { t:'张桂梅：我只想救一代人', by:'央视《面对面》', min:22, lang:'中文', view:'197.0 万', bv:'BV1Ng4y1v7gt',
+        why:'一身病、每天只睡三四个小时，把两千多个山里女孩送进大学。' },
+      { t:'尼克·胡哲：永不止步', by:'励志演讲', min:45, lang:'中文字幕', view:'10.9 万', bv:'BV1Hb411g7kF',
+        why:'生来没有四肢，学会了游泳、冲浪、结婚生子，还跑去几十个国家演讲。' },
+      { t:'《人生第二次》毛徽的故事', by:'哔哩哔哩纪录片', min:11, lang:'中文', view:'4.3 万', bv:'BV1d3411c7GJ',
+        why:'被命运推倒过一次的人，怎么把日子一天一天重新拼起来。' },
+      { t:'科比：改变人生观念的 30 分钟', by:'TED 官方精选', min:30, lang:'中文字幕', view:'18.4 万', bv:'BV1Pm41127Cz',
+        why:'「曼巴精神」不是口号，是他讲自己怎么在没人看见的时候练。' }
+    ],
+    founder: [
+      { t:'雷军 2024 年度演讲（完整版）', by:'小米公司官方', min:74, lang:'中文', view:'54.9 万', bv:'BV1n2421Z7Uu',
+        why:'年度演讲里最实的一次：讲造车那三年怎么熬过来的。' },
+      { t:'雷军：我如何度过三次人生低谷', by:'演讲 · 中文字幕', min:54, lang:'中文字幕', view:'24.5 万', bv:'BV1Go4y1N7ze',
+        why:'金山差点关门、盘古失败、38 岁重新创业，他自己复盘给你听。' },
+      { t:'马斯克：干就完了', by:'励志演讲 · 中文字幕', min:16, lang:'中文字幕', view:'14.0 万', bv:'BV1Dv4y1z7VJ',
+        why:'火箭炸了三次还接着发。他说失败只是选项之一，害怕才不是。' },
+      { t:'乔布斯斯坦福毕业演讲', by:'史蒂夫·乔布斯', min:14, lang:'中英字幕', view:'160.4 万', bv:'BV1oW411h7Ea',
+        why:'被自己创办的公司开除、查出癌症之后讲的三个故事，值得每年看一遍。' },
+      { t:'黄仁勋台大毕业演讲：奔跑吧，不要走', by:'英伟达创始人', min:22, lang:'中文全文', view:'28.8 万', bv:'BV1dh4y1R7FF',
+        why:'要么在跑去抢食物，要么在跑去避免成为食物——他讲英伟达差点死掉的两次。' },
+      { t:'马云《赢在中国》创业演讲', by:'创业 · 融资 · 选人用人', min:29, lang:'中文', view:'35.9 万', bv:'BV1jV4y117Fj',
+        why:'他讲自己怎么被拒绝了三十几次还接着干。' },
+      { t:'刘强东牛津演讲：一直追梦，终能成功', by:'牛津大学 · 全程', min:39, lang:'中文', view:'161.7 万', bv:'BV1cu4y1Z7f6',
+        why:'从宿迁农村到人大、到中关村摆柜台，讲「看得更远」这件事。' },
+      { t:'俞敏洪：永远不要放弃你自己', by:'最精彩演讲之一', min:22, lang:'中文', view:'7.6 万', bv:'BV1ZzhJzjEor',
+        why:'高考三次、被北大处分、教培一夜清零之后又做出东方甄选。' },
+      { t:'稻盛和夫：人为什么活着', by:'最经典的一场演讲', min:43, lang:'中文字幕', view:'8.0 万', bv:'BV1Yz421X7ad',
+        why:'78 岁接手破产的日航，一年扭亏——他讲的是「利他」为什么管用。' },
+      { t:'董宇辉中国传媒大学演讲', by:'精华版', min:16, lang:'中文', view:'144.8 万', bv:'BV1E34y1w7rY',
+        why:'一个普通家庭的孩子靠读书改了命，讲得很具体，不喊口号。' },
+      { t:'任正非《奔流》人物纪录', by:'大象放映室', min:25, lang:'中文', view:'88.0 万', bv:'BV1oTrsYzEb2',
+        why:'43 岁被单位开除、离婚、背着两百万债才开始做华为。' },
+      { t:'张一鸣：趁年轻完成知识积累', by:'早期访谈', min:15, lang:'中文', view:'9.0 万', bv:'BV1iZ3i6bEkV',
+        why:'他说年轻时最该做的是把信息的底子打厚，而不是急着变现。' }
+    ],
+    quick: [
+      { t:'尼克·胡哲：撑不住的时候看这段', by:'Learn more on bad days', min:3, lang:'中文字幕', view:'20.0 万', bv:'BV1Ms411c7dR',
+        why:'三分钟，专治「我这点难算什么」。' },
+      { t:'就算全世界都否定你（马斯克）', by:'人物剪辑 · 中文字幕', min:2, lang:'中文字幕', view:'92.4 万', bv:'BV13p4y1A7Ma',
+        why:'旁人的话只是阳光里的尘埃——两分钟，看完就能回去干活。' },
+      { t:'雷军：低谷的意义', by:'雷军自述', min:2, lang:'中文', view:'20.5 万', bv:'BV12m411r7Wz',
+        why:'低谷不是把你打回原形，是让你看清哪条路是对的。' },
+      { t:'俞敏洪：摆脱恐惧', by:'五分钟演讲', min:6, lang:'中文', view:'4.7 万', bv:'BV1Qa411d7Cc',
+        why:'怕，是因为只盯着结果；他给的是把注意力挪回动作上的办法。' },
+      { t:'科比：你见过凌晨四点的洛杉矶吗', by:'训练励志特辑', min:5, lang:'中文字幕', view:'3.2 万', bv:'BV1U741167xc',
+        why:'天赋不够的时候，唯一能加的就是别人睡觉那几个小时。' },
+      { t:'蔡磊：撑不下去的时候，这段话治愈我', by:'渐冻症 · 眼控仪', min:5, lang:'中文', view:'10.8 万', bv:'BV1nm786eExa',
+        why:'一个被宣判了「倒计时」的人在讲希望。' }
+    ]
+  };
+  var DREAM_TABS = [
+    { k:'hard', label:'绝境里的人' },
+    { k:'founder', label:'创业者原声' },
+    { k:'quick', label:'几分钟' }
+  ];
+
+  var drmTabs = document.getElementById('drmTabs');
+  var drmGrid = document.getElementById('drmGrid');
+  if(drmTabs && drmGrid){
+    var curDrm = 'hard';
+    var renderDrm = function(){
+      var list = DREAM[curDrm] || [];
+      drmGrid.innerHTML = '';
+      list.forEach(function(x, i){
+        var a = document.createElement('a');
+        a.className = 'ted-card';
+        a.href = 'https://www.bilibili.com/video/' + x.bv;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.title = x.t + ' · B 站';
+        a.innerHTML =
+          '<span class="ted-no">' + ('0' + (i + 1)).slice(-2) + '</span>' +
+          '<h3>' + x.t + '</h3>' +
+          '<p class="ted-say">' + x.by + '</p>' +
+          '<p class="ted-meta">' + x.min + ' 分钟 · <em>' + x.lang + '</em></p>' +
+          '<p class="ted-why">' + x.why + '</p>' +
+          '<span class="ted-foot"><span>' + x.view + ' 播放</span><span class="bili">去看 ›</span></span>';
+        drmGrid.appendChild(a);
+      });
+      Array.prototype.slice.call(drmTabs.children).forEach(function(b){
+        b.className = 'vtab' + (b.dataset.k === curDrm ? ' on' : '');
+      });
+    };
+    DREAM_TABS.forEach(function(t){
+      var b = document.createElement('button');
+      b.className = 'vtab';
+      b.dataset.k = t.k;
+      b.innerHTML = t.label + '<em>' + DREAM[t.k].length + '</em>';
+      b.onclick = function(){ curDrm = t.k; renderDrm(); };
+      drmTabs.appendChild(b);
+    });
+    renderDrm();
   }
 
   Array.prototype.slice.call(document.querySelectorAll('a[data-local]')).forEach(function(a){
