@@ -615,6 +615,151 @@
                        box-shadow:0 10px 22px rgba(180,140,40,.12);}
   .drm .ted-meta em{color:#a9734e;}
 
+  /* 时间管理 */
+  .tm{margin-top:38px;background:var(--paper);border:1px solid var(--line);
+      border-top:4px solid #3f7d5e;border-radius:8px;padding:22px 24px 24px;}
+  .tm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .tm-head .kicker{color:#3f7d5e;margin-bottom:6px;}
+  .tm-head h2{margin:0;font-size:20px;color:var(--navy);letter-spacing:.04em;display:flex;align-items:center;gap:9px;}
+  .tm-head p{margin:6px 0 0;font-size:13px;color:var(--muted);max-width:730px;line-height:1.75;}
+  .tm-head p b{color:var(--navy);font-weight:600;}
+  .tm-week{flex:0 0 auto;text-align:right;line-height:1.7;font-variant-numeric:tabular-nums;}
+  .tm-week b{display:block;font-size:14px;color:#3f7d5e;letter-spacing:.04em;}
+  .tm-week span{font-size:11.5px;color:#a9a294;}
+  .tm-wkbtns{display:inline-flex;gap:4px;margin-top:7px;background:#f2efe6;border-radius:999px;padding:3px;}
+  .tm-wkbtn{font:inherit;font-size:11.5px;font-weight:600;color:#8d8a83;background:transparent;border:0;
+            border-radius:999px;padding:3px 11px;cursor:pointer;transition:background .13s,color .13s;}
+  .tm-wkbtn.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(27,58,99,.10);}
+
+  .tm-law{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:17px;}
+  .tm-story{background:#faf8f2;border:1px solid #ece6d9;border-left:3px solid #c9b072;
+            border-radius:6px;padding:14px 16px;}
+  .tm-story h3,.tm-trans h3{margin:0;font-size:13.5px;color:var(--navy);letter-spacing:.02em;
+                            display:flex;align-items:center;gap:7px;}
+  .tm-story p{margin:9px 0 0;font-size:12.5px;line-height:1.8;color:#5f6469;}
+  .tm-story p b{color:var(--navy);font-weight:600;}
+  .tm-story a{color:#a9734e;text-decoration:none;border-bottom:1px solid #e6d9c8;}
+  .tm-story a:hover{color:var(--orange);border-color:#f0d5c6;}
+  .tm-calc{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
+  .tm-calc span{font-size:11px;color:#8d8a83;background:#fff;border:1px solid #e6dfd0;
+                border-radius:999px;padding:2px 9px;font-variant-numeric:tabular-nums;}
+  .tm-calc em{font-style:normal;font-size:11px;font-weight:700;color:#2f6b4f;background:#eaf4ee;
+              border:1px solid #cfe2d7;border-radius:999px;padding:2px 10px;font-variant-numeric:tabular-nums;}
+  .tm-story p.tm-calcnote{margin:7px 0 0;font-size:11px;color:#a9a294;}
+
+  .tm-trans{background:#f4f9f6;border:1px dashed #cfe2d7;border-radius:6px;padding:14px 16px;}
+  .tm-trans-lede{margin:8px 0 0;font-size:11.5px;color:#8d8a83;}
+  .tm-in{display:flex;align-items:center;gap:8px;margin-top:9px;background:#fff;
+         border:1px solid #d8e6de;border-radius:999px;padding:4px 4px 4px 13px;}
+  .tm-in span{font-size:12px;color:#8d8a83;white-space:nowrap;}
+  .tm-in input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;
+               font-size:13px;color:var(--ink);padding:5px 0;}
+  .tm-out{margin:10px 0 0;font-size:12.5px;line-height:1.78;color:#3f5c4c;min-height:62px;}
+  .tm-out b{color:#2f6b4f;}
+  .tm-punch{margin:7px 0 0;padding-top:8px;border-top:1px dashed #d8e6de;
+            font-size:11px;line-height:1.7;color:#8d8a83;}
+
+  .tm-lanes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px;}
+  .tm-lane{border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden;
+           border-top:3px solid var(--navy);}
+  .tm-lane.biz{border-top-color:var(--orange);}
+  .tm-lane.job{border-top-color:var(--blue);}
+  .tm-lane.grad{border-top-color:var(--navy);}
+  .tm-lane-head{padding:10px 13px 8px;border-bottom:1px solid #f0ece1;background:#fcfbf7;}
+  .tm-lane-head h3{margin:0;font-size:14px;color:var(--navy);display:flex;align-items:baseline;
+                   gap:7px;flex-wrap:wrap;}
+  .tm-lane-head h3 span{font-size:10.5px;color:#a9a294;font-weight:500;}
+  .tm-lane-head p{margin:3px 0 0;font-size:10.5px;color:#b4ad9e;}
+  .tm-items{list-style:none;margin:0;padding:4px;display:flex;flex-direction:column;gap:1px;}
+  .tm-item{width:100%;text-align:left;font:inherit;cursor:pointer;background:transparent;border:0;
+           display:flex;gap:8px;padding:7px 9px;border-radius:5px;transition:background .13s;}
+  .tm-item:hover{background:#f7f4ea;}
+  .tm-item:focus-visible{outline:2px solid #9cc3ad;outline-offset:-2px;}
+  .tm-item .n{flex:0 0 auto;font-size:10px;color:#c3bcac;font-variant-numeric:tabular-nums;padding-top:2px;}
+  .tm-item .txt{flex:1;min-width:0;}
+  .tm-item .t{display:block;font-size:12.5px;color:#3a3f47;line-height:1.5;}
+  .tm-item .t em{font-style:normal;font-size:9px;font-weight:600;color:#b4ad9e;border:1px solid #e6e0d2;
+                 border-radius:999px;padding:0 5px;margin-left:5px;vertical-align:1px;white-space:nowrap;}
+  .tm-item .t em.add{color:#2f6b4f;border-color:#cfe2d7;background:#f4f9f6;}
+  .tm-item .s{display:block;font-size:10.5px;color:#a9a294;line-height:1.55;margin-top:1px;}
+  .tm-item .plus{flex:0 0 auto;font-size:13px;color:#d6cfbf;line-height:1.8;transition:color .13s;}
+  .tm-item:hover .plus{color:#3f7d5e;}
+  .tm-item.picked{background:#f0f7f3;}
+  .tm-item.picked .plus{color:#3f7d5e;}
+
+  .tm-two{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-top:16px;}
+  .tm-panel{border:1px solid var(--line);border-radius:7px;padding:13px 15px 14px;background:#fff;}
+  .tm-panel-head{display:flex;align-items:baseline;gap:10px;justify-content:space-between;flex-wrap:wrap;}
+  .tm-panel-head h3{margin:0;flex:1;min-width:120px;font-size:11.5px;font-weight:600;letter-spacing:.1em;
+                    color:#a9a294;display:flex;align-items:center;gap:9px;}
+  .tm-panel-head h3::after{content:"";flex:1;height:1px;background:#ece6d9;}
+  .tm-panel-head .meta{font-size:11px;color:#a9a294;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .tm-plan-how{margin:8px 0 0;font-size:11.5px;color:#a9a294;line-height:1.7;}
+  .tm-plan-how b{color:#3f7d5e;}
+  .tm-stones{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .tm-stone{display:flex;align-items:center;gap:8px;border:1px solid #ece6d9;border-radius:6px;
+            padding:6px 8px;background:#fcfbf7;}
+  .tm-stone .ck{flex:0 0 20px;width:20px;height:20px;border-radius:50%;border:1.5px solid #cfc7b5;
+                background:#fff;cursor:pointer;position:relative;padding:0;}
+  .tm-stone .ck:hover{border-color:#3f7d5e;}
+  .tm-stone.done .ck{background:#3f7d5e;border-color:#3f7d5e;}
+  .tm-stone.done .ck::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:9px;
+                            border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+  .tm-stone .nm{flex:1;min-width:0;font-size:12.5px;color:#3a3f47;line-height:1.45;}
+  .tm-stone.done .nm{text-decoration:line-through;color:#b4ad9e;}
+  .tm-stone .lane{flex:0 0 6px;width:6px;height:6px;border-radius:50%;background:#c9b072;}
+  .tm-stone .lane.biz{background:var(--orange);}
+  .tm-stone .lane.job{background:var(--blue);}
+  .tm-stone .lane.grad{background:var(--navy);}
+  .tm-stone select,.tm-stone input[type="time"]{font:inherit;font-size:11px;color:#5f6469;background:#fff;
+      border:1px solid #e3ddcf;border-radius:5px;padding:3px 4px;max-width:100%;}
+  .tm-stone .rm{flex:0 0 auto;border:0;background:transparent;font:inherit;font-size:15px;line-height:1;
+                color:#c3bcac;cursor:pointer;padding:2px 3px;}
+  .tm-stone .rm:hover{color:var(--orange);}
+  .tm-empty{margin:10px 0 0;padding:15px 12px;border:1px dashed #e3ddcf;border-radius:6px;
+            text-align:center;font-size:11.5px;color:#a9a294;line-height:1.7;}
+  .tm-empty b{color:#3f7d5e;}
+  .tm-add{display:flex;gap:6px;margin-top:9px;}
+  .tm-add input{flex:1;min-width:0;font:inherit;font-size:12px;color:var(--ink);background:#fff;
+                border:1px solid var(--line);border-radius:6px;padding:6px 10px;outline:0;}
+  .tm-add input:focus{border-color:#9cc3ad;}
+  .tm-add button{font:inherit;font-size:12px;font-weight:600;color:#fff;background:#3f7d5e;border:0;
+                 border-radius:6px;padding:6px 14px;cursor:pointer;}
+  .tm-add button:hover{filter:brightness(1.06);}
+  .tm-foot{margin:9px 0 0;font-size:11px;color:#a9a294;line-height:1.7;min-height:18px;}
+  .tm-foot b{color:#3f7d5e;}
+  .tm-sync{margin-top:4px;font-size:10.5px;color:#b4ad9e;}
+  .tm-sync a{color:var(--blue);text-decoration:none;border-bottom:1px solid #cfd8e2;}
+  .tm-sync a:hover{color:var(--orange);border-color:#f0d5c6;}
+
+  .tm-qgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+  .tm-q{font:inherit;font-size:11.5px;font-weight:600;color:#5f6469;background:#fff;
+        border:1px solid var(--line);border-radius:6px;padding:9px 5px;cursor:pointer;
+        transition:background .13s,border-color .13s,color .13s;}
+  .tm-q:hover{border-color:#cfe2d7;background:#f4f9f6;}
+  .tm-q.on{background:#3f7d5e;border-color:#3f7d5e;color:#fff;}
+  .tm-q.warn.on{background:var(--orange);border-color:var(--orange);}
+  .tm-q.gray.on{background:#8d8a83;border-color:#8d8a83;}
+  .tm-qout{margin:9px 0 0;padding:10px 11px;border-radius:6px;background:#faf8f2;
+           font-size:11.5px;line-height:1.78;color:#5f6469;}
+  .tm-qout b{color:var(--navy);}
+
+  .tm-ritual{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin-top:14px;}
+  .tm-rit{background:#fcfbf7;border:1px solid #ece6d9;border-radius:6px;padding:11px 14px 12px;}
+  .tm-rit h4{margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:.1em;color:#a9a294;
+             display:flex;align-items:center;gap:8px;}
+  .tm-rit h4::after{content:"";flex:1;height:1px;background:#ece6d9;}
+  .tm-rit ol{margin:0;padding-left:17px;font-size:11.5px;line-height:1.75;color:#5f6469;}
+  .tm-rit li{margin:4px 0;}
+  .tm-rit b{color:var(--navy);}
+  .tm-daily{margin:0;font-size:11.5px;line-height:1.85;color:#5f6469;}
+  .tm-daily b{color:#2f6b4f;}
+
+  .tm-src{margin:13px 0 0;font-size:10.5px;color:#b4ad9e;line-height:1.7;}
+  .tm-src a{color:#a9734e;text-decoration:none;border-bottom:1px solid #e6d9c8;}
+  .tm-src a:hover{color:var(--orange);border-color:#f0d5c6;}
+
+
   .tip{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
        background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;
        box-shadow:0 10px 26px rgba(27,58,99,.25);opacity:0;pointer-events:none;transition:.18s;z-index:20;}
@@ -641,6 +786,10 @@
     .st-body{grid-template-columns:1fr;gap:16px;}
     .st-cards{grid-template-columns:1fr;}
     .st-prep a{margin-left:0;}
+    .tm{padding:20px 18px 22px;}
+    .tm-law,.tm-two,.tm-ritual{grid-template-columns:1fr;}
+    .tm-lanes{grid-template-columns:1fr;}
+    .tm-week{text-align:left;}
   }
 
   @media (max-width:640px){
@@ -653,6 +802,8 @@
     .st-card{flex-wrap:wrap;gap:4px 10px;}
     .st-card .who{flex:0 0 100%;}
     .st-card .meta{margin-left:auto;}
+    .tm-stone{flex-wrap:wrap;}
+    .tm-stone .nm{flex-basis:calc(100% - 104px);}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -675,6 +826,7 @@
     <div class="tn-items" id="tnItems">
       <a class="tn on" href="#top">概览</a>
       <a class="tn warm" href="#stuck">起不动</a>
+      <a class="tn" href="#time">时间管理</a>
       <a class="tn job" href="#jobnow">找工作</a>
       <span class="tn-sep" aria-hidden="true"></span>
       <a class="tn biz" href="#extras">话术素材</a>
@@ -805,6 +957,151 @@
         <li><b>看得见的小进展才撑得住。</b>所以有「今天做成的」—— 写一句就算，不用大。</li>
       </ul>
     </details>
+  </section>
+
+  <section class="tm" id="time" aria-labelledby="tmTitle">
+    <div class="tm-head">
+      <div>
+        <div class="kicker">不是没时间 · 是没排进去</div>
+        <h2 id="tmTitle">⏳ 时间管理</h2>
+        <p>你总在做「不重要也不紧急」的事，多半不是懒，是当天没先把一件重要的事放进去。<b>这块只练一件事：把重要的事，当成坏掉的热水器来对待。</b></p>
+      </div>
+      <div class="tm-week">
+        <b id="tmWeekLabel">本周</b>
+        <span id="tmWeekRange">周三 → 周二</span>
+        <div class="tm-wkbtns" id="tmWkBtns" role="group" aria-label="选哪一周">
+          <button class="tm-wkbtn on" type="button" data-w="0">本周</button>
+          <button class="tm-wkbtn" type="button" data-w="1">下周</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tm-law">
+      <div class="tm-story">
+        <h3>🔥 热水器法则</h3>
+        <p>Laura Vanderkam 在 <a href="https://www.bilibili.com/video/BV1vx411e7Pg" target="_blank" rel="noopener">那条 12 分钟的 TED</a> 里讲：一位女士家的热水器坏了，地下室被淹。那一周她硬是挤出 <b>7 小时</b>去修它、等师傅、善后。同样是那一周，如果有人请她拿 7 小时读书，她大概会说「我没时间」。</p>
+        <p>所以「我没时间」不是时间账，是一句价值判断的翻译 —— <b>它等于「这件事不重要」</b>，更准确地说，「它现在不是我的优先事项」。时间不是省出来的：你先决定要什么，它自己会腾出来。</p>
+        <div class="tm-calc">
+          <span>一周 168 小时</span><span>睡觉 56</span><span>吃饭通勤 20</span><span>主业 50</span><em>还剩 42 小时</em>
+        </div>
+        <p class="tm-calcnote">三条线每周各放 2 小时，一共 6 小时 —— 连可支配时间的 15% 都不到。不是没时间，是还没排。</p>
+      </div>
+      <div class="tm-trans">
+        <h3>🔁 「我没时间」翻译器</h3>
+        <p class="tm-trans-lede">写一件你最近总说没时间的事。</p>
+        <div class="tm-in">
+          <span>我没时间</span>
+          <input id="tmNoTime" type="text" maxlength="40" placeholder="运动 / 投简历 / 写专利……" aria-label="我没时间做什么">
+        </div>
+        <p class="tm-out" id="tmNoTimeOut" aria-live="polite">→ 写下来，下面会告诉你这句话真正在说什么。</p>
+        <p class="tm-punch">再问一句：如果它突然变成坏掉的热水器 —— 不做就会淹掉整个房子 —— 我会从哪挤出 2 小时？</p>
+      </div>
+    </div>
+
+    <div class="tm-lanes">
+      <div class="tm-lane biz">
+        <div class="tm-lane-head">
+          <h3>生意 <span>让你在生意里表现优异</span></h3>
+          <p>3~5 件就够，多了等于没有 · 点一下放进这一周</p>
+        </div>
+        <ul class="tm-items">
+          <li><button class="tm-item" type="button" data-lane="biz" data-name="持续的工作量" aria-pressed="false">
+            <span class="n">01</span><span class="txt"><span class="t">持续的工作量<em>你写的</em></span><span class="s">每天有产出，可以小，但不断</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="biz" data-name="多思考复盘" aria-pressed="false">
+            <span class="n">02</span><span class="txt"><span class="t">多思考复盘<em>你写的</em></span><span class="s">每周写一次，不只在脑子里过</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="biz" data-name="看梦想视频 / TED" aria-pressed="false">
+            <span class="n">03</span><span class="txt"><span class="t">看梦想视频 / TED<em>你写的</em></span><span class="s">一天一段，看完去做一件最小的事</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="biz" data-name="主动加人 + 当天跟进" aria-pressed="false">
+            <span class="n">04</span><span class="txt"><span class="t">主动加人 + 当天跟进<em class="add">补的</em></span><span class="s">生意的入口量：加完当天说第一句话</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="biz" data-name="每周固定会面" aria-pressed="false">
+            <span class="n">05</span><span class="txt"><span class="t">每周固定会面<em class="add">补的</em></span><span class="s">转化发生在会面，先把场次占住</span></span><span class="plus">＋</span></button></li>
+        </ul>
+      </div>
+
+      <div class="tm-lane job">
+        <div class="tm-lane-head">
+          <h3>找工作 <span>让你找到工作</span></h3>
+          <p>3~5 件就够，多了等于没有 · 点一下放进这一周</p>
+        </div>
+        <ul class="tm-items">
+          <li><button class="tm-item" type="button" data-lane="job" data-name="投简历" aria-pressed="false">
+            <span class="n">01</span><span class="txt"><span class="t">投简历<em>你写的</em></span><span class="s">每天固定时段投，先有量</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="job" data-name="面试" aria-pressed="false">
+            <span class="n">02</span><span class="txt"><span class="t">面试<em>你写的</em></span><span class="s">接到就上，别等「准备好」</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="job" data-name="复盘" aria-pressed="false">
+            <span class="n">03</span><span class="txt"><span class="t">复盘<em>你写的</em></span><span class="s">每场面完当天写，别拖到记不清</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="job" data-name="按 JD 改一版简历" aria-pressed="false">
+            <span class="n">04</span><span class="txt"><span class="t">按 JD 改一版简历<em class="add">补的</em></span><span class="s">一岗一版，不拿一份投所有</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="job" data-name="每周一次模拟面试" aria-pressed="false">
+            <span class="n">05</span><span class="txt"><span class="t">每周一次模拟面试<em class="add">补的</em></span><span class="s">压一遍，比在心里空想有用</span></span><span class="plus">＋</span></button></li>
+        </ul>
+      </div>
+
+      <div class="tm-lane grad">
+        <div class="tm-lane-head">
+          <h3>毕业 <span>让你顺利毕业</span></h3>
+          <p>3~5 件就够，多了等于没有 · 点一下放进这一周</p>
+        </div>
+        <ul class="tm-items">
+          <li><button class="tm-item" type="button" data-lane="grad" data-name="向上管理" aria-pressed="false">
+            <span class="n">01</span><span class="txt"><span class="t">向上管理<em>你写的</em></span><span class="s">每周固定跟导师同步一次进度</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="grad" data-name="好好对待专利" aria-pressed="false">
+            <span class="n">02</span><span class="txt"><span class="t">好好对待专利<em>你写的</em></span><span class="s">11/30 是硬节点，按倒排表走</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="grad" data-name="每周两个深度块" aria-pressed="false">
+            <span class="n">03</span><span class="txt"><span class="t">每周两个深度块<em class="add">补的</em></span><span class="s">各 2 小时，不被打断，只写专利 / 论文</span></span><span class="plus">＋</span></button></li>
+          <li><button class="tm-item" type="button" data-lane="grad" data-name="每周写进展日志" aria-pressed="false">
+            <span class="n">04</span><span class="txt"><span class="t">每周写进展日志<em class="add">补的</em></span><span class="s">防返工，也是向上管理的材料</span></span><span class="plus">＋</span></button></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tm-two">
+      <div class="tm-panel tm-plan">
+        <div class="tm-panel-head">
+          <h3>把石头排进日历</h3>
+          <span class="meta" id="tmPlanMeta">0 / 3 · 完成 0</span>
+        </div>
+        <p class="tm-plan-how">大石头先放，沙子才填得进去。点上面任意一条就会掉进来；自己想到的也能加。最多 5 块。</p>
+        <ul class="tm-stones" id="tmStones"></ul>
+        <div class="tm-add">
+          <input id="tmAddIn" type="text" maxlength="30" placeholder="或自己写一件……" aria-label="自定义一件重要的事">
+          <button type="button" id="tmAddBtn">加入</button>
+        </div>
+        <p class="tm-foot" id="tmFoot">先在上面三条线里点一件事。</p>
+        <div class="tm-sync" id="tmSync">只存在这台设备</div>
+      </div>
+
+      <div class="tm-panel tm-quad">
+        <div class="tm-panel-head">
+          <h3>新来的事，放哪一格</h3>
+        </div>
+        <div class="tm-qgrid" id="tmQGrid">
+          <button class="tm-q" type="button" data-q="q1">重要 · 不紧急</button>
+          <button class="tm-q warn" type="button" data-q="q2">重要 · 紧急</button>
+          <button class="tm-q gray" type="button" data-q="q3">不重要 · 紧急</button>
+          <button class="tm-q gray" type="button" data-q="q4">不重要 · 不紧急</button>
+        </div>
+        <p class="tm-qout" id="tmQOut" aria-live="polite">点一格，看它该怎么处理。</p>
+      </div>
+    </div>
+
+    <div class="tm-ritual">
+      <div class="tm-rit">
+        <h4>每周五 · 30 分钟</h4>
+        <ol>
+          <li><b>回看</b>：这周的石头落地了吗？没落地的问一句为什么。</li>
+          <li><b>写下周</b>：三条线各挑 1 件，最多 5 件，写具体。</li>
+          <li><b>先排进日历</b>：写清哪天几点 —— 像热水器坏了一样对待。</li>
+          <li><b>剩下的才进缝隙</b>：别反过来，让刷手机先占住时间。</li>
+        </ol>
+      </div>
+      <div class="tm-rit">
+        <h4>每天 · 只问一句</h4>
+        <p class="tm-daily">早上问：<b>今天哪一件是最重要的？</b><br>先做它，再做别的。<br><br>晚上问：<b>它推进了吗？</b><br>推进了就算过得好，不用样样都做。</p>
+      </div>
+    </div>
+
+    <p class="tm-src">出处：Laura Vanderkam《如何掌控你的自由时间》TED（<a href="https://www.bilibili.com/video/BV1vx411e7Pg" target="_blank" rel="noopener">12 分钟 · 中文字幕</a>）· 大石头与沙子来自柯维的时间管理 · 四象限来自艾森豪威尔矩阵。</p>
   </section>
 
   <main class="lanes">
@@ -2076,6 +2373,8 @@
     var e = document.getElementById('habEmail');
     if(e) setTimeout(function(){ e.focus(); }, 60);
   }
+  window.syOpenLogin = openLogin;
+
   function doLogin(){
     var emailEl = document.getElementById('habEmail');
     var pwdEl = document.getElementById('habPwd');
@@ -2094,6 +2393,7 @@
       auth = { access_token: j.access_token, refresh_token: j.refresh_token,
                expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
       writeJSON(AUTH_KEY, auth);
+      try{ document.dispatchEvent(new CustomEvent('sy-auth')); }catch(e){}
       document.getElementById('habMask').classList.remove('show');
       errEl.textContent = '';
       pwdEl.value = '';
@@ -2623,6 +2923,415 @@
   window.addEventListener('resize', paint);
   paint();
 })();
+// 时间管理：本周 / 下周的石头、四象限、没时间翻译器
+(function(){
+  var sec = document.getElementById('time');
+  if(!sec) return;
+
+  var ROLL = 6;                 // 凌晨 0–6 点算前一天，跟每日习惯一个口径
+  var MAX = 5, TARGET = 3;
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function ymd(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parse(k){ var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function shift(k, n){ var d = parse(k); d.setDate(d.getDate() + n); return ymd(d); }
+  function todayKey(){
+    var d = new Date();
+    if(d.getHours() < ROLL) d.setDate(d.getDate() - 1);
+    return ymd(d);
+  }
+  function weekStart(k){
+    var d = parse(k);
+    var back = (d.getDay() + 7 - 3) % 7;      // 周三 = 这一周的第一天
+    d.setDate(d.getDate() - back);
+    return ymd(d);
+  }
+  function md(k){ return (+k.slice(5, 7)) + '/' + (+k.slice(8, 10)); }
+  var WD = ['日','一','二','三','四','五','六'];
+  function wd(k){ return WD[parse(k).getDay()]; }
+
+  function read(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+  function write(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  var base = weekStart(todayKey());
+  var wk = base;
+
+  var els = {
+    wl: document.getElementById('tmWeekLabel'),
+    wr: document.getElementById('tmWeekRange'),
+    wkBtns: document.getElementById('tmWkBtns'),
+    list: document.getElementById('tmStones'),
+    meta: document.getElementById('tmPlanMeta'),
+    foot: document.getElementById('tmFoot'),
+    addIn: document.getElementById('tmAddIn'),
+    addBtn: document.getElementById('tmAddBtn'),
+    sync: document.getElementById('tmSync'),
+    noTime: document.getElementById('tmNoTime'),
+    out: document.getElementById('tmNoTimeOut'),
+    qgrid: document.getElementById('tmQGrid'),
+    qout: document.getElementById('tmQOut')
+  };
+  if(!els.list) return;
+
+  /* ---------- 本地数据 ---------- */
+  var cache = {};
+  function blank(){ return { stones: [], ts: 0 }; }
+  function recOf(k){
+    if(cache[k]) return cache[k];
+    var v = read('tm:' + k, null);
+    if(!v || !Array.isArray(v.stones)) v = blank();
+    cache[k] = v;
+    return v;
+  }
+  var rec = recOf(wk);
+
+  function inWeek(d){ return d >= wk && d <= shift(wk, 6); }
+  function defaultDay(){ var t = todayKey(); return inWeek(t) ? t : wk; }
+  function uid(){ return 's' + Date.now() + Math.floor(Math.random() * 1000); }
+  function has(lane, name){
+    for(var i = 0; i < rec.stones.length; i++){
+      var s = rec.stones[i];
+      if(s.lane === lane && s.name === name) return true;
+    }
+    return false;
+  }
+
+  var notice = '', noticeT = null;
+  function flash(msg){
+    notice = msg;
+    clearTimeout(noticeT);
+    paintFoot();
+    noticeT = setTimeout(function(){ notice = ''; paintFoot(); }, 2600);
+  }
+
+  function addStone(name, lane){
+    name = (name || '').trim();
+    if(!name) return;
+    if(has(lane, name)) return;
+    if(rec.stones.length >= MAX){ flash('最多 5 块 —— 再多就等于没排。'); return; }
+    rec.stones.push({ id: uid(), name: name, lane: lane || 'custom',
+                      day: defaultDay(), time: '20:00', done: false });
+    save();
+  }
+
+  function toggleItem(lane, name){
+    var i = -1;
+    for(var j = 0; j < rec.stones.length; j++){
+      if(rec.stones[j].lane === lane && rec.stones[j].name === name){ i = j; break; }
+    }
+    if(i >= 0){ rec.stones.splice(i, 1); save(); }
+    else addStone(name, lane);
+  }
+
+  function save(){
+    rec.ts = Date.now();
+    write('tm:' + wk, { stones: rec.stones, ts: rec.ts });
+    paint();
+    if(auth) push(wk, rec);
+  }
+
+  /* ---------- 渲染 ---------- */
+  function paintWeekHead(){
+    var isBase = wk === base;
+    var next = shift(base, 7);
+    els.wl.textContent = isBase ? '本周' : (wk === next ? '下周' : md(wk) + ' 起');
+    els.wr.textContent = md(wk) + ' 周' + wd(wk) + ' → ' + md(shift(wk, 6)) + ' 周' + wd(shift(wk, 6));
+    var btns = els.wkBtns.querySelectorAll('.tm-wkbtn');
+    for(var i = 0; i < btns.length; i++){
+      var w = btns[i].getAttribute('data-w');
+      btns[i].classList.toggle('on', (w === '0' && isBase) || (w === '1' && wk === next));
+    }
+  }
+
+  function paintFoot(){
+    if(!els.foot) return;
+    if(notice){ els.foot.textContent = notice; return; }
+    var n = rec.stones.length, d = 0;
+    for(var i = 0; i < rec.stones.length; i++) if(rec.stones[i].done) d++;
+    var msg;
+    if(n === 0) msg = '先在上面三条线里点一件事。';
+    else if(n < TARGET) msg = '还差 ' + (TARGET - n) + ' 块。三条线各一块，比一块做三遍强。';
+    else if(n === TARGET) msg = '三块齐了。剩下的时间才是给别的事的。';
+    else msg = n + ' 块 —— 别再多了，多了就等于没排。';
+    if(n > 0 && d === n) msg = '这一周的石头都落地了。';
+    els.foot.textContent = msg;
+  }
+
+  function paintMeta(){
+    var n = rec.stones.length, d = 0;
+    for(var i = 0; i < rec.stones.length; i++) if(rec.stones[i].done) d++;
+    els.meta.textContent = n > TARGET ? (n + ' 块 · 完成 ' + d) : (n + ' / ' + TARGET + ' · 完成 ' + d);
+  }
+
+  function paintItems(){
+    var nodes = sec.querySelectorAll('.tm-item');
+    for(var i = 0; i < nodes.length; i++){
+      var b = nodes[i];
+      var on = has(b.getAttribute('data-lane'), b.getAttribute('data-name'));
+      b.classList.toggle('picked', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      var plus = b.querySelector('.plus');
+      if(plus) plus.textContent = on ? '✓' : '＋';
+    }
+  }
+
+  function stoneRow(s){
+    if(!s.day || s.day < wk || s.day > shift(wk, 6)) s.day = wk;
+    if(!s.time) s.time = '20:00';
+
+    var li = document.createElement('li');
+    li.className = 'tm-stone' + (s.done ? ' done' : '');
+
+    var ck = document.createElement('button');
+    ck.type = 'button'; ck.className = 'ck';
+    ck.setAttribute('aria-label', (s.done ? '取消完成：' : '完成：') + s.name);
+    ck.addEventListener('click', function(){ s.done = !s.done; save(); });
+    li.appendChild(ck);
+
+    if(s.lane === 'biz' || s.lane === 'job' || s.lane === 'grad'){
+      var dot = document.createElement('span');
+      dot.className = 'lane ' + s.lane;
+      dot.title = s.lane === 'biz' ? '生意' : (s.lane === 'job' ? '找工作' : '毕业');
+      li.appendChild(dot);
+    }
+
+    var nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = s.name;
+    nm.title = s.name;
+    li.appendChild(nm);
+
+    var sel = document.createElement('select');
+    sel.setAttribute('aria-label', '哪天');
+    for(var i = 0; i < 7; i++){
+      var k = shift(wk, i);
+      var o = document.createElement('option');
+      o.value = k;
+      o.textContent = md(k) + ' ' + wd(k);
+      if(k === s.day) o.selected = true;
+      sel.appendChild(o);
+    }
+    sel.addEventListener('change', function(){ s.day = sel.value; save(); });
+    li.appendChild(sel);
+
+    var tm = document.createElement('input');
+    tm.type = 'time'; tm.value = s.time;
+    tm.setAttribute('aria-label', '几点');
+    tm.addEventListener('change', function(){ s.time = tm.value; save(); });
+    li.appendChild(tm);
+
+    var rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
+    rm.setAttribute('aria-label', '删掉：' + s.name);
+    rm.addEventListener('click', function(){
+      var j = rec.stones.indexOf(s);
+      if(j >= 0){ rec.stones.splice(j, 1); save(); }
+    });
+    li.appendChild(rm);
+
+    return li;
+  }
+
+  function paint(){
+    els.list.innerHTML = '';
+    if(rec.stones.length === 0){
+      var li = document.createElement('li');
+      li.className = 'tm-empty';
+      li.innerHTML = '还没排。先在上面三条线里点一件事，<b>先占住时间</b>，再让别的事去填缝隙。';
+      els.list.appendChild(li);
+    }else{
+      for(var i = 0; i < rec.stones.length; i++) els.list.appendChild(stoneRow(rec.stones[i]));
+    }
+    paintWeekHead(); paintMeta(); paintFoot(); paintItems();
+  }
+
+  /* ---------- 交互：点一条放进本周 ---------- */
+  var items = sec.querySelectorAll('.tm-item');
+  for(var ii = 0; ii < items.length; ii++){
+    (function(b){
+      b.addEventListener('click', function(){
+        toggleItem(b.getAttribute('data-lane'), b.getAttribute('data-name'));
+      });
+    })(items[ii]);
+  }
+
+  els.wkBtns.addEventListener('click', function(e){
+    var b = e.target;
+    while(b && b !== els.wkBtns && !(b.className || '').match(/tm-wkbtn/)) b = b.parentNode;
+    if(!b || b === els.wkBtns) return;
+    var w = b.getAttribute('data-w');
+    var target = w === '0' ? base : shift(base, 7);
+    if(target === wk) return;
+    wk = target; rec = recOf(wk);
+    paint();
+    if(auth) pull(wk);
+  });
+
+  function addCustom(){
+    var v = (els.addIn.value || '').trim();
+    if(!v){ els.addIn.focus(); return; }
+    if(rec.stones.length >= MAX){ flash('最多 5 块 —— 再多就等于没排。'); return; }
+    addStone(v, 'custom');
+    els.addIn.value = '';
+  }
+  els.addBtn.addEventListener('click', addCustom);
+  els.addIn.addEventListener('keydown', function(e){ if(e.key === 'Enter') addCustom(); });
+
+  /* ---------- 翻译器 ---------- */
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+    });
+  }
+  function paintTrans(){
+    var v = (els.noTime.value || '').trim();
+    if(!v){ els.out.textContent = '→ 写下来，下面会告诉你这句话真正在说什么。'; return; }
+    els.out.innerHTML = '→ 这句话的意思是：<b>「' + esc(v) + '」现在不是我的优先事项。</b><br>' +
+      '如果它真的重要，就给它一个时段，放进下面的石头；如果它不重要，就把它从脑子里划掉 —— 别再拿它内疚。';
+  }
+  els.noTime.addEventListener('input', paintTrans);
+  paintTrans();
+
+  /* ---------- 四象限 ---------- */
+  var Q = {
+    q1: '<b>这才是 3~5 件事住的地方。</b>专利、改简历、复盘、持续产出都在这一格。它不会喊你，所以必须给它固定时段 —— 放进上面的石头，否则永远会被紧急的事挤掉。',
+    q2: '<b>现在做，做完问一句：它本来能不能提前？</b>明天要面试、导师临时要材料、报名今晚截止 —— 处理完别只庆幸，往前倒一步，让下一次变成「重要不紧急」。',
+    q3: '<b>别人的紧急，不是你的重要。</b>群消息、临时喊你、可去可不去的会。能推就推，能转就转，能攒着一起处理就攒着 —— 立刻回不等于负责。',
+    q4: '<b>这是默认选项，不是你的选择。</b>刷手机、无目的刷 B 站、反复整理。它不会自己消失，只会在你累的时候接管你。对策不是忍，是让那块时间先被重要的事占住。'
+  };
+  els.qgrid.addEventListener('click', function(e){
+    var b = e.target;
+    while(b && b !== els.qgrid && !b.getAttribute('data-q')) b = b.parentNode;
+    if(!b || b === els.qgrid) return;
+    var q = b.getAttribute('data-q');
+    var btns = els.qgrid.querySelectorAll('.tm-q');
+    for(var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i] === b);
+    els.qout.innerHTML = Q[q] || '';
+  });
+
+  /* ---------- 云端 ---------- */
+  var CLOUD = {
+    url: 'https://odsukwoakbhajrpeiatg.supabase.co',
+    key: 'sb_publishable_4l24lg4fXBz33X1nOHlGPg_kJjm9RBA',
+    table: 'team_plan_kv'
+  };
+  var AUTH_KEY = 'sy-team-plan-auth';
+  var auth = read(AUTH_KEY, null);
+  if(auth && !auth.refresh_token) auth = null;
+
+  function hdr(t){
+    return { 'apikey': CLOUD.key, 'Authorization': 'Bearer ' + (t || CLOUD.key),
+             'Content-Type': 'application/json' };
+  }
+  function token(){
+    if(!auth || !auth.refresh_token) return Promise.reject(new Error('未登录'));
+    if(auth.access_token && (!auth.expires_at || Date.now() < auth.expires_at - 120000))
+      return Promise.resolve(auth.access_token);
+    return fetch(CLOUD.url + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST', headers: { 'apikey': CLOUD.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: auth.refresh_token })
+    }).then(function(r){ if(!r.ok) throw new Error('登录过期'); return r.json(); })
+      .then(function(j){
+        auth = { access_token: j.access_token, refresh_token: j.refresh_token,
+                 expires_at: Date.now() + (j.expires_in || 3600) * 1000 };
+        write(AUTH_KEY, auth);
+        return auth.access_token;
+      });
+  }
+  function setSync(kind){
+    if(!els.sync) return;
+    if(kind === 'login'){
+      els.sync.innerHTML = '只存在这台设备 · <a href="#" id="tmLogin">登录后同步</a>';
+      var a = document.getElementById('tmLogin');
+      if(a) a.onclick = function(ev){
+        ev.preventDefault();
+        if(window.syOpenLogin) window.syOpenLogin();
+        else location.hash = '#habits';
+      };
+      return;
+    }
+    if(kind === 'busy'){ els.sync.textContent = '同步中…'; return; }
+    if(kind === 'off'){ els.sync.textContent = '没连上，先存本机'; return; }
+    els.sync.textContent = '已同步 · 手机电脑同一份';
+  }
+  function pull(k){
+    if(!auth){ setSync('login'); return; }
+    setSync('busy');
+    token().then(function(t){
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table +
+                   '?key=eq.' + encodeURIComponent('tm-' + k) + '&select=key,value',
+                   { headers: hdr(t) });
+    }).then(function(r){
+      if(!r.ok) throw new Error('读取失败');
+      return r.json();
+    }).then(function(rows){
+      var row = rows && rows[0];
+      var loc = recOf(k);
+      if(row){
+        var v = row.value;
+        if(typeof v === 'string'){ try{ v = JSON.parse(v); }catch(e){ v = null; } }
+        if(v && Array.isArray(v.stones)){
+          var remote = { stones: v.stones, ts: +v.ts || 0 };
+          if(remote.ts > (loc.ts || 0)){
+            cache[k] = remote;
+            write('tm:' + k, { stones: remote.stones, ts: remote.ts });
+            if(k === wk){ rec = remote; paint(); }
+          }else if((loc.ts || 0) > remote.ts){
+            push(k, loc);
+          }
+        }
+      }else if(loc.ts){
+        push(k, loc);
+      }
+      setSync('ok');
+    }).catch(function(e){
+      if(e && /登录|过期/.test(e.message || '')){
+        auth = null; write(AUTH_KEY, null); setSync('login');
+      }else setSync('off');
+    });
+  }
+  function push(k, r){
+    if(!auth) return;
+    var payload = { key: 'tm-' + k, value: { stones: r.stones, ts: r.ts } };
+    token().then(function(t){
+      var h = hdr(t);
+      h['Prefer'] = 'resolution=merge-duplicates,return=minimal';
+      return fetch(CLOUD.url + '/rest/v1/' + CLOUD.table, {
+        method: 'POST', headers: h, body: JSON.stringify([payload])
+      });
+    }).then(function(r){
+      if(!r.ok) throw new Error('上传失败');
+      setSync('ok');
+    }).catch(function(){
+      setSync('off');
+    });
+  }
+
+  document.addEventListener('sy-auth', function(){
+    auth = read(AUTH_KEY, null);
+    if(auth) pull(wk);
+  });
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function(){
+    if(!auth) return;
+    if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+    if(Date.now() - hiddenAt < 60000) return;
+    pull(wk);
+  });
+
+  paint();
+  if(auth) pull(wk); else setSync('login');
+
+  setInterval(function(){
+    var nb = weekStart(todayKey());
+    if(nb !== base){
+      var wasBase = wk === base;
+      base = nb;
+      if(wasBase){ wk = base; rec = recOf(wk); paint(); if(auth) pull(wk); }
+      else paintWeekHead();
+    }
+  }, 30000);
+})();
+
 </script>
 </body>
 </html>
