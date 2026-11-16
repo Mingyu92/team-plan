@@ -56,9 +56,9 @@
 </head>
 <body>
 <header>
-  <h1>投递清单 <small>2026-11-16 · 共 17 个</small></h1>
+  <h1>投递清单 <small>2026-11-16 · 共 37 个</small></h1>
   <div class="stats">
-    <span><b id="s-total">17</b> 个岗位</span>
+    <span><b id="s-total">37</b> 个岗位</span>
     <span><b id="s-high">0</b> 个高优先</span>
     <span><b id="s-week">0</b> 个两周内截止</span>
     <span><b id="s-done">0</b> 已投</span>
@@ -75,7 +75,7 @@
 </header>
 <main id="list"></main>
 <footer>
-  说明：数据来自实习僧，2026-11-16 抓取并逐条读过详情页。标记状态只存在这台设备的浏览器里。<br>
+  说明：37 个岗位均于 2026-11-16 抓取并逐条读过详情页，来源为实习僧（7 组关键词：AI产品经理 / 大模型产品 / Agent产品 / 智能体 / AIGC产品 / 产品经理 / 策略产品）。腾讯、美团、快手、小红书官网与猎聘、牛客均为前端渲染或登录墙，抓不到列表。标记状态只存在这台设备的浏览器里。<br>
   投递前统一口径：毕业时间 2028.06 · 到岗 2026 年 12 月上旬 · 每周 5 天 · 可实习 6 个月以上 · 期望城市北京。
 </footer>
 
@@ -170,7 +170,109 @@ const JOBS = [
    pay:"200-400/天", time:"5天/周 · 6个月", year:"", dl:"2026-12-13", pri:"mid",
    url:"https://www.shixiseng.com/intern/inn_yagyerjblfms",
    why:"市场/竞品调研 + 需求迭代 + <b>模型效果分析（召回率、精确率）</b>，是最像「评测型 PM」的小厂岗。",
-   note:"备注写「只要 25 和 26 届的本岗位有转正名额」——你 2028 届只能实习、无转正，不影响投。"}
+   note:"备注写「只要 25 和 26 届的本岗位有转正名额」——你 2028 届只能实习、无转正，不影响投。"},
+
+  // ---------- 第二批 · 再补 20 个 ----------
+  {id:"xhs-img", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"小红书", role:"AI 生图产品实习", city:"北京",
+   pay:"面议", time:"5天/周 · 3个月", year:"2028届", dl:"2027-10-10", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_odvkbr0kgi2e",
+   why:"JD 第一行就写 <b>招聘对象：2028 届</b>；AI 生图 + Prompt 策略优化 + 生图效果评测，加分项是 ComfyUI / 生图工作流。",
+   note:"要视觉审美，最好带上你做过的图或作品。"},
+  {id:"xhs-ad", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"小红书", role:"搜索广告 AIGC 产品实习", city:"北京 · 朝阳",
+   pay:"面议", time:"5天/周 · 3个月", year:"", dl:"2027-10-10", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_g8dqvppyvdyo",
+   why:"AIGC 内容效果评估：搭评估标准、样本评测、问题归因——和你项目里的四类问题剔除是同一套动作。",
+   note:"大四、研二优先；上海也有同岗（同 JD）。"},
+  {id:"ks-search-eval", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"快手", role:"AI 搜索评测体系实习", city:"北京 · 上地",
+   pay:"200-250/天", time:"5天/周 · 6个月", year:"", dl:"2026-12-30", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_qfoabdd1a0h3",
+   why:"<b>用 LLM 搭搜索结果自动化评测体系</b>，评测→归因→优化→验证闭环，要 SQL/Python。这个岗位的三段话和你项目的叙事几乎重合。",
+   note:"11-05 刷新，状态新。"},
+  {id:"ks-aigc", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"快手", role:"商业化 AIGC 产品实习（数字员工/智能客服）", city:"北京 · 上地",
+   pay:"面议", time:"5天/周 · 4个月", year:"", dl:"2026-12-30", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_rjjfjatnfanm",
+   why:"AI 评论、数字员工、智能客服、数字人直播；负责 AI 生成内容评估，用 Prompt / 工作流调优效果。",
+   note:"JD 写 4 个月，但要求里又说 6 个月以上，投前问清。"},
+  {id:"ks-aigc2", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"快手", role:"AIGC 内容评估实习", city:"北京 · 海淀",
+   pay:"200-300/天", time:"5天/周 · 6个月", year:"", dl:"2026-12-30", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_ev9kwxqbdnvm",
+   why:"和上一条同一条业务线，但薪资写 200-300/天，更明确。",
+   note:"3 月发布的岗，可能早就招满了，投了别抱太大期待。"},
+  {id:"bili-aigc", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"哔哩哔哩", role:"商业化 AIGC 素材生成产品实习", city:"上海 · 杨浦",
+   pay:"200-250/天", time:"4天/周 · 3个月", year:"", dl:"2026-12-02", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_fcdrouq92v9w",
+   why:"封面/标题/视频素材的 AIGC 生成，<b>建立素材效果评价标准</b> + 数据实验优化。11-11 刚刷新。",
+   note:"12-02 截止；4 天/周。"},
+  {id:"bd-create", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"百度", role:"AIGC 创作工具 / 创作 Agent 产品实习", city:"北京 · 海淀",
+   pay:"200-400/天", time:"5天/周 · 6个月", year:"", dl:"2027-01-01", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_sbro47b0kahv",
+   why:"创作 Agent 的策略调研、产品评测与<b>评测体系建设</b>（能力拆解 + 效果评估方法）；薪资到 400/天。",
+   note:"偏内容创作方向，需要一点审美判断。"},
+  {id:"bd-task", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"百度", role:"任务推荐 / 意图评测产品实习", city:"北京 · 海淀",
+   pay:"面议", time:"5天/周 · 4个月", year:"", dl:"2027-01-01", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_pbtb3gvsfvsp",
+   why:"意图识别、任务推荐、生成结果评测 + 关键指标跟踪，要求 SQL。",
+   note:"9 月发布的岗。"},
+  {id:"bd-api", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"百度", role:"搜索 API 产品策略实习", city:"北京 · 海淀",
+   pay:"面议", time:"5天/周 · 3个月", year:"", dl:"2027-01-01", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_dzz7yuoldrpb",
+   why:"大模型 API 能力与<b>产品评价标准</b>建设，行业竞品分析。",
+   note:"有 toB / 海外产品经验优先。"},
+  {id:"mt-flow", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"美团", role:"流量策略产品实习", city:"北京 · 望京",
+   pay:"200-250/天", time:"5天/周 · 4个月", year:"2028年及以后", dl:"2027-01-31", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_wgs0ytzmlgrz",
+   why:"JD 明确 <b>2028 年及以后毕业</b>；供需匹配、流量分发策略、SQL 分析。",
+   note:"要 4 个月、每周 4-5 天。"},
+  {id:"mt-search", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"美团", role:"搜索推荐策略产品实习", city:"北京 · 望京",
+   pay:"200-250/天", time:"5天/周 · 3个月", year:"", dl:"2027-01-31", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_hwyno9irdxjv",
+   why:"搜索/推荐策略设计 + AB 实验验证 + 指标监控，11-13 刚刷新。",
+   note:"偏策略产品，不是 AI Agent。"},
+  {id:"dw-ai", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"得物 App", role:"社区 AI 创意玩法产品实习", city:"上海 · 杨浦",
+   pay:"200/天", time:"5天/周 · 3个月", year:"2028-29届", dl:"2027-11-08", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_lv1rtih1tenn",
+   why:"JD 写 <b>2028-29 届应届生</b>；把 AI 能力融进社区互动玩法，从概念到落地。",
+   note:"要「懂潮流文化、深度使用过得物」；薪资 200/天。"},
+  {id:"siemens", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"西门子中国", role:"Agent 产品经理实习", city:"北京 · 望京",
+   pay:"120-180/天", time:"5天/周 · 4个月", year:"", dl:"2026-11-29", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_ownygaahk58v",
+   why:"工业能碳平台的多 Agent 协同调度，0→1 做 AI 巡检、智能报表；外企 title 对简历有用。",
+   note:"要求 985/211（中南符合）；<b>11-29 截止</b>。"},
+  {id:"xpeng", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"小鹏汽车", role:"车载 Agent 对话体验产品实习", city:"北京 · 海淀",
+   pay:"100-150/天", time:"5天/周 · 3个月", year:"", dl:"2027-02-25", pri:"mid",
+   url:"https://www.shixiseng.com/intern/bl1outpa6tec",
+   why:"唤醒、ASR、多轮对话、TTS 音色的体验设计与<b>对话效果评测</b>，场景很硬。",
+   note:"本科 100/天、硕士 150/天，是这批里最低的。"},
+  {id:"ciiri", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"中国工业互联网研究院", role:"智能体能力评测实习", city:"北京 · 朝阳",
+   pay:"120-150/天", time:"4天/周 · 3个月", year:"", dl:"2026-11-30", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_obtmflgx1qbh",
+   why:"智能体感知/认知/执行/记忆/学习五维评估 + 测试用例设计，评测方法论最正的一家。",
+   note:"事业单位，钱少；<b>11-30 截止</b>。"},
+  {id:"bosch", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"博世中国", role:"智能体工作流与质量评估实习", city:"苏州",
+   pay:"180-200/天", time:"5天/周 · 6个月", year:"", dl:"2026-11-21", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_g33re6wtp0vk",
+   why:"大模型智能体工作流 + 测试集 + 常态质量评估，Python 要求扎实。",
+   note:"<b>11-21 截止</b>；苏州，偏工程。"},
+  {id:"guanchan", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"管产科技 AgentI", role:"智能体平台产品实习", city:"上海 · 浦东",
+   pay:"150-180/天", time:"5天/周 · 3个月", year:"", dl:"2026-12-08", pri:"mid",
+   url:"https://www.shixiseng.com/intern/4gf2sw159kpo",
+   why:"智能体服务平台的需求、竞品、验收、复盘，初创团队直接做一线产品活。",
+   note:"120-150/天 + 餐补交通补；线下，不接受远程。"},
+  {id:"gjzq", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"国金证券", role:"AI 问答助手 / RAG 平台实习", city:"上海 · 浦东",
+   pay:"150-200/天", time:"3天/周 · 3个月", year:"", dl:"2026-11-22", pri:"mid",
+   url:"https://www.shixiseng.com/intern/sclgjequvgas",
+   why:"LLM + RAG 知识库问答、Agent/Skills 场景分析与 PoC；要求硕士 + Python/TS。",
+   note:"<b>只要 3 天/周</b>，门槛最低；11-22 截止。"},
+  {id:"tesla", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"特斯拉", role:"AIGC 视觉产品运营实习", city:"上海 · 临港",
+   pay:"200-250/天", time:"5天/周 · 6个月", year:"", dl:"2026-11-23", pri:"low",
+   url:"https://www.shixiseng.com/intern/inn_2metksiksefh",
+   why:"AIGC 视觉产品的素材质检、模板、社区运营，大厂背书。",
+   note:"是<b>运营岗不是 PM</b>；临港很远；11-23 截止。"},
+  {id:"ks-live", day:"第二批 · 再补 20 个（AIGC / 评测 / 大厂官网）", co:"快手", role:"AI 虚拟人直播产品实习", city:"北京 · 海淀",
+   pay:"200-250/天", time:"4天/周 · 6个月", year:"", dl:"2026-12-30", pri:"low",
+   url:"https://www.shixiseng.com/intern/jy0z5hfgksm4",
+   why:"AI 虚拟人直播的功能设计与生成效果测评标准。",
+   note:"2 月发布的岗，非常旧，优先级放最后。"}
 ];
 
 const KEY = "sy-jobs-20261116";
@@ -213,7 +315,7 @@ function render(){
           <div class="co">${j.co}</div>
           <div class="role">${j.role}</div>
         </div>
-        <span class="pri ${j.pri === "high" ? "p-high" : "p-mid"}">${j.pri === "high" ? "高优先" : "可投"}</span>
+        <span class="pri ${j.pri === "high" ? "p-high" : "p-mid"}">${j.pri === "high" ? "高优先" : j.pri === "low" ? "靠后" : "可投"}</span>
       </div>
       <div class="tags">
         <span class="tag">${j.city}</span>
