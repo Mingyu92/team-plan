@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>投递清单 · 2026-11-16</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#fff; --ink:#1d1d1f; --sub:#6b6b70; --line:#e6e3dd;
+    --red:#b23a2e; --red-soft:#f7e9e6; --green:#2f6b4f; --green-soft:#e7f1ea;
+    --amber:#8a5a00; --amber-soft:#fbf0db; --blue:#2b5d8a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    padding-bottom:40px}
+  header{position:sticky;top:0;z-index:20;background:rgba(246,245,242,.94);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+  h1{margin:0;font-size:19px;letter-spacing:.2px}
+  h1 small{font-weight:400;color:var(--sub);font-size:12px;margin-left:8px}
+  .stats{display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--sub)}
+  .stats b{color:var(--ink);font-size:15px}
+  .filters{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:2px}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--sub);
+    border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  main{padding:14px 12px 0;max-width:760px;margin:0 auto}
+  .group{font-size:12px;letter-spacing:.08em;color:var(--sub);margin:14px 4px 8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px;margin-bottom:10px}
+  .card.done{opacity:.55}
+  .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .co{font-size:12px;color:var(--sub)}
+  .role{font-size:16px;font-weight:600;margin:2px 0 0;line-height:1.4}
+  .pri{flex:0 0 auto;font-size:11px;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .p-high{background:var(--red-soft);color:var(--red)}
+  .p-mid{background:var(--amber-soft);color:var(--amber)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+  .tag{font-size:12px;color:var(--sub);background:#f4f2ee;border-radius:6px;padding:2px 8px}
+  .tag.dl{background:var(--amber-soft);color:var(--amber)}
+  .tag.urgent{background:var(--red-soft);color:var(--red)}
+  .tag.year{background:var(--green-soft);color:var(--green)}
+  .why{font-size:13.5px;color:#3c3c40;margin:10px 0 0}
+  .why b{color:var(--ink)}
+  .note{font-size:12.5px;color:var(--amber);margin:6px 0 0}
+  .actions{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
+  .go{flex:1;min-width:120px;text-align:center;background:var(--ink);color:#fff;
+    text-decoration:none;border-radius:10px;padding:9px 12px;font-size:14px}
+  .st{display:flex;gap:4px}
+  .st button{border:1px solid var(--line);background:#fff;color:var(--sub);
+    border-radius:8px;padding:7px 9px;font-size:12px;cursor:pointer}
+  .st button.on{background:var(--green-soft);border-color:#bcd8c7;color:var(--green)}
+  footer{max-width:760px;margin:18px auto 0;padding:0 16px;color:var(--sub);font-size:12px}
+  @media print{header{position:static}.filters,.st,.go{display:none}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <h1>投递清单 <small>2026-11-16 · 共 17 个</small></h1>
+  <div class="stats">
+    <span><b id="s-total">17</b> 个岗位</span>
+    <span><b id="s-high">0</b> 个高优先</span>
+    <span><b id="s-week">0</b> 个两周内截止</span>
+    <span><b id="s-done">0</b> 已投</span>
+  </div>
+  <div class="filters">
+    <button class="chip on" data-f="all">全部</button>
+    <button class="chip" data-f="high">高优先</button>
+    <button class="chip" data-f="week">两周内截止</button>
+    <button class="chip" data-f="bj">北京</button>
+    <button class="chip" data-f="sh">上海</button>
+    <button class="chip" data-f="todo">未投</button>
+    <button class="chip" data-f="done">已投</button>
+  </div>
+</header>
+<main id="list"></main>
+<footer>
+  说明：数据来自实习僧，2026-11-16 抓取并逐条读过详情页。标记状态只存在这台设备的浏览器里。<br>
+  投递前统一口径：毕业时间 2028.06 · 到岗 2026 年 12 月上旬 · 每周 5 天 · 可实习 6 个月以上 · 期望城市北京。
+</footer>
+
+<script>
+const JOBS = [
+  // ---------- 昨天找到的 ----------
+  {id:"ks", day:"昨天 · 11-15", co:"快手", role:"AI产品经理实习", city:"北京 · 上地元中心",
+   pay:"200-250/天", time:"5天/周 · 6个月", year:"", dl:"2026-12-30", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_7uqmqlbraxiu",
+   why:"语音业务 AI 落地全流程，JD 明确要 <b>Prompt 工程 / 知识库 / 工作流拆解</b>。简历用快手版 v5。",
+   note:""},
+  {id:"noumena", day:"昨天 · 11-15", co:"Noumena 物自体", role:"AI产品经理实习（AI×Marketing）", city:"上海 · 徐汇",
+   pay:"200-300/天", time:"4天/周 · 6个月", year:"", dl:"2027-11-12", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_hofyrokagkkx",
+   why:"要的是「做成过什么」而不是写过多少 PRD，<b>必须附作品说明</b>（投递单第三节那段可以直接用）。",
+   note:"4 天/周，和北京那批的 5 天不一样，别填错。"},
+
+  // ---------- 今天新增 5 个 ----------
+  {id:"byte-jl", day:"今天 · 第一梯队", co:"字节跳动", role:"AI Agent 产品经理实习（巨量AI工作台）", city:"北京",
+   pay:"400-500/天", time:"5天/周 · 3个月", year:"2028届", dl:"2026-11-29", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_o006qzad2trf",
+   why:"JD 明确写 <b>2028 届</b>；企业营销主 Agent + 任务拆解/工具调用/工作流编排 + <b>效果评估体系</b>，和你的项目是同一件事。",
+   note:"截止 11-29，最紧的一个。"},
+  {id:"baidu-skill", day:"今天 · 第一梯队", co:"百度", role:"Agent 与 Skill 方向产品经理实习", city:"北京",
+   pay:"200-300/天", time:"5天/周 · 4个月", year:"2028届", dl:"2027-01-01", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_bqmip5qim3f0",
+   why:"明确 <b>2028 届</b>；Agent 评测体系（端到端 + 过程评测）+ Skill 能力接入生命周期，要求会 Python/大模型 API 做评测实验。",
+   note:"百度开了很多 AI 产品岗，投这一个就够。"},
+  {id:"jd-joyai", day:"今天 · 第一梯队", co:"京东科技", role:"JoyAI AI产品经理实习（JDY）", city:"北京 · 通州",
+   pay:"面议", time:"5天/周 · 3个月", year:"2028届", dl:"2027-10-15", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_9pyly0awm76x",
+   why:"JD 明确写 <b>2028 届</b>；需求分析、方案设计、数据跟进、竞品调研，是标准的 AI PM 日常活。",
+   note:"薪资面议，可能比字节百度低一档。"},
+  {id:"qifu", day:"今天 · 第一梯队", co:"奇富科技", role:"AI产品经理实习（评测 / Agent）", city:"北京",
+   pay:"200-250/天", time:"5天/周 · 6个月", year:"", dl:"2026-12-15", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_jj21c8xdaur9",
+   why:"金融场景<b>自动化评测体系</b> + 评测集 + badcase 归因，你的四类问题剔除口径能直接用。",
+   note:"11-09 刚刷新，12-15 截止。"},
+  {id:"meituan", day:"今天 · 第一梯队", co:"美团", role:"酒旅 AI Agent 产品实习", city:"北京",
+   pay:"200-250/天", time:"5天/周 · 4个月", year:"2027年及以后", dl:"2026-12-02", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_i4jvx2rhdhzr",
+   why:"主动监控 / 智能决策 / 委托执行三类 Agent 能力，0→1 参与，对话策略设计。",
+   note:"9 月刷新、挂了两个月，投前先确认没关。"},
+
+  // ---------- 再补 10 个 ----------
+  {id:"mi-video", day:"补充 · 10 个", co:"小米", role:"视频生成与视频 Agent 产品实习", city:"武汉 · 江岸区",
+   pay:"250-400/天", time:"5天/周 · 3个月", year:"", dl:"2027-03-05", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_zzaog0ljnlld",
+   why:"评测集 / Case / Badcase 归因 + 视频 Agent 工作流；<b>超级加分项直接点名 Claude Code / vibe coding</b>。",
+   note:"在武汉，长沙过去 3 小时高铁，是这批里唯一离学校近的。"},
+  {id:"mi-strategy", day:"补充 · 10 个", co:"小米", role:"大模型应用策略产品实习（小爱）", city:"北京 · 海淀",
+   pay:"250-400/天", time:"5天/周 · 3个月", year:"", dl:"2027-03-05", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_levhm5gx4pth",
+   why:"做<b>科学基准测试 + 自动评测能力</b>，覆盖知识与推理场景；JD 点名会用 Coze/Dify，本硕博均可。",
+   note:"11-03 刷新，很新。"},
+  {id:"baidu-oversea", day:"补充 · 10 个", co:"百度", role:"海外办公 Agent 产品实习", city:"北京 · 海淀",
+   pay:"200-300/天", time:"5天/周 · 4个月", year:"", dl:"2027-01-01", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_62pudiava8st",
+   why:"Agent 效果评估体系（评测集 + 打分标准 + 人工/自动评测流程），要 <b>Vibe Coding 作品或自建 Agent 经验</b>。",
+   note:"要求英语读写流畅；和「百度 Agent 与 Skill」同公司，二选一。"},
+  {id:"baidu-en", day:"补充 · 10 个", co:"百度", role:"英语/西语市场 AI 办公产品实习", city:"北京",
+   pay:"250-300/天", time:"4天/周 · 5个月", year:"", dl:"2027-01-01", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_ik2alahq0vk7",
+   why:"评估标准制定、评估集构造、自动化评估流程设计；<b>擅长用 Codex/Claude 的优先</b>。",
+   note:"4 天/周、5 个月；会西语优先（你不会，但没写必须）。"},
+  {id:"xhs-harness", day:"补充 · 10 个", co:"小红书", role:"AI产品策略（Agent / Skill / Harness）", city:"北京 · 朝阳",
+   pay:"面议", time:"5天/周 · 6个月", year:"", dl:"2027-10-10", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_7zt1uduc8rtj",
+   why:"全池唯一 JD 直接写 <b>Harness 工程框架</b> 的岗位，还有 Skill 体系、上下文工程、量化评估标准。",
+   note:"硬性要求<b>一周内到岗</b>，你 12 月上旬才到——投之前先问一句能不能等。"},
+  {id:"xhs-data", day:"补充 · 10 个", co:"小红书", role:"大模型数据产品实习", city:"北京 · 朝阳",
+   pay:"260-300/天", time:"5天/周 · 4个月", year:"27届及之后", dl:"2027-10-10", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_a6zhalc24n9k",
+   why:"大模型数据产品：需求洞察、PRD、效果评测与 badcase 迭代，和你的数据链路背景对口。",
+   note:"要求熟练 Figma/Axure 画原型——你目前没这项证据，投了要能接受被卡。"},
+  {id:"lenovo", day:"补充 · 10 个", co:"联想", role:"财务运营 AI 智能体实习", city:"北京 · 海淀",
+   pay:"150-180/天", time:"5天/周 · 6个月", year:"", dl:"2026-11-19", pri:"high",
+   url:"https://www.shixiseng.com/intern/inn_5r0t6qhpbtms",
+   why:"JD 里是 <b>Dify / Coze / n8n + Claude Code + MCP + 飞书多维表格自动化</b>——你日常用的就是这套。",
+   note:"截止 11-19（三天后），要投就今天投；150-180/天偏低。"},
+  {id:"sais", day:"补充 · 10 个", co:"上海科学智能研究院", role:"科学智能体评测框架实习", city:"上海 · 徐汇",
+   pay:"250-300/天", time:"5天/周 · 3个月", year:"", dl:"2027-06-02", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_57sxdafmdwa0",
+   why:"端到端科学智能体评测框架、系统级量化指标与测试集、LLM Reasoning 能力评估，和你硕士的研究方法最接近。",
+   note:"6 月发的岗，刷新很旧；可以投，回音概率要打折。"},
+  {id:"nio", day:"补充 · 10 个", co:"蔚来 NIO", role:"质量领域 AI 智能体实习", city:"上海 · 嘉定",
+   pay:"300/天", time:"5天/周 · 6个月", year:"", dl:"2027-01-17", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_dyfeahfncrnu",
+   why:"Prompt 设计 + 工作流编排 + 工具调用 + 模型测试评估；JD 也点名 Cursor/Claude Code。",
+   note:"偏算法实现，产品成分比前几个少；300/天在实习里不低。"},
+  {id:"lingchen", day:"补充 · 10 个", co:"灵尘科技", role:"大模型产品实习", city:"北京",
+   pay:"200-400/天", time:"5天/周 · 6个月", year:"", dl:"2026-12-13", pri:"mid",
+   url:"https://www.shixiseng.com/intern/inn_yagyerjblfms",
+   why:"市场/竞品调研 + 需求迭代 + <b>模型效果分析（召回率、精确率）</b>，是最像「评测型 PM」的小厂岗。",
+   note:"备注写「只要 25 和 26 届的本岗位有转正名额」——你 2028 届只能实习、无转正，不影响投。"}
+];
+
+const KEY = "sy-jobs-20261116";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { state = {}; }
+let filter = "all";
+
+const DAY = 86400000;
+function daysLeft(dl){
+  const t = new Date(dl + "T23:59:59").getTime() - Date.now();
+  return Math.ceil(t / DAY);
+}
+function dlTag(j){
+  const n = daysLeft(j.dl);
+  if (n < 0) return `<span class="tag dl">已过截止 ${j.dl}</span>`;
+  const cls = n <= 14 ? "tag urgent" : "tag dl";
+  return `<span class="${cls}">${n === 0 ? "今天截止" : "剩 " + n + " 天"} · ${j.dl}</span>`;
+}
+function statusOf(id){ return state[id] || ""; }
+function matches(j){
+  const s = statusOf(j.id);
+  if (filter === "high") return j.pri === "high";
+  if (filter === "week") { const n = daysLeft(j.dl); return n >= 0 && n <= 14; }
+  if (filter === "bj") return j.city.startsWith("北京");
+  if (filter === "sh") return j.city.startsWith("上海");
+  if (filter === "todo") return s !== "done";
+  if (filter === "done") return s === "done";
+  return true;
+}
+function render(){
+  const list = document.getElementById("list");
+  const jobs = JOBS.filter(matches);
+  let html = "", lastDay = "";
+  for (const j of jobs){
+    if (j.day !== lastDay){ html += `<div class="group">${j.day}</div>`; lastDay = j.day; }
+    const s = statusOf(j.id);
+    html += `<div class="card ${s === "done" ? "done" : ""}">
+      <div class="top">
+        <div>
+          <div class="co">${j.co}</div>
+          <div class="role">${j.role}</div>
+        </div>
+        <span class="pri ${j.pri === "high" ? "p-high" : "p-mid"}">${j.pri === "high" ? "高优先" : "可投"}</span>
+      </div>
+      <div class="tags">
+        <span class="tag">${j.city}</span>
+        <span class="tag">${j.pay}</span>
+        <span class="tag">${j.time}</span>
+        ${j.year ? `<span class="tag year">${j.year}</span>` : ""}
+        ${dlTag(j)}
+      </div>
+      <div class="why">${j.why}</div>
+      ${j.note ? `<div class="note">⚠ ${j.note}</div>` : ""}
+      <div class="actions">
+        <a class="go" href="${j.url}" target="_blank" rel="noopener">打开岗位</a>
+        <div class="st">
+          <button data-id="${j.id}" data-v="done" class="${s === "done" ? "on" : ""}">已投</button>
+          <button data-id="${j.id}" data-v="interview" class="${s === "interview" ? "on" : ""}">面试</button>
+          <button data-id="${j.id}" data-v="reject" class="${s === "reject" ? "on" : ""}">已挂</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  list.innerHTML = html || `<div class="card">这个筛选下没有岗位。</div>`;
+  document.querySelectorAll(".st button").forEach(b => {
+    b.onclick = () => {
+      const {id, v} = b.dataset;
+      state[id] = (state[id] === v) ? "" : v;
+      localStorage.setItem(KEY, JSON.stringify(state));
+      render(); updateStats();
+    };
+  });
+  updateStats();
+}
+function updateStats(){
+  document.getElementById("s-total").textContent = JOBS.length;
+  document.getElementById("s-high").textContent = JOBS.filter(j => j.pri === "high").length;
+  document.getElementById("s-week").textContent = JOBS.filter(j => { const n = daysLeft(j.dl); return n >= 0 && n <= 14; }).length;
+  document.getElementById("s-done").textContent = JOBS.filter(j => statusOf(j.id) === "done").length;
+}
+document.querySelectorAll(".chip").forEach(c => {
+  c.onclick = () => {
+    document.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on");
+    filter = c.dataset.f;
+    render();
+  };
+});
+render();
+</script>
+</body>
+</html>
